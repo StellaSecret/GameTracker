@@ -10,6 +10,10 @@ import 'screens/players_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Firebase is initialized here when you add google-services.json.
+  // Uncomment the line below after configuring Firebase:
+  // await Firebase.initializeApp();
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,

@@ -1,4 +1,3 @@
-// lib/screens/games_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +8,8 @@ import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
 import 'game_detail_screen.dart';
 import 'add_game_screen.dart';
+import 'paywall_screen.dart';
+import 'group_screen.dart';
 
 class GamesScreen extends StatefulWidget {
   const GamesScreen({super.key});
@@ -31,29 +32,39 @@ class _GamesScreenState extends State<GamesScreen> {
       appBar: AppBar(
         title: const Text('🎲 GameTracker'),
         actions: [
+          // Group sync badge (premium)
+          if (state.isInGroup)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(Icons.wifi_tethering_rounded,
+                  color: AppColors.primary, size: 20),
+            ),
+          IconButton(
+            icon: const Icon(Icons.group_rounded),
+            tooltip: 'Groupes',
+            onPressed: () => _openGroups(context, state),
+          ),
           IconButton(
             icon: const Icon(Icons.sync_rounded),
-            tooltip: 'Sync Google Drive',
+            tooltip: 'Sync Drive',
             onPressed: () => _showSyncSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.people_alt_rounded),
             tooltip: 'Joueurs',
-            onPressed: () =>
-                Navigator.pushNamed(context, '/players'),
+            onPressed: () => Navigator.pushNamed(context, '/players'),
           ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               onChanged: (v) => setState(() => _search = v),
               decoration: const InputDecoration(
                 hintText: 'Rechercher un jeu…',
-                prefixIcon: Icon(Icons.search_rounded,
-                    color: AppColors.textSecondary),
+                prefixIcon:
+                    Icon(Icons.search_rounded, color: AppColors.textSecondary),
                 isDense: true,
               ),
             ),
@@ -62,32 +73,73 @@ class _GamesScreenState extends State<GamesScreen> {
       ),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : games.isEmpty
-              ? GTEmptyState(
-                  emoji: _search.isEmpty ? '🎲' : '🔍',
-                  title: _search.isEmpty
-                      ? 'Aucun jeu encore'
-                      : 'Aucun résultat',
-                  subtitle: _search.isEmpty
-                      ? 'Ajoutez votre premier jeu avec le bouton +'
-                      : 'Essayez un autre terme',
-                )
-              : _buildGamesList(games, state),
+          : Column(
+              children: [
+                // Sync message banner
+                if (state.syncMessage != null)
+                  _SyncBanner(message: state.syncMessage!),
+                // Free plan indicator
+                if (!state.entitlement.isPremium)
+                  _FreeBanner(state: state),
+                Expanded(
+                  child: games.isEmpty
+                      ? GTEmptyState(
+                          emoji: _search.isEmpty ? '🎲' : '🔍',
+                          title: _search.isEmpty
+                              ? 'Aucun jeu encore'
+                              : 'Aucun résultat',
+                          subtitle: _search.isEmpty
+                              ? 'Ajoutez votre premier jeu avec le bouton +'
+                              : 'Essayez un autre terme',
+                        )
+                      : _buildGamesList(games, state),
+                ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddGameScreen()),
-          );
-        },
+        onPressed: () => _addGame(context, state),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Nouveau jeu'),
       ),
     );
   }
 
+  void _addGame(BuildContext context, AppState state) {
+    final error = state.canAddGame();
+    if (error != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PaywallScreen(reason: error),
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddGameScreen()),
+    );
+  }
+
+  void _openGroups(BuildContext context, AppState state) {
+    if (!state.entitlement.canUseGroupSync) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const PaywallScreen(
+            reason: 'Les groupes temps réel sont une fonctionnalité Premium.',
+          ),
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const GroupScreen()),
+    );
+  }
+
   Widget _buildGamesList(List<Game> games, AppState state) {
-    // Group by first letter
     final Map<String, List<Game>> grouped = {};
     for (final game in games) {
       final letter = game.name[0].toUpperCase();
@@ -143,9 +195,72 @@ class _GamesScreenState extends State<GamesScreen> {
   }
 }
 
+// ── Free plan banner ──────────────────────────────────────────────────────────
+
+class _FreeBanner extends StatelessWidget {
+  final AppState state;
+  const _FreeBanner({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final gameCount = state.games.length;
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PaywallScreen()),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: AppColors.primary.withOpacity(0.08),
+        child: Row(
+          children: [
+            const Icon(Icons.star_border_rounded,
+                color: AppColors.primary, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Plan gratuit · $gameCount/${state.entitlement.isPremium ? '∞' : '5'} jeux',
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.primary),
+              ),
+            ),
+            const Text('Passer à Premium →',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Sync message banner ───────────────────────────────────────────────────────
+
+class _SyncBanner extends StatelessWidget {
+  final String message;
+  const _SyncBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: AppColors.surfaceElevated,
+      child: Text(message,
+          style: const TextStyle(
+              fontSize: 12, color: AppColors.textSecondary)),
+    );
+  }
+}
+
+// ── Game card (unchanged logic) ───────────────────────────────────────────────
+
 class _GameCard extends StatelessWidget {
   final Game game;
-
   const _GameCard({required this.game});
 
   @override
@@ -157,11 +272,11 @@ class _GameCard extends StatelessWidget {
     return GTCard(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => GameDetailScreen(gameId: game.id)),
+        MaterialPageRoute(
+            builder: (_) => GameDetailScreen(gameId: game.id)),
       ),
       child: Row(
         children: [
-          // Emoji / icon
           Container(
             width: 52,
             height: 52,
@@ -178,7 +293,6 @@ class _GameCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          // Name + info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,9 +318,7 @@ class _GameCard extends StatelessWidget {
                     Text(
                       '$sessionCount partie${sessionCount != 1 ? 's' : ''}',
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -232,6 +344,8 @@ class _GameCard extends StatelessWidget {
   }
 }
 
+// ── Drive sync sheet (free backup) ───────────────────────────────────────────
+
 class _SyncSheet extends StatefulWidget {
   const _SyncSheet();
 
@@ -242,7 +356,6 @@ class _SyncSheet extends StatefulWidget {
 class _SyncSheetState extends State<_SyncSheet> {
   bool _loading = false;
   String? _msg;
-  final _emailCtrl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -261,30 +374,34 @@ class _SyncSheetState extends State<_SyncSheet> {
             children: [
               const Text('☁️', style: TextStyle(fontSize: 24)),
               const SizedBox(width: 8),
-              const Text(
-                'Google Drive',
-                style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w700),
-              ),
+              const Text('Google Drive',
+                  style: TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w700)),
               const Spacer(),
               if (isSignedIn)
-                GTBadge(
-                    label: 'Connecté', color: AppColors.success, emoji: '✓'),
+                const GTBadge(
+                    label: 'Connecté',
+                    color: AppColors.success,
+                    emoji: '✓'),
             ],
           ),
+          const SizedBox(height: 6),
+          const Text(
+            'Sauvegarde manuelle de vos données (plan gratuit & premium).',
+            style:
+                TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
           const SizedBox(height: 16),
-          if (!isSignedIn) ...[
+          if (!isSignedIn)
             ElevatedButton.icon(
               onPressed: _loading ? null : () => _signIn(state),
               icon: const Icon(Icons.login_rounded),
               label: const Text('Se connecter avec Google'),
-            ),
-          ] else ...[
-            Text(
-              user?.email ?? '',
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13),
-            ),
+            )
+          else ...[
+            Text(user?.email ?? '',
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13)),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -292,7 +409,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _upload(state),
                     icon: const Icon(Icons.cloud_upload_rounded),
-                    label: const Text('Envoyer'),
+                    label: const Text('Sauvegarder'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
@@ -304,7 +421,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _download(state),
                     icon: const Icon(Icons.cloud_download_rounded),
-                    label: const Text('Récupérer'),
+                    label: const Text('Restaurer'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.accent,
                       side: const BorderSide(color: AppColors.accent),
@@ -313,43 +430,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 12),
-            const Text(
-              'PARTAGER AVEC',
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 1),
-            ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _emailCtrl,
-                    decoration: const InputDecoration(
-                        hintText: 'email@exemple.com',
-                        isDense: true),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: _loading ? null : () => _share(state),
-                  icon: const Icon(Icons.share_rounded,
-                      color: AppColors.primary),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.primary.withOpacity(0.15),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
             TextButton.icon(
               onPressed: () async {
                 await state.driveService.signOut();
@@ -357,8 +438,8 @@ class _SyncSheetState extends State<_SyncSheet> {
               },
               icon: const Icon(Icons.logout_rounded),
               label: const Text('Se déconnecter'),
-              style: TextButton.styleFrom(
-                  foregroundColor: AppColors.error),
+              style:
+                  TextButton.styleFrom(foregroundColor: AppColors.error),
             ),
           ],
           if (_msg != null) ...[
@@ -425,23 +506,9 @@ class _SyncSheetState extends State<_SyncSheet> {
     final ok = await state.syncFromDrive();
     setState(() {
       _loading = false;
-      _msg = ok ? '✓ Données importées.' : '✗ Aucune donnée ou erreur.';
+      _msg = ok
+          ? '✓ Données restaurées et fusionnées.'
+          : '✗ Aucune donnée ou erreur.';
     });
-  }
-
-  Future<void> _share(AppState state) async {
-    final email = _emailCtrl.text.trim();
-    if (email.isEmpty) return;
-    setState(() {
-      _loading = true;
-      _msg = 'Partage avec $email…';
-    });
-    final ok = await state.driveService.shareWith(email);
-    setState(() {
-      _loading = false;
-      _msg =
-          ok ? '✓ Partagé avec $email.' : '✗ Erreur lors du partage.';
-    });
-    _emailCtrl.clear();
   }
 }

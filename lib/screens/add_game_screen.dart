@@ -173,6 +173,14 @@ class _AddGameScreenState extends State<AddGameScreen> {
   }
 
   Future<void> _save() async {
+    if (widget.existing == null) {
+      final state = context.read<AppState>();
+      final error = state.canAddGame();
+      if (error != null && mounted) {
+        Navigator.pop(context);
+        return;
+      }
+    }
     if (!_formKey.currentState!.validate()) return;
     final state = context.read<AppState>();
     if (widget.existing != null) {

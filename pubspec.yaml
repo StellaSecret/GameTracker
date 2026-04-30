@@ -1,5 +1,5 @@
 name: game_tracker
-description: Track your board game scores with Google Drive sync.
+description: Track your board game scores — solo, with friends, or in real-time groups.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   # UI
   cupertino_icons: ^1.0.6
   google_fonts: ^6.2.1
@@ -20,14 +21,21 @@ dependencies:
 
   # Local storage
   shared_preferences: ^2.2.3
-  sqflite: ^2.3.3+1
   path: ^1.9.0
 
-  # Google Drive / Auth
+  # Google Drive / Auth (backup gratuit)
   google_sign_in: ^6.2.1
   googleapis: ^13.2.0
   http: ^1.2.1
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
+
+  # Firebase / Firestore (sync temps réel premium)
+  firebase_core: ^3.3.0
+  firebase_auth: ^5.1.4
+  cloud_firestore: ^5.2.1
+
+  # In-app purchases (freemium)
+  purchases_flutter: ^8.0.0
 
   # Utils
   uuid: ^4.4.0
