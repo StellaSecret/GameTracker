@@ -1,33 +1,17 @@
-// lib/services/group_service.dart
-//
-// Manages real-time shared groups via Cloud Firestore (premium feature).
-//
-// Data model:
-//   /groups/{groupId}
-//     name          : string
-//     createdBy     : uid
-//     members       : [uid, ...]
-//     memberEmails  : [email, ...]
-//     createdAt     : timestamp
-//     data          : { games:[...], players:[...], lastModified:... }
-//
-// We store the full AppData as a single Firestore document.
-// Fine for personal use / small groups. If the document ever approaches 1 MB,
-// migrate sessions to a sub-collection.
-
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/app_data.dart';
-
+ 
 class GroupInfo {
   final String id;
   final String name;
   final String createdBy;
   final List<String> memberEmails;
   final DateTime createdAt;
-
+ 
   const GroupInfo({
     required this.id,
     required this.name,
@@ -35,7 +19,7 @@ class GroupInfo {
     required this.memberEmails,
     required this.createdAt,
   });
-
+ 
   factory GroupInfo.fromDoc(DocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
     return GroupInfo(
@@ -47,22 +31,23 @@ class GroupInfo {
     );
   }
 }
-
+ 
 class GroupService {
-  final _db = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
-  final _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-  );
-
-  User? get currentUser => _auth.currentUser;
-  bool get isSignedIn => currentUser != null;
+  // Lazy getters so Firestore/Auth are never accessed on web at construction time.
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
+  FirebaseAuth get _auth => FirebaseAuth.instance;
+ 
+  final _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+ 
+  User? get currentUser => kIsWeb ? null : _auth.currentUser;
+  bool get isSignedIn => !kIsWeb && currentUser != null;
   String? get userEmail => currentUser?.email;
   String? get displayName => currentUser?.displayName;
-
+ 
   // ── Auth ──────────────────────────────────────────────────────────────────
-
+ 
   Future<bool> signIn() async {
+    if (kIsWeb) return false;
     try {
       final account = await _googleSignIn.signIn();
       if (account == null) return false;
@@ -77,8 +62,9 @@ class GroupService {
       return false;
     }
   }
-
+ 
   Future<bool> signInSilently() async {
+    if (kIsWeb) return false;
     try {
       final account = await _googleSignIn.signInSilently();
       if (account == null) return _auth.currentUser != null;
@@ -93,16 +79,17 @@ class GroupService {
       return false;
     }
   }
-
+ 
   Future<void> signOut() async {
+    if (kIsWeb) return;
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
-
+ 
   // ── Groups ────────────────────────────────────────────────────────────────
-
-  /// Creates a new group seeded with [initialData]. Returns the new group id.
+ 
   Future<String?> createGroup(String name, AppData initialData) async {
+    if (kIsWeb) return null;
     final uid = currentUser?.uid;
     final email = currentUser?.email;
     if (uid == null) return null;
@@ -121,9 +108,9 @@ class GroupService {
       return null;
     }
   }
-
-  /// Invite a user by email. They can access the group once they sign in.
+ 
   Future<bool> inviteMember(String groupId, String email) async {
+    if (kIsWeb) return false;
     try {
       await _db.collection('groups').doc(groupId).update({
         'memberEmails': FieldValue.arrayUnion([email.trim().toLowerCase()]),
@@ -133,9 +120,9 @@ class GroupService {
       return false;
     }
   }
-
-  /// Streams the list of groups the signed-in user is a member of.
+ 
   Stream<List<GroupInfo>> watchMyGroups() {
+    if (kIsWeb) return const Stream.empty();
     final email = currentUser?.email?.toLowerCase();
     if (email == null) return const Stream.empty();
     return _db
@@ -145,14 +132,10 @@ class GroupService {
         .snapshots()
         .map((s) => s.docs.map(GroupInfo.fromDoc).toList());
   }
-
-  /// Streams the AppData for a given group.
+ 
   Stream<AppData?> watchGroupData(String groupId) {
-    return _db
-        .collection('groups')
-        .doc(groupId)
-        .snapshots()
-        .map((doc) {
+    if (kIsWeb) return const Stream.empty();
+    return _db.collection('groups').doc(groupId).snapshots().map((doc) {
       if (!doc.exists) return null;
       final raw = (doc.data() as Map<String, dynamic>)['data'];
       if (raw == null) return null;
@@ -166,9 +149,9 @@ class GroupService {
       }
     });
   }
-
-  /// Pushes the local AppData to a group document.
+ 
   Future<bool> pushGroupData(String groupId, AppData data) async {
+    if (kIsWeb) return false;
     try {
       await _db.collection('groups').doc(groupId).update({
         'data': data.toJson(),
@@ -179,9 +162,9 @@ class GroupService {
       return false;
     }
   }
-
-  /// Leaves (removes self from) a group.
+ 
   Future<void> leaveGroup(String groupId) async {
+    if (kIsWeb) return;
     final uid = currentUser?.uid;
     final email = currentUser?.email?.toLowerCase();
     if (uid == null) return;
