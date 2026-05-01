@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ─── Build APK ────────────────────────────────────────────────────────────
-  build-apk:
-    name: 🤖 Build Android APK
+  # ─── Job 1 : Build ────────────────────────────────────────────────────────
+  build:
+    name: 🤖 Build Android + Web
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,61 +38,114 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos || true
 
-      # ── Debug APK (always built) ──────────────────────────────────────────
-      - name: Build debug APK
-        run: flutter build apk --debug
-
-      # ── Release APK (only when keystore secrets are set) ─────────────────
+      # ── Keystore ────────────────────────────────────────────────────────────
       - name: Decode keystore
-        if: ${{ github.event_name != 'pull_request' && env.KEYSTORE_BASE64 != '' }}
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > android/app/keystore.jks
-          cat > android/key.properties <<EOF
+          cat > android/key.properties << PROPS
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=keystore.jks
-          EOF
+          PROPS
 
-      - name: Build release APK
-        if: ${{ github.event_name != 'pull_request' && env.KEYSTORE_BASE64 != '' }}
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: flutter build apk --release --split-per-abi
+      - name: Set versionCode
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          echo "versionCode → ${{ github.run_number }}"
 
-      # ── Upload artifacts ──────────────────────────────────────────────────
+      # ── APK arm64 seulement (sideload / tests) ──────────────────────────────
+      - name: Build APK arm64-v8a release
+        if: ${{ github.event_name != 'pull_request' }}
+        run: flutter build apk --release --target-platform android-arm64
+
+      # ── AAB universel (Play Store) ──────────────────────────────────────────
+      - name: Build AAB release
+        if: ${{ github.event_name != 'pull_request' }}
+        run: flutter build appbundle --release
+
+      # ── Debug APK (PR et branches) ──────────────────────────────────────────
+      - name: Build debug APK
+        if: ${{ github.event_name == 'pull_request' }}
+        run: flutter build apk --debug
+
+      # ── Collect artifacts ───────────────────────────────────────────────────
+      - name: Collect artifacts
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             dist/gametracker-${{ github.run_number }}-arm64.apk
+          cp build/app/outputs/bundle/release/app-release.aab \
+             dist/gametracker-${{ github.run_number }}.aab
+
       - name: Upload debug APK
+        if: ${{ github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4
         with:
-          name: GameTracker-debug
+          name: GameTracker-debug-${{ github.run_number }}
           path: build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 30
+          retention-days: 7
 
-      - name: Upload release APKs
-        if: ${{ github.event_name != 'pull_request' && env.KEYSTORE_BASE64 != '' }}
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      - name: Upload release artifacts
+        if: ${{ github.event_name != 'pull_request' }}
         uses: actions/upload-artifact@v4
         with:
-          name: GameTracker-release
-          path: build/app/outputs/flutter-apk/app-*-release.apk
-          retention-days: 90
+          name: GameTracker-release-${{ github.run_number }}
+          path: dist/
+          retention-days: 1
 
-      # ── Create GitHub Release on tag ──────────────────────────────────────
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
+  # ─── Job 2 : Release GitHub ───────────────────────────────────────────────
+  release:
+    name: 🚀 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event_name != 'pull_request' }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          files: build/app/outputs/flutter-apk/app-*-release.apk
-          generate_release_notes: true
+          name: GameTracker-release-${{ github.run_number }}
+          path: dist/
 
-  # ─── Build & Deploy Web (GitHub Pages) ───────────────────────────────────
+      - name: List artifacts
+        run: ls -la dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: "GameTracker build #${{ github.run_number }}"
+          body: |
+            Build #${{ github.run_number }} — commit `${{ github.sha }}`
+
+            ### Installation directe (Android)
+            📱 **gametracker-${{ github.run_number }}-arm64.apk** → appareils récents arm64 (2015+)
+
+            > Active *Sources inconnues* dans les paramètres Android, puis lance l'APK.
+
+            ### Play Store
+            📦 **gametracker-${{ github.run_number }}.aab** → à uploader dans la Google Play Console
+          files: |
+            dist/gametracker-${{ github.run_number }}-arm64.apk
+            dist/gametracker-${{ github.run_number }}.aab
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── Job 3 : Deploy Web (GitHub Pages) ───────────────────────────────────
   deploy-web:
     name: 🌐 Deploy GitHub Pages
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     permissions:
       contents: read
       pages: write
