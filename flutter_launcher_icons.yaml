@@ -1,0 +1,17 @@
+# flutter_launcher_icons.yaml
+flutter_launcher_icons:
+  android: true
+  ios: false          # ← désactivé, pas de dossier ios/ dans le projet
+ 
+  image_path: "assets/icon/icon.png"
+ 
+  # Adaptive icon Android (API 26+) — évite le "blanc autour"
+  adaptive_icon_background: "#0F0F1A"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+ 
+  # Web
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#0F0F1A"
+    theme_color: "#6C63FF"
