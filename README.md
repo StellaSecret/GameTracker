@@ -55,7 +55,7 @@ flutter run
 
 1. APIs & Services → **Credentials** → Create Credentials → **OAuth 2.0 Client ID**
 2. Application type : **Android**
-3. Package name : `com.example.game_tracker` *(ou le vôtre dans `build.gradle`)*
+3. Package name : `com.stellasecret.gametracker` *(ou le vôtre dans `build.gradle`)*
 4. SHA-1 fingerprint : obtenez-le avec :
    ```bash
    # Debug (développement)

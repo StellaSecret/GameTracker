@@ -12,7 +12,7 @@ pour activer les fonctionnalités premium et la sync Drive.
 1. [console.cloud.google.com](https://console.cloud.google.com/) → nouveau projet `GameTracker`
 2. Activer **Google Drive API** et **Google Sign-In API**
 3. APIs & Services → Credentials → OAuth 2.0 Client ID
-   - Type : **Android**, package : `com.example.game_tracker`
+   - Type : **Android**, package : `com.stellasecret.gametracker`
    - SHA-1 : `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android`
 4. Télécharger `google-services.json` → placer dans `android/app/`
 

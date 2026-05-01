@@ -38,7 +38,17 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos || true
 
-      # ── Keystore ────────────────────────────────────────────────────────────
+      # ── Secrets ─────────────────────────────────────────────────────────────
+      - name: Write google-services.json
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          python3 -c "import json; json.load(open('android/app/google-services.json'))" \
+            && echo "✓ google-services.json valide" \
+            || { echo "✗ google-services.json invalide"; exit 1; }
+
       - name: Decode keystore
         if: ${{ github.event_name != 'pull_request' }}
         env:
@@ -58,22 +68,20 @@ jobs:
           sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/" android/app/build.gradle
           echo "versionCode → ${{ github.run_number }}"
 
-      # ── APK arm64 seulement (sideload / tests) ──────────────────────────────
+      # ── Android builds ───────────────────────────────────────────────────────
       - name: Build APK arm64-v8a release
         if: ${{ github.event_name != 'pull_request' }}
         run: flutter build apk --release --target-platform android-arm64
 
-      # ── AAB universel (Play Store) ──────────────────────────────────────────
       - name: Build AAB release
         if: ${{ github.event_name != 'pull_request' }}
         run: flutter build appbundle --release
 
-      # ── Debug APK (PR et branches) ──────────────────────────────────────────
-      - name: Build debug APK
+      - name: Build debug APK (PR)
         if: ${{ github.event_name == 'pull_request' }}
         run: flutter build apk --debug
 
-      # ── Collect artifacts ───────────────────────────────────────────────────
+      # ── Collect Android artifacts ────────────────────────────────────────────
       - name: Collect artifacts
         if: ${{ github.event_name != 'pull_request' }}
         run: |
@@ -97,6 +105,24 @@ jobs:
         with:
           name: GameTracker-release-${{ github.run_number }}
           path: dist/
+          retention-days: 1
+
+      # ── Web build ────────────────────────────────────────────────────────────
+      - name: Inject Google Web Client ID
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          sed -i 's|%%GOOGLE_WEB_CLIENT_ID%%|${{ secrets.GOOGLE_WEB_CLIENT_ID }}|g' web/index.html
+
+      - name: Build web
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: flutter build web --base-href "/GameTracker/" --release
+
+      - name: Upload web artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: GameTracker-web-${{ github.run_number }}
+          path: build/web/
           retention-days: 1
 
   # ─── Job 2 : Release GitHub ───────────────────────────────────────────────
@@ -154,21 +180,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - name: Download web artifact
+        uses: actions/download-artifact@v4
         with:
-          flutter-version: '3.22.x'
-          channel: stable
-          cache: true
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Build web
-        run: flutter build web --base-href "/GameTracker/" --release
+          name: GameTracker-web-${{ github.run_number }}
+          path: build/web/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

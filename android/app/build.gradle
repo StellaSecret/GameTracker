@@ -15,6 +15,7 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+apply plugin: 'com.google.gms.google-services'
 
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
@@ -23,7 +24,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.example.game_tracker"
+    namespace "com.stellasecret.gametracker"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -39,12 +40,16 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.game_tracker"
+        applicationId "com.stellasecret.gametracker"
         minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+
+        // Google OAuth Client ID — injecté par CI via -PGOOGLE_CLIENT_ID=...
+        // Vide pour les builds locaux sans credentials (Drive désactivé)
+        resValue "string", "google_client_id", project.findProperty("GOOGLE_CLIENT_ID") ?: ""
     }
 
     signingConfigs {

@@ -1,4 +1,4 @@
-package com.example.game_tracker
+package com.stellasecret.gametracker
 
 import io.flutter.embedding.android.FlutterActivity
 
