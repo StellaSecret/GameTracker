@@ -1,4 +1,3 @@
-// lib/screens/game_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
@@ -22,9 +21,8 @@ class GameDetailScreen extends StatelessWidget {
     final game = state.findGame(gameId);
     if (game == null) return const SizedBox.shrink();
 
-    final sessions =
-        List<GameSession>.from(game.sessions)
-          ..sort((a, b) => b.playedAt.compareTo(a.playedAt));
+    final sessions = List<GameSession>.from(game.sessions)
+      ..sort((a, b) => b.playedAt.compareTo(a.playedAt));
 
     return Scaffold(
       appBar: AppBar(
@@ -36,8 +34,7 @@ class GameDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.edit_rounded),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => AddGameScreen(existing: game)),
+              MaterialPageRoute(builder: (_) => AddGameScreen(existing: game)),
             ),
           ),
         ],
@@ -63,8 +60,7 @@ class GameDetailScreen extends StatelessWidget {
                     trailing: sessions.isEmpty
                         ? null
                         : TextButton(
-                            onPressed: () =>
-                                _addSession(context, game),
+                            onPressed: () => _addSession(context, game),
                             child: const Text('+ Ajouter'),
                           ),
                   ),
@@ -95,7 +91,8 @@ class GameDetailScreen extends StatelessWidget {
                     child: _SessionCard(
                       session: sessions[i],
                       game: game,
-                    ).animate(delay: Duration(milliseconds: i * 30))
+                    )
+                        .animate(delay: Duration(milliseconds: i * 30))
                         .fadeIn(duration: 250.ms),
                   ),
                   childCount: sessions.length,
@@ -134,16 +131,15 @@ class GameDetailScreen extends StatelessWidget {
 
   List<Widget> _buildLeaderboard(
       Map<String, int> wins, Game game, AppState state) {
-    final sorted =
-        wins.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sorted = wins.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
     final records = game.recordsByPlayer;
-    final totals = game.totalPointsByPlayer;
 
     return sorted.asMap().entries.map((entry) {
       final rank = entry.key;
       final e = entry.value;
       final player = state.findPlayer(e.key);
-      final name = player?.name ?? 'Inconnu';
+      final name = player?.name ?? 'Joueur supprimé';
       final color = rank == 0
           ? const Color(0xFFFFD700)
           : rank == 1
@@ -173,9 +169,7 @@ class GameDetailScreen extends StatelessWidget {
             Expanded(
               child: Text(name,
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  )),
+                      fontWeight: FontWeight.w600, color: color)),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -209,6 +203,8 @@ class GameDetailScreen extends StatelessWidget {
   }
 }
 
+// ── Session Card ──────────────────────────────────────────────────────────────
+
 class _SessionCard extends StatelessWidget {
   final GameSession session;
   final Game game;
@@ -218,7 +214,14 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.read<AppState>();
-    final fmt = DateFormat('d MMM y – HH:mm', 'fr_FR');
+    // Fallback vers format sans locale si intl pas dispo
+    String dateStr;
+    try {
+      final fmt = DateFormat('d MMM y – HH:mm', 'fr_FR');
+      dateStr = fmt.format(session.playedAt);
+    } catch (_) {
+      dateStr = '${session.playedAt.day}/${session.playedAt.month}/${session.playedAt.year}';
+    }
 
     return GTCard(
       child: Column(
@@ -226,19 +229,28 @@ class _SessionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
-                fmt.format(session.playedAt),
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary),
-              ),
+              Text(dateStr,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary)),
               const Spacer(),
+              // Bouton éditer
+              IconButton(
+                icon: const Icon(Icons.edit_outlined,
+                    size: 18, color: AppColors.textSecondary),
+                onPressed: () => _editSession(context, game),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: 'Modifier',
+              ),
+              const SizedBox(width: 12),
+              // Bouton supprimer
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded,
                     size: 18, color: AppColors.textSecondary),
-                onPressed: () =>
-                    _confirmDelete(context, state),
+                onPressed: () => _confirmDelete(context, state),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
+                tooltip: 'Supprimer',
               ),
             ],
           ),
@@ -267,7 +279,7 @@ class _SessionCard extends StatelessWidget {
 
     return sorted.map((e) {
       final player = state.findPlayer(e.key);
-      final name = player?.name ?? 'Inconnu';
+      final name = player?.name ?? 'Joueur supprimé';
       final isWinner = session.winner == e.key;
 
       String scoreText;
@@ -280,8 +292,7 @@ class _SessionCard extends StatelessWidget {
           break;
         case GameMode.ranking:
           scoreText = _ordinal(e.value);
-          scoreColor =
-              e.value == 1 ? const Color(0xFFFFD700) : null;
+          scoreColor = e.value == 1 ? const Color(0xFFFFD700) : null;
           break;
         case GameMode.duel:
           final result = DuelResult.values[e.value];
@@ -325,18 +336,26 @@ class _SessionCard extends StatelessWidget {
     }).toList();
   }
 
-  String _ordinal(int n) {
-    if (n == 1) return '1er';
-    return '${n}ème';
+  String _ordinal(int n) => n == 1 ? '1er' : '${n}ème';
+
+  void _editSession(BuildContext context, Game game) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddSessionScreen(game: game, existing: session),
+      ),
+    );
   }
 
-  Future<void> _confirmDelete(
-      BuildContext context, AppState state) async {
+  Future<void> _confirmDelete(BuildContext context, AppState state) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: const Text('Supprimer cette partie ?'),
+        content: const Text(
+            'Cette action est irréversible.',
+            style: TextStyle(color: AppColors.textSecondary)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),

@@ -11,7 +11,8 @@ import 'paywall_screen.dart';
 
 class AddSessionScreen extends StatefulWidget {
   final Game game;
-  const AddSessionScreen({super.key, required this.game});
+  final GameSession? existing; // null = nouvelle partie, non-null = édition
+  const AddSessionScreen({super.key, required this.game, this.existing});
 
   @override
   State<AddSessionScreen> createState() => _AddSessionScreenState();
@@ -24,6 +25,26 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   final Map<String, DuelResult> _duelResults = {};
   final Map<String, int> _ranks = {};
   final Set<String> _selectedPlayerIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    final s = widget.existing;
+    if (s == null) return;
+    // Pre-fill fields from existing session
+    _playedAt = s.playedAt;
+    _notesCtrl.text = s.notes ?? '';
+    for (final entry in s.scores.entries) {
+      _selectedPlayerIds.add(entry.key);
+      if (s.mode == GameMode.points) {
+        _scoreCtrl[entry.key] = TextEditingController(text: '${entry.value}');
+      } else if (s.mode == GameMode.duel) {
+        _duelResults[entry.key] = DuelResult.values[entry.value];
+      } else if (s.mode == GameMode.ranking) {
+        _ranks[entry.key] = entry.value;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -130,7 +151,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
                 ElevatedButton(
                   onPressed: _canSave() ? _save : null,
-                  child: const Text('Enregistrer la partie'),
+                  child: Text(widget.existing != null ? 'Mettre à jour' : 'Enregistrer la partie'),
                 ),
               ],
             ),
@@ -296,6 +317,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
   Future<void> _save() async {
     final state = context.read<AppState>();
+    final isEdit = widget.existing != null;
     final Map<String, int> scores = {};
     switch (widget.game.mode) {
       case GameMode.points:
@@ -314,13 +336,25 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         }
         break;
     }
-    final session = GameSession(
-      mode: widget.game.mode,
-      scores: scores,
-      playedAt: _playedAt,
-      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-    );
-    await state.addSession(widget.game.id, session);
+    if (isEdit) {
+      // Update existing session in-place
+      final updated = GameSession(
+        id: widget.existing!.id,
+        mode: widget.game.mode,
+        scores: scores,
+        playedAt: _playedAt,
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      );
+      await state.updateSession(widget.game.id, updated);
+    } else {
+      final session = GameSession(
+        mode: widget.game.mode,
+        scores: scores,
+        playedAt: _playedAt,
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      );
+      await state.addSession(widget.game.id, session);
+    }
     if (mounted) Navigator.pop(context);
   }
 

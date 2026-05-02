@@ -9,45 +9,45 @@ import 'storage_service.dart';
 import 'google_drive_service.dart';
 import 'purchase_service.dart';
 import 'group_service.dart';
- 
+
 class AppState extends ChangeNotifier {
   final StorageService _storage = StorageService();
   final GoogleDriveService driveService = GoogleDriveService();
   final PurchaseService purchaseService = PurchaseService();
   final GroupService groupService = GroupService();
- 
+
   AppData _data = AppData();
   bool _isLoading = true;
   String? _syncMessage;
- 
+
   String? _activeGroupId;
   StreamSubscription<AppData?>? _groupSub;
- 
+
   bool get isLoading => _isLoading;
   String? get syncMessage => _syncMessage;
   String? get activeGroupId => _activeGroupId;
   bool get isInGroup => _activeGroupId != null;
   Entitlement get entitlement => purchaseService.entitlement;
- 
+
   List<Game> get games {
     final sorted = List<Game>.from(_data.games);
     sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return sorted;
   }
- 
+
   List<Player> get players {
     final sorted = List<Player>.from(_data.players);
     sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return sorted;
   }
- 
+
   // ── Init ──────────────────────────────────────────────────────────────────
- 
+
   Future<void> init() async {
     _data = await _storage.load();
     _isLoading = false;
     notifyListeners();
- 
+
     // Firebase and RevenueCat are not available on web — skip silently.
     if (!kIsWeb) {
       await Future.wait([
@@ -56,27 +56,27 @@ class AppState extends ChangeNotifier {
       ]);
       purchaseService.addListener(notifyListeners);
     }
- 
+
     // Drive sign-in is available on all platforms.
     await driveService.signInSilently();
- 
+
     notifyListeners();
   }
- 
+
   @override
   void dispose() {
     _groupSub?.cancel();
     if (!kIsWeb) purchaseService.removeListener(notifyListeners);
     super.dispose();
   }
- 
+
   // ── Players ───────────────────────────────────────────────────────────────
- 
+
   Future<void> addPlayer(Player player) async {
     _data.players.add(player);
     await _persist();
   }
- 
+
   Future<void> updatePlayer(Player player) async {
     final idx = _data.players.indexWhere((p) => p.id == player.id);
     if (idx >= 0) {
@@ -84,12 +84,12 @@ class AppState extends ChangeNotifier {
       await _persist();
     }
   }
- 
+
   Future<void> deletePlayer(String playerId) async {
     _data.players.removeWhere((p) => p.id == playerId);
     await _persist();
   }
- 
+
   Player? findPlayer(String id) {
     try {
       return _data.players.firstWhere((p) => p.id == id);
@@ -97,19 +97,19 @@ class AppState extends ChangeNotifier {
       return null;
     }
   }
- 
+
   // ── Games ─────────────────────────────────────────────────────────────────
- 
+
   String? canAddGame() {
     if (entitlement.canAddGame(_data.games.length)) return null;
     return 'Limite de ${Entitlement.freeGameLimit} jeux atteinte sur le plan gratuit.';
   }
- 
+
   Future<void> addGame(Game game) async {
     _data.games.add(game);
     await _persist();
   }
- 
+
   Future<void> updateGame(Game game) async {
     final idx = _data.games.indexWhere((g) => g.id == game.id);
     if (idx >= 0) {
@@ -117,12 +117,12 @@ class AppState extends ChangeNotifier {
       await _persist();
     }
   }
- 
+
   Future<void> deleteGame(String gameId) async {
     _data.games.removeWhere((g) => g.id == gameId);
     await _persist();
   }
- 
+
   Game? findGame(String id) {
     try {
       return _data.games.firstWhere((g) => g.id == id);
@@ -130,32 +130,42 @@ class AppState extends ChangeNotifier {
       return null;
     }
   }
- 
+
   // ── Sessions ──────────────────────────────────────────────────────────────
- 
+
   String? canAddSession(String gameId) {
     final game = findGame(gameId);
     if (game == null) return null;
     if (entitlement.canAddSession(game.sessions.length)) return null;
     return 'Limite de ${Entitlement.freeSessionLimit} parties par jeu atteinte sur le plan gratuit.';
   }
- 
+
   Future<void> addSession(String gameId, GameSession session) async {
     final game = findGame(gameId);
     if (game == null) return;
     game.sessions.add(session);
     await _persist();
   }
- 
+
+  Future<void> updateSession(String gameId, GameSession session) async {
+    final game = findGame(gameId);
+    if (game == null) return;
+    final idx = game.sessions.indexWhere((s) => s.id == session.id);
+    if (idx >= 0) {
+      game.sessions[idx] = session;
+      await _persist();
+    }
+  }
+
   Future<void> deleteSession(String gameId, String sessionId) async {
     final game = findGame(gameId);
     if (game == null) return;
     game.sessions.removeWhere((s) => s.id == sessionId);
     await _persist();
   }
- 
+
   // ── Persistence ───────────────────────────────────────────────────────────
- 
+
   Future<void> _persist() async {
     _data = AppData(
       games: _data.games,
@@ -168,9 +178,9 @@ class AppState extends ChangeNotifier {
     }
     notifyListeners();
   }
- 
+
   // ── Drive sync (all platforms) ────────────────────────────────────────────
- 
+
   Future<bool> syncToDrive() async {
     _setSyncMessage('Synchronisation en cours…');
     final json = _storage.export(_data);
@@ -178,7 +188,7 @@ class AppState extends ChangeNotifier {
     _setSyncMessage(ok ? '✓ Synchronisé' : '✗ Erreur: ${driveService.lastError}');
     return ok;
   }
- 
+
   Future<bool> syncFromDrive() async {
     _setSyncMessage('Téléchargement…');
     final json = await driveService.download();
@@ -198,9 +208,9 @@ class AppState extends ChangeNotifier {
       return false;
     }
   }
- 
+
   // ── Group sync (premium, mobile only) ────────────────────────────────────
- 
+
   Future<String?> joinGroup(String groupId) async {
     if (kIsWeb || !entitlement.canUseGroupSync) return null;
     _activeGroupId = groupId;
@@ -215,14 +225,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     return groupId;
   }
- 
+
   Future<String?> createAndJoinGroup(String name) async {
     if (kIsWeb || !entitlement.canUseGroupSync) return null;
     final id = await groupService.createGroup(name, _data);
     if (id != null) await joinGroup(id);
     return id;
   }
- 
+
   Future<void> leaveGroup() async {
     if (_activeGroupId == null) return;
     await groupService.leaveGroup(_activeGroupId!);
@@ -231,9 +241,9 @@ class AppState extends ChangeNotifier {
     _activeGroupId = null;
     notifyListeners();
   }
- 
+
   // ── Helpers ───────────────────────────────────────────────────────────────
- 
+
   void _setSyncMessage(String msg) {
     _syncMessage = msg;
     notifyListeners();
