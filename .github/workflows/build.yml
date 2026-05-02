@@ -94,6 +94,17 @@ jobs:
              dist/gametracker-${{ github.run_number }}-arm64.apk
           cp build/app/outputs/bundle/release/app-release.aab \
              dist/gametracker-${{ github.run_number }}.aab
+          # Mapping ProGuard (réduit les avertissements Play Store)
+          if [ -f build/app/outputs/mapping/release/mapping.txt ]; then
+            cp build/app/outputs/mapping/release/mapping.txt \
+               dist/mapping-${{ github.run_number }}.txt
+          fi
+          # Symboles natifs (réduit les avertissements Play Store)
+          if [ -d build/app/intermediates/merged_native_libs/release ]; then
+            cd build/app/intermediates/merged_native_libs/release
+            zip -r $GITHUB_WORKSPACE/dist/native-symbols-${{ github.run_number }}.zip . || true
+            cd $GITHUB_WORKSPACE
+          fi
 
       - name: Upload debug APK
         if: ${{ github.event_name == 'pull_request' }}
@@ -168,6 +179,8 @@ jobs:
           files: |
             dist/gametracker-${{ github.run_number }}-arm64.apk
             dist/gametracker-${{ github.run_number }}.aab
+            dist/mapping-${{ github.run_number }}.txt
+            dist/native-symbols-${{ github.run_number }}.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
