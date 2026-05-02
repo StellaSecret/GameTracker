@@ -494,6 +494,40 @@ class _SyncSheetState extends State<_SyncSheet> {
   }
 
   Future<void> _upload(AppState state) async {
+    // Protection : avertir si les données locales sont vides
+    // pour éviter d'écraser un backup Drive existant par du vide
+    final hasData = state.games.isNotEmpty || state.players.isNotEmpty;
+    if (!hasData) {
+      setState(() => _msg = '⚠️ Aucune donnée locale à sauvegarder.');
+      return;
+    }
+
+    // Confirmation si premier upload (risque d'écrasement)
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text('Sauvegarder sur Drive ?'),
+        content: Text(
+          'Cela remplacera les données actuellement sur Drive '
+          'par vos données locales (${state.games.length} jeu${state.games.length != 1 ? 'x' : ''}, '
+          '${state.players.length} joueur${state.players.length != 1 ? 's' : ''}).',
+          style: const TextStyle(color: Color(0xFF9999BB)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sauvegarder'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
     setState(() {
       _loading = true;
       _msg = 'Envoi vers Drive…';
