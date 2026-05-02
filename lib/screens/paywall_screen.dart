@@ -25,7 +25,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    // Si déjà premium (ex: email dev), on referme le paywall immédiatement
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ps = context.read<AppState>().purchaseService;
+      if (ps.isPremium && mounted) {
+        Navigator.pop(context, true);
+        return;
+      }
+      _load();
+    });
   }
 
   Future<void> _load() async {

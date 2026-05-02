@@ -48,17 +48,29 @@ class AppState extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
 
-    // Firebase and RevenueCat are not available on web — skip silently.
-    if (!kIsWeb) {
-      await Future.wait([
-        purchaseService.init(),
-        groupService.signInSilently(),
-      ]);
-      purchaseService.addListener(notifyListeners);
-    }
+    // Ordre important :
+    // 1. Drive (toutes plateformes) — récupère le compte Google connecté
+    // 2. Firebase (mobile) — réutilise le token Google du Drive
+    // 3. RevenueCat — vérifie le premium EN AYANT Firebase déjà connecté
+    // 4. Recheck developer status — Firebase.currentUser est maintenant disponible
 
-    // Drive sign-in is available on all platforms.
+    // Étape 1 : Drive
     await driveService.signInSilently();
+
+    if (!kIsWeb) {
+      // Étape 2 : Firebase en silence (même compte que Drive)
+      await groupService.signInSilently();
+
+      // Étape 3 : RevenueCat (peut maintenant lire FirebaseAuth.currentUser)
+      await purchaseService.init();
+      purchaseService.addListener(notifyListeners);
+
+      // Étape 4 : Re-vérifie le premium avec tous les comptes connectés
+      purchaseService.recheckDeveloperStatus();
+    } else {
+      // Web : pas de Firebase/RevenueCat, juste le recheck Drive
+      purchaseService.recheckDeveloperStatus();
+    }
 
     notifyListeners();
   }
@@ -182,6 +194,8 @@ class AppState extends ChangeNotifier {
   // ── Drive sync (all platforms) ────────────────────────────────────────────
 
   Future<bool> syncToDrive() async {
+    // Re-vérifie le premium après connexion Drive (au cas où c'est la 1ère connexion)
+    purchaseService.recheckDeveloperStatus();
     _setSyncMessage('Synchronisation en cours…');
     final json = _storage.export(_data);
     final ok = await driveService.upload(json);

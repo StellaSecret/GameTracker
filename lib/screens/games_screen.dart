@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -480,6 +481,12 @@ class _SyncSheetState extends State<_SyncSheet> {
       _msg = 'Connexion…';
     });
     final ok = await state.driveService.signIn();
+    if (ok && !kIsWeb) {
+      // Connexion Firebase en silence avec le même compte Google
+      // pour activer le premium dev sans étape supplémentaire
+      await state.groupService.signInSilently();
+      state.purchaseService.recheckDeveloperStatus();
+    }
     setState(() {
       _loading = false;
       _msg = ok ? null : 'Connexion annulée.';

@@ -65,4 +65,5 @@ android/app/google-services.json
 *.jks
 key.properties
 google-services.json
+.premium_emails.txt
 GoogleService-Info.plist
