@@ -42,7 +42,7 @@ android {
     defaultConfig {
         applicationId "com.stellasecret.gametracker"
         minSdkVersion 23
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
