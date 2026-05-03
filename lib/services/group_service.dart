@@ -1,17 +1,17 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import '../models/app_data.dart';
- 
+import 'google_sign_in_singleton.dart';
+
 class GroupInfo {
   final String id;
   final String name;
   final String createdBy;
   final List<String> memberEmails;
   final DateTime createdAt;
- 
+
   const GroupInfo({
     required this.id,
     required this.name,
@@ -19,7 +19,7 @@ class GroupInfo {
     required this.memberEmails,
     required this.createdAt,
   });
- 
+
   factory GroupInfo.fromDoc(DocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
     return GroupInfo(
@@ -31,38 +31,47 @@ class GroupInfo {
     );
   }
 }
- 
+
 class GroupService {
-  // Lazy getters so Firestore/Auth are never accessed on web at construction time.
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   FirebaseAuth get _auth => FirebaseAuth.instance;
- 
-  final _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
- 
+
+  // Utilise l'instance partagée — même instance que GoogleDriveService
+  final _googleSignIn = GoogleSignInSingleton.instance;
+
   User? get currentUser => kIsWeb ? null : _auth.currentUser;
   bool get isSignedIn => !kIsWeb && currentUser != null;
   String? get userEmail => currentUser?.email;
   String? get displayName => currentUser?.displayName;
- 
-  // ── Auth ──────────────────────────────────────────────────────────────────
- 
+
   Future<bool> signIn() async {
     if (kIsWeb) return false;
     try {
-      final account = await _googleSignIn.signIn();
-      if (account == null) return false;
+      // Si déjà connecté via Drive (même instance GoogleSignIn),
+      // on réutilise directement le compte courant
+      var account = _googleSignIn.currentUser;
+      debugPrint('=== GroupService.signIn: currentUser=$account ===');
+      account ??= await _googleSignIn.signIn();
+      if (account == null) {
+        debugPrint('=== GroupService.signIn: account null après signIn ===');
+        return false;
+      }
+      debugPrint('=== GroupService.signIn: account=${account.email} ===');
       final auth = await account.authentication;
+      debugPrint('=== GroupService.signIn: idToken=${auth.idToken != null} accessToken=${auth.accessToken != null} ===');
       final credential = GoogleAuthProvider.credential(
         accessToken: auth.accessToken,
         idToken: auth.idToken,
       );
-      await _auth.signInWithCredential(credential);
-      return true;
-    } catch (_) {
+      final result = await _auth.signInWithCredential(credential);
+      debugPrint('=== GroupService.signIn: Firebase user=${result.user?.email} ===');
+      return result.user != null;
+    } catch (e) {
+      debugPrint('=== GroupService.signIn ERROR: $e ===');
       return false;
     }
   }
- 
+
   Future<bool> signInSilently() async {
     if (kIsWeb) return false;
     try {
@@ -79,15 +88,13 @@ class GroupService {
       return false;
     }
   }
- 
+
   Future<void> signOut() async {
     if (kIsWeb) return;
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
- 
-  // ── Groups ────────────────────────────────────────────────────────────────
- 
+
   Future<String?> createGroup(String name, AppData initialData) async {
     if (kIsWeb) return null;
     final uid = currentUser?.uid;
@@ -108,7 +115,7 @@ class GroupService {
       return null;
     }
   }
- 
+
   Future<bool> inviteMember(String groupId, String email) async {
     if (kIsWeb) return false;
     try {
@@ -120,7 +127,7 @@ class GroupService {
       return false;
     }
   }
- 
+
   Stream<List<GroupInfo>> watchMyGroups() {
     if (kIsWeb) return const Stream.empty();
     final email = currentUser?.email?.toLowerCase();
@@ -132,7 +139,7 @@ class GroupService {
         .snapshots()
         .map((s) => s.docs.map(GroupInfo.fromDoc).toList());
   }
- 
+
   Stream<AppData?> watchGroupData(String groupId) {
     if (kIsWeb) return const Stream.empty();
     return _db.collection('groups').doc(groupId).snapshots().map((doc) {
@@ -149,7 +156,7 @@ class GroupService {
       }
     });
   }
- 
+
   Future<bool> pushGroupData(String groupId, AppData data) async {
     if (kIsWeb) return false;
     try {
@@ -162,7 +169,7 @@ class GroupService {
       return false;
     }
   }
- 
+
   Future<void> leaveGroup(String groupId) async {
     if (kIsWeb) return;
     final uid = currentUser?.uid;

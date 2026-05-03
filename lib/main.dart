@@ -1,6 +1,10 @@
 // lib/main.dart
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'services/app_state.dart';
 import 'theme/app_theme.dart';
@@ -10,21 +14,30 @@ import 'screens/players_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase is initialized here when you add google-services.json.
-  // Uncomment the line below after configuring Firebase:
-  // await Firebase.initializeApp();
+  GoogleFonts.config.allowRuntimeFetching = false;
+  await initializeDateFormatting('fr_FR', null);
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: AppColors.background,
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
+  // Firebase — uniquement sur mobile (pas de config web)
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint('Firebase init error: $e');
+    }
+  }
 
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  if (!kIsWeb) {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: AppColors.background,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
 
   final state = AppState();
   await state.init();
@@ -46,6 +59,7 @@ class GameTrackerApp extends StatelessWidget {
       title: 'GameTracker',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
+      localizationsDelegates: const [],
       routes: {
         '/': (_) => const GamesScreen(),
         '/players': (_) => const PlayersScreen(),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   static const primary = Color(0xFF6C63FF);
@@ -30,16 +29,12 @@ class AppColors {
 
 class AppTheme {
   static ThemeData get dark {
-    // GoogleFonts avec fallback — évite un crash si le réseau est indisponible
-    TextTheme baseTextTheme;
-    try {
-      baseTextTheme = GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme);
-    } catch (_) {
-      baseTextTheme = ThemeData.dark().textTheme;
-    }
-    final textTheme = baseTextTheme.apply(
+    // Police Outfit bundlée dans l'app (pas de téléchargement réseau)
+    const fontFamily = 'Outfit';
+    final textTheme = ThemeData.dark().textTheme.apply(
       bodyColor: AppColors.textPrimary,
       displayColor: AppColors.textPrimary,
+      fontFamily: fontFamily,
     );
 
     return ThemeData(
@@ -63,14 +58,10 @@ class AppTheme {
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.outfit(
-          fontSize: 22,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-        ),
+        titleTextStyle: TextStyle(fontFamily: 'Outfit', fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -111,16 +102,13 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12)),
-          textStyle: GoogleFonts.outfit(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: TextStyle(fontFamily: 'Outfit', fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+          textStyle: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -138,7 +126,7 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.surfaceElevated,
-        contentTextStyle: GoogleFonts.outfit(color: AppColors.textPrimary),
+        contentTextStyle: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,

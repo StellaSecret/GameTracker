@@ -481,11 +481,19 @@ class _SyncSheetState extends State<_SyncSheet> {
       _msg = 'Connexion…';
     });
     final ok = await state.driveService.signIn();
-    if (ok && !kIsWeb) {
-      // Connexion Firebase en silence avec le même compte Google
-      // pour activer le premium dev sans étape supplémentaire
-      await state.groupService.signInSilently();
-      state.purchaseService.recheckDeveloperStatus();
+    if (ok) {
+      // Injecte l'email Drive dans PurchaseService → active le premium dev
+      final driveEmail = state.driveService.currentUser?.email;
+      if (driveEmail != null) {
+        state.purchaseService.setConnectedEmail(driveEmail);
+      }
+      if (!kIsWeb) {
+        await state.groupService.signInSilently();
+        final fbEmail = state.groupService.userEmail;
+        if (fbEmail != null) {
+          state.purchaseService.setConnectedEmail(fbEmail);
+        }
+      }
     }
     setState(() {
       _loading = false;

@@ -1,22 +1,17 @@
-// lib/services/google_drive_service.dart
 import 'dart:convert';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'google_sign_in_singleton.dart';
 
 enum SyncStatus { idle, syncing, success, error }
 
 class GoogleDriveService {
   static const _fileName = 'game_tracker_data.json';
-  static const _folderName = 'GameTracker';
   static const _mimeJson = 'application/json';
 
-  // driveAppdataScope keeps the file hidden from the user's Drive UI and
-  // requires no extra permissions review. Switch to driveFileScope only if
-  // you need the file to be user-visible.
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [drive.DriveApi.driveAppdataScope],
-  );
+  // Utilise l'instance partagée
+  final _googleSignIn = GoogleSignInSingleton.instance;
 
   GoogleSignInAccount? _currentUser;
   SyncStatus _status = SyncStatus.idle;
@@ -58,16 +53,13 @@ class GoogleDriveService {
     return drive.DriveApi(authClient);
   }
 
-  /// Upload (create or update) data to the hidden appdata folder in Drive.
   Future<bool> upload(String jsonData) async {
     _status = SyncStatus.syncing;
     try {
       final api = await _getDriveApi();
       if (api == null) throw Exception('Non authentifié');
 
-      // With driveAppdataScope, files live in the 'appDataFolder' space.
       const space = 'appDataFolder';
-
       final query = "name='$_fileName' and trashed=false";
       final existing = await api.files.list(
         q: query,
@@ -103,7 +95,6 @@ class GoogleDriveService {
     }
   }
 
-  /// Download data from the hidden appdata folder in Drive.
   Future<String?> download() async {
     _status = SyncStatus.syncing;
     try {

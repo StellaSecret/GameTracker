@@ -41,35 +41,33 @@ class AppState extends ChangeNotifier {
     return sorted;
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
-
   Future<void> init() async {
     _data = await _storage.load();
     _isLoading = false;
     notifyListeners();
 
-    // Ordre important :
-    // 1. Drive (toutes plateformes) — récupère le compte Google connecté
-    // 2. Firebase (mobile) — réutilise le token Google du Drive
-    // 3. RevenueCat — vérifie le premium EN AYANT Firebase déjà connecté
-    // 4. Recheck developer status — Firebase.currentUser est maintenant disponible
-
-    // Étape 1 : Drive
+    // Étape 1 : Drive sign-in silencieux
     await driveService.signInSilently();
 
+    // Dès que Drive est connecté, injecte l'email dans PurchaseService
+    final driveEmail = driveService.currentUser?.email;
+    if (driveEmail != null) {
+      purchaseService.setConnectedEmail(driveEmail);
+    }
+
     if (!kIsWeb) {
-      // Étape 2 : Firebase en silence (même compte que Drive)
+      // Étape 2 : Firebase sign-in silencieux (même compte Google)
       await groupService.signInSilently();
 
-      // Étape 3 : RevenueCat (peut maintenant lire FirebaseAuth.currentUser)
+      // Injecte l'email Firebase si disponible
+      final fbEmail = groupService.userEmail;
+      if (fbEmail != null) {
+        purchaseService.setConnectedEmail(fbEmail);
+      }
+
+      // Étape 3 : RevenueCat
       await purchaseService.init();
       purchaseService.addListener(notifyListeners);
-
-      // Étape 4 : Re-vérifie le premium avec tous les comptes connectés
-      purchaseService.recheckDeveloperStatus();
-    } else {
-      // Web : pas de Firebase/RevenueCat, juste le recheck Drive
-      purchaseService.recheckDeveloperStatus();
     }
 
     notifyListeners();
@@ -191,11 +189,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Drive sync (all platforms) ────────────────────────────────────────────
+  // ── Drive sync ────────────────────────────────────────────────────────────
 
   Future<bool> syncToDrive() async {
-    // Re-vérifie le premium après connexion Drive (au cas où c'est la 1ère connexion)
-    purchaseService.recheckDeveloperStatus();
+    // Injecte l'email Drive dans PurchaseService après connexion
+    final driveEmail = driveService.currentUser?.email;
+    if (driveEmail != null) {
+      purchaseService.setConnectedEmail(driveEmail);
+    }
     _setSyncMessage('Synchronisation en cours…');
     final json = _storage.export(_data);
     final ok = await driveService.upload(json);
@@ -255,8 +256,6 @@ class AppState extends ChangeNotifier {
     _activeGroupId = null;
     notifyListeners();
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   void _setSyncMessage(String msg) {
     _syncMessage = msg;
