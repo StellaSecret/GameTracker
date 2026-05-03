@@ -92,6 +92,7 @@ Dans Settings → Secrets and variables → Actions, ajoutez :
 | `KEYSTORE_PASSWORD` | Mot de passe de la keystore |
 | `KEY_ALIAS` | `game-tracker` |
 | `KEY_PASSWORD` | Mot de passe de la clé |
+| `GOOGLE_SERVICES_JSON` | `python3 -c "import json; print(json.dumps(json.load(open('android/app/google-services.json'))))"` |
 
 L'APK signé sera généré automatiquement à chaque push sur `main`.
 
