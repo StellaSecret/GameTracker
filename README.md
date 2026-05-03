@@ -1,25 +1,27 @@
 # 🎲 GameTracker
 
-Application Flutter pour suivre les scores de vos jeux de société, avec synchronisation Google Drive et partage entre joueurs.
+Application Flutter de suivi de scores pour jeux de société — avec synchronisation Google Drive, groupes temps réel (Firebase) et modèle freemium.
 
 [![Build & Deploy](https://github.com/StellaSecret/GameTracker/actions/workflows/build.yml/badge.svg)](https://github.com/StellaSecret/GameTracker/actions/workflows/build.yml)
 
-**[📱 Télécharger l'APK](https://github.com/StellaSecret/GameTracker/actions)** · **[🌐 Version Web](https://stellasecret.github.io/GameTracker/)**
+**[📱 Télécharger l'APK](https://github.com/StellaSecret/GameTracker/releases)** · **[🌐 Version Web](https://stellasecret.github.io/GameTracker/)**
 
 ---
 
 ## ✨ Fonctionnalités
 
-- **3 modes de jeu** :
-  - 🏆 **Points** — classement par score, record individuel, total par joueur
-  - ⚔️ **Duel** — Victoire / Match nul / Défaite, classement aux victoires
-  - 🎖️ **Classement** — podium positionnel multi-joueurs (1er, 2ème…)
-- **Tri alphabétique** automatique avec index par lettre
-- **Gestion des joueurs** avec couleur personnalisée
-- **Statistiques** : leaderboard, records, total de victoires
-- **Persistance locale** : données sauvegardées en JSON sur l'appareil
-- **Sync Google Drive** : upload / download / partage avec d'autres utilisateurs
-- **Design sombre** moderne avec animations fluides
+### Gratuit
+- **3 modes de jeu** : Points · Duel · Classement
+- Jusqu'à **5 jeux** et **20 parties par jeu**
+- Gestion des joueurs avec couleur personnalisée
+- Statistiques : leaderboard, records, total de victoires
+- Persistance locale JSON sur l'appareil
+- **Sync Google Drive** : sauvegarde / restauration manuelle
+
+### Premium
+- Jeux et historique **illimités**
+- **Groupes temps réel** (Firebase) — scores synchronisés entre joueurs
+- *(À venir)* Statistiques avancées, export CSV
 
 ---
 
@@ -27,9 +29,9 @@ Application Flutter pour suivre les scores de vos jeux de société, avec synchr
 
 ### Prérequis
 
-- [Flutter 3.22+](https://flutter.dev/docs/get-started/install)
+- [Flutter](https://flutter.dev/docs/get-started/install) (dernière version stable)
 - Java 17
-- Un compte Google Cloud (pour Drive)
+- Compte Google Cloud (pour Drive + Firebase)
 
 ### Lancer en dev
 
@@ -40,33 +42,55 @@ flutter pub get
 flutter run
 ```
 
+### Lancer avec le premium activé (dev)
+
+```bash
+flutter run --dart-define=PREMIUM_EMAILS=ton@email.com
+```
+
 ---
 
-## ☁️ Configuration Google Drive
+## ☁️ Configuration Google Cloud / Firebase
 
-### 1. Créer un projet Google Cloud
+### 1. Créer le projet Firebase
 
-1. Aller sur [console.cloud.google.com](https://console.cloud.google.com/)
-2. Créer un nouveau projet → nommez-le `GameTracker`
-3. Activer l'API **Google Drive API** (APIs & Services → Library)
-4. Activer l'API **Google Sign-In**
+1. [console.firebase.google.com](https://console.firebase.google.com/) → nouveau projet `GameTracker`
+2. Ajouter une app Android : package `com.stellasecret.gametracker`
+3. **Authentication → Sign-in method** → activer **Google**
+4. **Firestore Database** → créer en mode Production, région `europe-west1`
+5. Télécharger `google-services.json` → placer dans `android/app/`
 
-### 2. Créer les identifiants OAuth
+> Le même projet Firebase sert pour Drive (Google Sign-In), Firestore (groupes) et Firebase Auth.
 
-1. APIs & Services → **Credentials** → Create Credentials → **OAuth 2.0 Client ID**
-2. Application type : **Android**
-3. Package name : `com.stellasecret.gametracker` *(ou le vôtre dans `build.gradle`)*
-4. SHA-1 fingerprint : obtenez-le avec :
-   ```bash
-   # Debug (développement)
-   keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep SHA1
-   
-   # Release (production)
-   keytool -list -v -keystore your-release-key.jks -alias your-key-alias
-   ```
-5. Téléchargez `google-services.json` → placez-le dans `android/app/`
+### 2. SHA-1 dans Firebase
 
-> **Web** : créez également un client OAuth de type *Web application* et notez le Client ID pour la version GitHub Pages.
+Firebase vérifie la signature APK pour Google Sign-In. Ajoutez les deux empreintes dans **Firebase Console → Paramètres → Ton app Android** :
+
+```bash
+# Debug (flutter run)
+keytool -list -v -keystore ~/.android/debug.keystore \
+  -alias androiddebugkey -storepass android | grep SHA1
+
+# Release (build CI)
+keytool -list -v -keystore release-key.jks -alias game-tracker | grep SHA1
+```
+
+Après chaque ajout de SHA-1, **retéléchargez** `google-services.json` et mettez à jour le secret `GOOGLE_SERVICES_JSON`.
+
+### 3. Règles Firestore
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /groups/{groupId} {
+      allow read, write: if request.auth != null
+        && request.auth.token.email in resource.data.memberEmails;
+      allow create: if request.auth != null;
+    }
+  }
+}
+```
 
 ---
 
@@ -82,38 +106,58 @@ keytool -genkey -v \
   -alias game-tracker
 ```
 
-### Configurer les secrets GitHub
+### Secrets GitHub Actions
 
-Dans Settings → Secrets and variables → Actions, ajoutez :
+**Settings → Secrets and variables → Actions** :
 
-| Secret | Valeur |
-|---|---|
-| `KEYSTORE_BASE64` | `base64 -w 0 release-key.jks` |
-| `KEYSTORE_PASSWORD` | Mot de passe de la keystore |
-| `KEY_ALIAS` | `game-tracker` |
-| `KEY_PASSWORD` | Mot de passe de la clé |
-| `GOOGLE_SERVICES_JSON` | `python3 -c "import json; print(json.dumps(json.load(open('android/app/google-services.json'))))"` |
+| Secret | Description | Commande pour obtenir la valeur |
+|---|---|---|
+| `KEYSTORE_BASE64` | Keystore de signature encodé | `base64 -w 0 release-key.jks` |
+| `KEYSTORE_PASSWORD` | Mot de passe keystore | — |
+| `KEY_ALIAS` | Alias de la clé | `game-tracker` |
+| `KEY_PASSWORD` | Mot de passe de la clé | — |
+| `GOOGLE_SERVICES_JSON` | Contenu de `google-services.json` (minifié) | `python3 -c "import json; print(json.dumps(json.load(open('android/app/google-services.json'))))"` |
+| `GOOGLE_WEB_CLIENT_ID` | Client ID OAuth Web (pour GitHub Pages) | Google Cloud Console → Credentials |
+| `PREMIUM_EMAILS` | Emails avec accès premium gratuit | `email1@x.com,email2@x.com` |
 
-L'APK signé sera généré automatiquement à chaque push sur `main`.
+> **Gestion de `PREMIUM_EMAILS`** : utilisez le script `./update_premium_emails.sh` pour éditer la liste et mettre à jour le secret automatiquement via `gh` CLI. Le fichier `.premium_emails.txt` (ignoré par git) sert de référence locale.
 
-### Créer une release
+### Ce que produit le CI à chaque push sur `main`
 
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-L'APK sera attaché automatiquement à la release GitHub.
+- **APK arm64** → installable directement sur Android (sideload)
+- **AAB** → à uploader sur Google Play Console
+- **Web** → déployé sur GitHub Pages automatiquement
+- Une **GitHub Release** est créée avec le numéro de build
 
 ---
 
 ## 🌐 GitHub Pages
 
-La version web est déployée automatiquement sur chaque push dans `main`.
-
-**Activer Pages** : Settings → Pages → Source : **GitHub Actions**
+Activez Pages dans **Settings → Pages → Source : GitHub Actions**.
 
 URL : `https://stellasecret.github.io/GameTracker/`
+
+> Firebase et les groupes temps réel ne sont **pas disponibles** sur la version web (guards `kIsWeb`). La sync Google Drive fonctionne sur le web.
+
+---
+
+## 💰 Modèle freemium
+
+Les limites sont définies dans `lib/models/entitlement.dart` :
+
+```dart
+static const int freeGameLimit = 5;      // Jeux max (gratuit)
+static const int freeSessionLimit = 20;  // Parties max par jeu (gratuit)
+```
+
+Les achats in-app sont gérés par **RevenueCat** (`lib/services/purchase_service.dart`). Pour activer RevenueCat, remplacez les placeholders :
+
+```dart
+static const String _kApiKeyAndroid = 'YOUR_REVENUECAT_ANDROID_KEY';
+static const String _kApiKeyIOS    = 'YOUR_REVENUECAT_IOS_KEY';
+```
+
+L'entitlement RevenueCat doit s'appeler exactement `premium`.
 
 ---
 
@@ -121,39 +165,52 @@ URL : `https://stellasecret.github.io/GameTracker/`
 
 ```
 lib/
-├── main.dart                    # Point d'entrée
+├── main.dart
 ├── models/
-│   ├── app_data.dart            # Modèle racine (sérialisé en JSON)
-│   ├── game.dart                # Jeu + helpers stats
-│   ├── game_mode.dart           # Enum des modes (points/duel/classement)
-│   ├── game_session.dart        # Partie jouée
-│   └── player.dart              # Joueur
+│   ├── app_data.dart           # Modèle racine + merge Drive/Firestore
+│   ├── entitlement.dart        # Limites freemium
+│   ├── game.dart               # Jeu + helpers stats
+│   ├── game_mode.dart          # Enum modes (points/duel/classement)
+│   ├── game_session.dart       # Partie jouée
+│   └── player.dart             # Joueur
 ├── services/
-│   ├── app_state.dart           # ChangeNotifier global (Provider)
-│   ├── storage_service.dart     # Persistance locale (SharedPreferences JSON)
-│   └── google_drive_service.dart # Upload / download / share Drive
+│   ├── app_state.dart          # ChangeNotifier global (Provider)
+│   ├── storage_service.dart    # Persistance locale (SharedPreferences)
+│   ├── google_drive_service.dart  # Sync Drive (backup/restore)
+│   ├── google_sign_in_singleton.dart  # Instance GoogleSignIn partagée
+│   ├── group_service.dart      # Groupes temps réel (Firestore)
+│   └── purchase_service.dart   # RevenueCat + override email premium
 ├── screens/
-│   ├── games_screen.dart        # Liste alphabétique des jeux
-│   ├── game_detail_screen.dart  # Détail + stats + historique
-│   ├── add_game_screen.dart     # Création / édition de jeu
-│   ├── add_session_screen.dart  # Saisie de scores (adaptée au mode)
-│   └── players_screen.dart      # Gestion des joueurs
+│   ├── games_screen.dart
+│   ├── game_detail_screen.dart
+│   ├── add_game_screen.dart
+│   ├── add_session_screen.dart # Création ET édition de session
+│   ├── players_screen.dart
+│   ├── group_screen.dart       # Gestion des groupes (premium)
+│   └── paywall_screen.dart     # Écran d'achat premium
 ├── widgets/
-│   └── gt_card.dart             # Composants réutilisables
+│   └── gt_card.dart
 └── theme/
-    └── app_theme.dart           # Design system (couleurs, typographie)
+    └── app_theme.dart
 ```
 
 ---
 
 ## 📋 Roadmap
 
-- [ ] Graphiques d'évolution des scores
+- [ ] Statistiques avancées (graphiques, nemesis, séries)
 - [ ] Mode tournoi (bracket)
-- [ ] Statistiques globales (joueur le plus actif, jeu le plus joué…)
 - [ ] Export CSV / PDF
 - [ ] Notifications de rappel de partie
 - [ ] Thème clair
+
+---
+
+## 🔒 Confidentialité
+
+Politique de confidentialité : [stellasecret.github.io/privacy-pages/gametracker/privacy.html](https://stellasecret.github.io/privacy-pages/gametracker/privacy.html)
+
+GameTracker ne collecte aucune donnée personnelle. Toutes les données restent localement sur l'appareil sauf si l'utilisateur active explicitement la sync Drive ou les groupes Firebase.
 
 ---
 
