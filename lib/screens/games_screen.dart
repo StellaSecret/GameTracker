@@ -7,10 +7,10 @@ import '../models/game_mode.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
-import 'game_detail_screen.dart';
 import 'add_game_screen.dart';
-import 'paywall_screen.dart';
+import 'game_detail_screen.dart';
 import 'group_screen.dart';
+import 'paywall_screen.dart';
 
 class GamesScreen extends StatefulWidget {
   const GamesScreen({super.key});
@@ -35,8 +35,8 @@ class _GamesScreenState extends State<GamesScreen> {
         actions: [
           // Group sync badge (premium)
           if (state.isInGroup)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
               child: Icon(Icons.wifi_tethering_rounded,
                   color: AppColors.primary, size: 20),
             ),
@@ -214,7 +214,7 @@ class _FreeBanner extends StatelessWidget {
         width: double.infinity,
         padding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: AppColors.primary.withOpacity(0.08),
+        color: AppColors.primary.withValues(alpha: 0.08),
         child: Row(
           children: [
             const Icon(Icons.star_border_rounded,
@@ -258,7 +258,7 @@ class _SyncBanner extends StatelessWidget {
   }
 }
 
-// ── Game card (unchanged logic) ───────────────────────────────────────────────
+// ── Game card ─────────────────────────────────────────────────────────────────
 
 class _GameCard extends StatelessWidget {
   final Game game;
@@ -266,7 +266,6 @@ class _GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.read<AppState>();
     final sessionCount = game.sessions.length;
     final modeColor = _modeColor(game.mode);
 
@@ -282,9 +281,9 @@ class _GameCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: modeColor.withOpacity(0.15),
+              color: modeColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: modeColor.withOpacity(0.3)),
+              border: Border.all(color: modeColor.withValues(alpha: 0.3)),
             ),
             child: Center(
               child: Text(
@@ -434,8 +433,11 @@ class _SyncSheetState extends State<_SyncSheet> {
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () async {
+                final nav = Navigator.of(context);
                 await state.driveService.signOut();
-                if (mounted) Navigator.pop(context);
+                if (mounted) {
+                  nav.pop();
+                }
               },
               icon: const Icon(Icons.logout_rounded),
               label: const Text('Se déconnecter'),
@@ -482,7 +484,6 @@ class _SyncSheetState extends State<_SyncSheet> {
     });
     final ok = await state.driveService.signIn();
     if (ok) {
-      // Injecte l'email Drive dans PurchaseService → active le premium dev
       final driveEmail = state.driveService.currentUser?.email;
       if (driveEmail != null) {
         state.purchaseService.setConnectedEmail(driveEmail);
@@ -502,15 +503,12 @@ class _SyncSheetState extends State<_SyncSheet> {
   }
 
   Future<void> _upload(AppState state) async {
-    // Protection : avertir si les données locales sont vides
-    // pour éviter d'écraser un backup Drive existant par du vide
     final hasData = state.games.isNotEmpty || state.players.isNotEmpty;
     if (!hasData) {
       setState(() => _msg = '⚠️ Aucune donnée locale à sauvegarder.');
       return;
     }
 
-    // Confirmation si premier upload (risque d'écrasement)
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -534,7 +532,9 @@ class _SyncSheetState extends State<_SyncSheet> {
         ],
       ),
     );
-    if (confirm != true) return;
+    if (confirm != true) {
+      return;
+    }
 
     setState(() {
       _loading = true;

@@ -29,7 +29,6 @@ class AppColors {
 
 class AppTheme {
   static ThemeData get dark {
-    // Police Outfit bundlée dans l'app (pas de téléchargement réseau)
     const fontFamily = 'Outfit';
     final textTheme = ThemeData.dark().textTheme.apply(
       bodyColor: AppColors.textPrimary,
@@ -44,8 +43,6 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
-        // Remplacement des champs dépréciés background/onBackground
-        // → surfaceContainerLowest + onSurface en Flutter 3.22+
         surfaceContainerLowest: AppColors.background,
         onSurface: AppColors.textPrimary,
         error: AppColors.error,
@@ -54,19 +51,23 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppColors.background,
       textTheme: textTheme,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: TextStyle(fontFamily: 'Outfit', fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        titleTextStyle: TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.cardBorder, width: 1),
+          side: const BorderSide(color: AppColors.cardBorder),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -102,18 +103,22 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12)),
-          textStyle: TextStyle(fontFamily: 'Outfit', fontSize: 15, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 15,
+              fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+              fontFamily: 'Outfit', fontWeight: FontWeight.w600),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceElevated,
-        selectedColor: AppColors.primary.withOpacity(0.3),
+        selectedColor: AppColors.primary.withValues(alpha: 0.3),
         labelStyle: const TextStyle(color: AppColors.textPrimary),
         side: const BorderSide(color: AppColors.cardBorder),
         shape: RoundedRectangleBorder(
@@ -126,7 +131,8 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.surfaceElevated,
-        contentTextStyle: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary),
+        contentTextStyle: const TextStyle(
+            fontFamily: 'Outfit', color: AppColors.textPrimary),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,

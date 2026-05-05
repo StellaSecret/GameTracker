@@ -1,10 +1,10 @@
 // test/widget_test.dart
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game_tracker/models/app_data.dart';
 import 'package:game_tracker/models/game.dart';
 import 'package:game_tracker/models/game_mode.dart';
 import 'package:game_tracker/models/game_session.dart';
 import 'package:game_tracker/models/player.dart';
-import 'package:game_tracker/models/app_data.dart';
 
 void main() {
   group('Player', () {

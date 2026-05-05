@@ -7,7 +7,6 @@ import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 
 class PaywallScreen extends StatefulWidget {
-  /// Optional context message shown above the paywall (e.g. "Vous avez atteint la limite…")
   final String? reason;
 
   const PaywallScreen({super.key, this.reason});
@@ -25,7 +24,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   void initState() {
     super.initState();
-    // Si déjà premium (ex: email dev), on referme le paywall immédiatement
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ps = context.read<AppState>().purchaseService;
       if (ps.isPremium && mounted) {
@@ -39,7 +37,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _load() async {
     final ps = context.read<AppState>().purchaseService;
     final offering = await ps.getOffering();
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _offering = offering;
       _loading = false;
@@ -67,10 +67,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.1),
+                        color: AppColors.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: AppColors.warning.withOpacity(0.4)),
+                            color: AppColors.warning.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         children: [
@@ -176,10 +176,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
     });
     final ps = context.read<AppState>().purchaseService;
     final ok = await ps.purchase(package);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() => _purchasing = false);
     if (ok) {
-      Navigator.pop(context, true); // Signal success to caller
+      Navigator.pop(context, true);
     } else if (ps.lastError != null) {
       setState(() => _error = ps.lastError);
     }
@@ -192,7 +194,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
     });
     final ps = context.read<AppState>().purchaseService;
     final ok = await ps.restorePurchases();
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() => _purchasing = false);
     if (ok) {
       Navigator.pop(context, true);
@@ -203,11 +207,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   static final _features = <_FeatureData>[
-    _FeatureData('🎲', 'Jeux', free: '${Entitlement.freeGameLimit} jeux max', premium: 'Illimités'),
-    _FeatureData('📋', 'Historique', free: '${Entitlement.freeSessionLimit} parties/jeu', premium: 'Illimité'),
-    _FeatureData('🔄', 'Sync Drive', free: 'Backup manuel', premium: 'Backup manuel'),
-    _FeatureData('👥', 'Groupes temps réel', free: '—', premium: 'Inclus ✓'),
-    _FeatureData('📊', 'Statistiques avancées', free: '—', premium: 'Bientôt ✓'),
+    const _FeatureData('🎲', 'Jeux', free: '${Entitlement.freeGameLimit} jeux max', premium: 'Illimités'),
+    const _FeatureData('📋', 'Historique', free: '${Entitlement.freeSessionLimit} parties/jeu', premium: 'Illimité'),
+    const _FeatureData('🔄', 'Sync Drive', free: 'Backup manuel', premium: 'Backup manuel'),
+    const _FeatureData('👥', 'Groupes temps réel', free: '—', premium: 'Inclus ✓'),
+    const _FeatureData('📊', 'Statistiques avancées', free: '—', premium: 'Bientôt ✓'),
   ];
 }
 
@@ -225,7 +229,6 @@ class _FeatureRow extends StatelessWidget {
   final String emoji, title, free, premium;
 
   const _FeatureRow({
-    super.key,
     required this.emoji,
     required this.title,
     required this.free,
@@ -310,8 +313,8 @@ class _PackageButton extends StatelessWidget {
                 gradient: isAnnual
                     ? LinearGradient(
                         colors: [
-                          AppColors.primary.withOpacity(0.3),
-                          AppColors.accent.withOpacity(0.2),
+                          AppColors.primary.withValues(alpha: 0.3),
+                          AppColors.accent.withValues(alpha: 0.2),
                         ],
                       )
                     : null,

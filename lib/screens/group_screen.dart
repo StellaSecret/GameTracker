@@ -19,7 +19,6 @@ class GroupScreen extends StatefulWidget {
 
 class _GroupScreenState extends State<GroupScreen> {
   bool _loading = false;
-  String? _error;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +118,9 @@ class _GroupScreenState extends State<GroupScreen> {
 
   Future<void> _createGroup(AppState state) async {
     final name = await _askGroupName(context);
-    if (name == null || name.isEmpty) return;
+    if (name == null || name.isEmpty) {
+      return;
+    }
     setState(() => _loading = true);
     final id = await state.createAndJoinGroup(name);
     setState(() => _loading = false);
@@ -154,7 +155,9 @@ class _GroupScreenState extends State<GroupScreen> {
         ],
       ),
     );
-    if (ok == true) await state.leaveGroup();
+    if (ok == true) {
+      await state.leaveGroup();
+    }
   }
 
   Future<void> _showInvite(AppState state, String groupId) async {
@@ -207,18 +210,24 @@ class _GroupScreenState extends State<GroupScreen> {
               child: ElevatedButton(
                 onPressed: () async {
                   final email = emailCtrl.text.trim();
-                  if (email.isEmpty) return;
+                  if (email.isEmpty) {
+                    return;
+                  }
                   final ok = await state.groupService
                       .inviteMember(groupId, email);
-                  if (!ctx.mounted) return;
+                  if (!ctx.mounted) {
+                    return;
+                  }
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(ok
-                          ? '✓ Invitation envoyée à $email'
-                          : '✗ Erreur lors de l\'invitation'),
-                    ),
-                  );
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(ok
+                            ? '✓ Invitation envoyée à $email'
+                            : '✗ Erreur lors de l\'invitation'),
+                      ),
+                    );
+                  }
                 },
                 child: const Text('Inviter'),
               ),
@@ -256,9 +265,9 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   void _showError(String msg) {
-    setState(() => _error = msg);
-    Future.delayed(const Duration(seconds: 3),
-        () => setState(() => _error = null));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
+    );
   }
 }
 
@@ -296,7 +305,7 @@ class _ActiveGroupBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: AppColors.primary.withOpacity(0.15),
+      color: AppColors.primary.withValues(alpha: 0.15),
       child: Row(
         children: [
           const Icon(Icons.wifi_tethering_rounded,
@@ -340,7 +349,7 @@ class _GroupCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(

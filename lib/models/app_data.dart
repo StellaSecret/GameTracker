@@ -72,7 +72,8 @@ class AppData {
     for (final item in local) {
       final id = getId(item);
       if (map.containsKey(id)) {
-        map[id] = resolve(item, map[id]!);
+        // ignore: null_check_on_nullable_type_parameter
+        map[id] = resolve(item, map[id] as T);
       } else {
         map[id] = item;
       }

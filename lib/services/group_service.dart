@@ -36,7 +36,6 @@ class GroupService {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   FirebaseAuth get _auth => FirebaseAuth.instance;
 
-  // Utilise l'instance partagée — même instance que GoogleDriveService
   final _googleSignIn = GoogleSignInSingleton.instance;
 
   User? get currentUser => kIsWeb ? null : _auth.currentUser;
@@ -45,10 +44,10 @@ class GroupService {
   String? get displayName => currentUser?.displayName;
 
   Future<bool> signIn() async {
-    if (kIsWeb) return false;
+    if (kIsWeb) {
+      return false;
+    }
     try {
-      // Si déjà connecté via Drive (même instance GoogleSignIn),
-      // on réutilise directement le compte courant
       var account = _googleSignIn.currentUser;
       debugPrint('=== GroupService.signIn: currentUser=$account ===');
       account ??= await _googleSignIn.signIn();
@@ -73,10 +72,14 @@ class GroupService {
   }
 
   Future<bool> signInSilently() async {
-    if (kIsWeb) return false;
+    if (kIsWeb) {
+      return false;
+    }
     try {
       final account = await _googleSignIn.signInSilently();
-      if (account == null) return _auth.currentUser != null;
+      if (account == null) {
+        return _auth.currentUser != null;
+      }
       final auth = await account.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: auth.accessToken,
@@ -90,16 +93,22 @@ class GroupService {
   }
 
   Future<void> signOut() async {
-    if (kIsWeb) return;
+    if (kIsWeb) {
+      return;
+    }
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
   Future<String?> createGroup(String name, AppData initialData) async {
-    if (kIsWeb) return null;
+    if (kIsWeb) {
+      return null;
+    }
     final uid = currentUser?.uid;
     final email = currentUser?.email;
-    if (uid == null) return null;
+    if (uid == null) {
+      return null;
+    }
     try {
       final ref = await _db.collection('groups').add({
         'name': name,
@@ -117,7 +126,9 @@ class GroupService {
   }
 
   Future<bool> inviteMember(String groupId, String email) async {
-    if (kIsWeb) return false;
+    if (kIsWeb) {
+      return false;
+    }
     try {
       await _db.collection('groups').doc(groupId).update({
         'memberEmails': FieldValue.arrayUnion([email.trim().toLowerCase()]),
@@ -129,9 +140,13 @@ class GroupService {
   }
 
   Stream<List<GroupInfo>> watchMyGroups() {
-    if (kIsWeb) return const Stream.empty();
+    if (kIsWeb) {
+      return const Stream.empty();
+    }
     final email = currentUser?.email?.toLowerCase();
-    if (email == null) return const Stream.empty();
+    if (email == null) {
+      return const Stream.empty();
+    }
     return _db
         .collection('groups')
         .where('memberEmails', arrayContains: email)
@@ -141,11 +156,17 @@ class GroupService {
   }
 
   Stream<AppData?> watchGroupData(String groupId) {
-    if (kIsWeb) return const Stream.empty();
+    if (kIsWeb) {
+      return const Stream.empty();
+    }
     return _db.collection('groups').doc(groupId).snapshots().map((doc) {
-      if (!doc.exists) return null;
+      if (!doc.exists) {
+        return null;
+      }
       final raw = (doc.data() as Map<String, dynamic>)['data'];
-      if (raw == null) return null;
+      if (raw == null) {
+        return null;
+      }
       try {
         final json = raw is String
             ? jsonDecode(raw) as Map<String, dynamic>
@@ -158,7 +179,9 @@ class GroupService {
   }
 
   Future<bool> pushGroupData(String groupId, AppData data) async {
-    if (kIsWeb) return false;
+    if (kIsWeb) {
+      return false;
+    }
     try {
       await _db.collection('groups').doc(groupId).update({
         'data': data.toJson(),
@@ -171,10 +194,14 @@ class GroupService {
   }
 
   Future<void> leaveGroup(String groupId) async {
-    if (kIsWeb) return;
+    if (kIsWeb) {
+      return;
+    }
     final uid = currentUser?.uid;
     final email = currentUser?.email?.toLowerCase();
-    if (uid == null) return;
+    if (uid == null) {
+      return;
+    }
     await _db.collection('groups').doc(groupId).update({
       'members': FieldValue.arrayRemove([uid]),
       'memberEmails': FieldValue.arrayRemove([email ?? '']),

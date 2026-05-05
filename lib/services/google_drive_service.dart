@@ -10,7 +10,6 @@ class GoogleDriveService {
   static const _fileName = 'game_tracker_data.json';
   static const _mimeJson = 'application/json';
 
-  // Utilise l'instance partagée
   final _googleSignIn = GoogleSignInSingleton.instance;
 
   GoogleSignInAccount? _currentUser;
@@ -47,9 +46,13 @@ class GoogleDriveService {
   }
 
   Future<drive.DriveApi?> _getDriveApi() async {
-    if (_currentUser == null) return null;
+    if (_currentUser == null) {
+      return null;
+    }
     final authClient = await _googleSignIn.authenticatedClient();
-    if (authClient == null) return null;
+    if (authClient == null) {
+      return null;
+    }
     return drive.DriveApi(authClient);
   }
 
@@ -57,7 +60,9 @@ class GoogleDriveService {
     _status = SyncStatus.syncing;
     try {
       final api = await _getDriveApi();
-      if (api == null) throw Exception('Non authentifié');
+      if (api == null) {
+        throw Exception('Non authentifié');
+      }
 
       const space = 'appDataFolder';
       final query = "name='$_fileName' and trashed=false";
@@ -99,7 +104,9 @@ class GoogleDriveService {
     _status = SyncStatus.syncing;
     try {
       final api = await _getDriveApi();
-      if (api == null) throw Exception('Non authentifié');
+      if (api == null) {
+        throw Exception('Non authentifié');
+      }
 
       const space = 'appDataFolder';
       final query = "name='$_fileName' and trashed=false";

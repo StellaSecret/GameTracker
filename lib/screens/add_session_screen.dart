@@ -30,7 +30,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   void initState() {
     super.initState();
     final s = widget.existing;
-    if (s == null) return;
+    if (s == null) {
+      return;
+    }
     // Pre-fill fields from existing session
     _playedAt = s.playedAt;
     _notesCtrl.text = s.notes ?? '';
@@ -116,7 +118,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                         selected: selected,
                         onSelected: (v) => _togglePlayer(p, v),
                         selectedColor:
-                            _hexColor(p.color).withOpacity(0.3),
+                            _hexColor(p.color).withValues(alpha: 0.3),
                         checkmarkColor: _hexColor(p.color),
                         side: BorderSide(
                           color: selected
@@ -151,7 +153,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
                 ElevatedButton(
                   onPressed: _canSave() ? _save : null,
-                  child: Text(widget.existing != null ? 'Mettre à jour' : 'Enregistrer la partie'),
+                  child: Text(widget.existing != null
+                      ? 'Mettre à jour'
+                      : 'Enregistrer la partie'),
                 ),
               ],
             ),
@@ -161,7 +165,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   List<Widget> _buildPointsInputs(AppState state) {
     return _selectedPlayerIds.map((id) {
       final player = state.findPlayer(id);
-      if (player == null) return const SizedBox.shrink();
+      if (player == null) {
+        return const SizedBox.shrink();
+      }
       _scoreCtrl.putIfAbsent(id, () => TextEditingController(text: '0'));
       return Padding(
         padding: const EdgeInsets.only(bottom: 10),
@@ -285,7 +291,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                 );
               }),
               onChanged: (v) {
-                if (v != null) setState(() => _ranks[player.id] = v);
+                if (v != null) {
+                  setState(() => _ranks[player.id] = v);
+                }
               },
             ),
           ],
@@ -324,20 +332,16 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         for (final id in _selectedPlayerIds) {
           scores[id] = int.tryParse(_scoreCtrl[id]?.text ?? '0') ?? 0;
         }
-        break;
       case GameMode.duel:
         for (final id in _selectedPlayerIds) {
           scores[id] = (_duelResults[id] ?? DuelResult.draw).index;
         }
-        break;
       case GameMode.ranking:
         for (final id in _selectedPlayerIds) {
           scores[id] = _ranks[id] ?? 1;
         }
-        break;
     }
     if (isEdit) {
-      // Update existing session in-place
       final updated = GameSession(
         id: widget.existing!.id,
         mode: widget.game.mode,
@@ -355,7 +359,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
       );
       await state.addSession(widget.game.id, session);
     }
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _pickDate(BuildContext context) async {
@@ -372,11 +378,19 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         child: child!,
       ),
     );
-    if (date == null || !mounted) return;
+    if (date == null || !mounted) {
+      return;
+    }
+    if (!context.mounted) {
+      return;
+    }
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_playedAt),
     );
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _playedAt = DateTime(
         date.year, date.month, date.day,
@@ -394,7 +408,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     return '${d.day} ${months[d.month - 1]} ${d.year} – ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
-  String _ordinal(int n) => n == 1 ? '1er' : '${n}ème';
+  String _ordinal(int n) => n == 1 ? '1er' : '$nème';
 
   Color _hexColor(String hex) {
     try {
@@ -446,7 +460,7 @@ class _PlayerAvatar extends StatelessWidget {
     }
     return CircleAvatar(
       radius: 18,
-      backgroundColor: color.withOpacity(0.2),
+      backgroundColor: color.withValues(alpha: 0.2),
       child: Text(
         player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
         style: TextStyle(
@@ -480,7 +494,7 @@ class _DuelButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: selected
-                ? color.withOpacity(0.2)
+                ? color.withValues(alpha: 0.2)
                 : AppColors.surfaceElevated,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(

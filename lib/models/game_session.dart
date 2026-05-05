@@ -25,7 +25,9 @@ class GameSession {
 
   /// Returns the playerId of the winner, or null for draw/multi-rank.
   String? get winner {
-    if (scores.isEmpty) return null;
+    if (scores.isEmpty) {
+      return null;
+    }
     switch (mode) {
       case GameMode.points:
         return scores.entries

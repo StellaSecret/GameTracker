@@ -9,13 +9,12 @@ class PurchaseService extends ChangeNotifier {
   static const String _kApiKeyIOS = 'YOUR_REVENUECAT_IOS_KEY';
   static const String _kEntitlementId = 'premium';
   static const _premiumEmailsRaw =
-      String.fromEnvironment('PREMIUM_EMAILS', defaultValue: '');
+      String.fromEnvironment('PREMIUM_EMAILS');
 
   Entitlement _entitlement = const Entitlement.free();
   bool _isLoading = true;
   String? _lastError;
 
-  // Email injecté depuis l'extérieur (Drive ou Firebase) après connexion
   String? _connectedEmail;
 
   Entitlement get entitlement => _entitlement;
@@ -23,7 +22,6 @@ class PurchaseService extends ChangeNotifier {
   bool get isPremium => _entitlement.isPremium;
   String? get lastError => _lastError;
 
-  /// Appelé par AppState dès qu'un email Google est connu (Drive ou Firebase)
   void setConnectedEmail(String? email) {
     _connectedEmail = email?.toLowerCase().trim();
     debugPrint('=== PurchaseService: email reçu: $_connectedEmail ===');
@@ -62,7 +60,9 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<void> _refreshEntitlement() async {
-    if (kIsWeb) return;
+    if (kIsWeb) {
+      return;
+    }
     try {
       final info = await Purchases.getCustomerInfo();
       final hasSub = info.entitlements.active.containsKey(_kEntitlementId);
@@ -74,12 +74,13 @@ class PurchaseService extends ChangeNotifier {
   }
 
   void recheckDeveloperStatus() {
-    if (_entitlement.isPremium) return;
+    if (_entitlement.isPremium) {
+      return;
+    }
     debugPrint('=== PREMIUM CHECK ===');
     debugPrint('premiumEmailsRaw: $_premiumEmailsRaw');
     debugPrint('connectedEmail: $_connectedEmail');
 
-    // Firebase Auth
     if (!kIsWeb) {
       try {
         final fbEmail = FirebaseAuth.instance.currentUser?.email;
@@ -97,24 +98,26 @@ class PurchaseService extends ChangeNotifier {
   }
 
   bool _isDeveloper() {
-    if (_premiumEmailsRaw.isEmpty) return false;
+    if (_premiumEmailsRaw.isEmpty) {
+      return false;
+    }
     final allowed = _premiumEmailsRaw
         .split(',')
         .map((e) => e.trim().toLowerCase())
         .where((e) => e.isNotEmpty)
         .toSet();
 
-    // Source 1 : email injecté explicitement (Drive ou Firebase)
     if (_connectedEmail != null && allowed.contains(_connectedEmail!)) {
       return true;
     }
 
-    // Source 2 : Firebase Auth (si connecté)
     if (!kIsWeb) {
       try {
         final fbEmail =
             FirebaseAuth.instance.currentUser?.email?.toLowerCase().trim();
-        if (fbEmail != null && allowed.contains(fbEmail)) return true;
+        if (fbEmail != null && allowed.contains(fbEmail)) {
+          return true;
+        }
       } catch (_) {}
     }
 
@@ -122,7 +125,9 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<Offering?> getOffering() async {
-    if (kIsWeb || _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') return null;
+    if (kIsWeb || _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') {
+      return null;
+    }
     try {
       final offerings = await Purchases.getOfferings();
       return offerings.current;
@@ -133,7 +138,9 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<bool> purchase(Package package) async {
-    if (kIsWeb) return false;
+    if (kIsWeb) {
+      return false;
+    }
     try {
       _lastError = null;
       final info = await Purchases.purchasePackage(package);
@@ -153,7 +160,9 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<bool> restorePurchases() async {
-    if (kIsWeb) return false;
+    if (kIsWeb) {
+      return false;
+    }
     try {
       _lastError = null;
       final info = await Purchases.restorePurchases();

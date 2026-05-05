@@ -71,7 +71,6 @@ class _PlayerCard extends StatelessWidget {
       color = AppColors.primary;
     }
 
-    // Count games played
     final gamesPlayed = state.games
         .where((g) => g.sessions.any((s) => s.scores.containsKey(player.id)))
         .length;
@@ -84,7 +83,7 @@ class _PlayerCard extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: color.withOpacity(0.2),
+            backgroundColor: color.withValues(alpha: 0.2),
             child: Text(
               player.name[0].toUpperCase(),
               style: TextStyle(
@@ -195,8 +194,10 @@ class _PlayerSheetState extends State<_PlayerSheet> {
             spacing: 10,
             runSpacing: 10,
             children: AppColors.playerColors.map((c) {
+              // Use toARGB32() for explicit conversion instead of deprecated .value
+              final argb = c.toARGB32();
               final hex =
-                  '#${c.value.toRadixString(16).substring(2).toUpperCase()}';
+                  '#${argb.toRadixString(16).substring(2).toUpperCase()}';
               final selected = hex == _color;
               return GestureDetector(
                 onTap: () => setState(() => _color = hex),
@@ -212,7 +213,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                       width: 3,
                     ),
                     boxShadow: selected
-                        ? [BoxShadow(color: c.withOpacity(0.6), blurRadius: 8)]
+                        ? [BoxShadow(color: c.withValues(alpha: 0.6), blurRadius: 8)]
                         : [],
                   ),
                   child: selected
@@ -255,7 +256,9 @@ class _PlayerSheetState extends State<_PlayerSheet> {
   }
 
   Future<void> _save() async {
-    if (_nameCtrl.text.trim().isEmpty) return;
+    if (_nameCtrl.text.trim().isEmpty) {
+      return;
+    }
     final state = context.read<AppState>();
     if (widget.existing != null) {
       await state.updatePlayer(
@@ -264,7 +267,9 @@ class _PlayerSheetState extends State<_PlayerSheet> {
       await state
           .addPlayer(Player(name: _nameCtrl.text.trim(), color: _color));
     }
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _delete() async {
@@ -288,8 +293,9 @@ class _PlayerSheetState extends State<_PlayerSheet> {
       ),
     );
     if (ok == true && mounted) {
+      final nav = Navigator.of(context);
       await context.read<AppState>().deletePlayer(widget.existing!.id);
-      Navigator.pop(context);
+      nav.pop();
     }
   }
 }

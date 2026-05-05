@@ -79,7 +79,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                           height: 52,
                           decoration: BoxDecoration(
                             color: _emoji == e
-                                ? AppColors.primary.withOpacity(0.2)
+                                ? AppColors.primary.withValues(alpha: 0.2)
                                 : AppColors.surfaceElevated,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -90,8 +90,9 @@ class _AddGameScreenState extends State<AddGameScreen> {
                             ),
                           ),
                           child: Center(
-                              child: Text(e,
-                                  style: const TextStyle(fontSize: 24))),
+                            child: Text(e,
+                                style: const TextStyle(fontSize: 24)),
+                          ),
                         ),
                       )),
                 ],
@@ -150,12 +151,12 @@ class _AddGameScreenState extends State<AddGameScreen> {
                               ],
                             ),
                           ),
-                          Radio<GameMode>(
-                            value: m,
-                            groupValue: _mode,
-                            onChanged: (v) => setState(() => _mode = v!),
-                            activeColor: AppColors.primary,
-                          ),
+                          if (_mode == m)
+                            const Icon(Icons.radio_button_checked_rounded,
+                                color: AppColors.primary)
+                          else
+                            const Icon(Icons.radio_button_unchecked_rounded,
+                                color: AppColors.textSecondary),
                         ],
                       ),
                     ),
@@ -181,7 +182,9 @@ class _AddGameScreenState extends State<AddGameScreen> {
         return;
       }
     }
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     final state = context.read<AppState>();
     if (widget.existing != null) {
       final updated = widget.existing!.copyWith(
@@ -203,7 +206,9 @@ class _AddGameScreenState extends State<AddGameScreen> {
       );
       await state.addGame(game);
     }
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _delete() async {
@@ -228,7 +233,9 @@ class _AddGameScreenState extends State<AddGameScreen> {
     );
     if (confirm == true && mounted) {
       await context.read<AppState>().deleteGame(widget.existing!.id);
-      if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
+      if (mounted) {
+        Navigator.popUntil(context, (r) => r.isFirst);
+      }
     }
   }
 }

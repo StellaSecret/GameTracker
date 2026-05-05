@@ -9,7 +9,9 @@ class StorageService {
   Future<AppData> load() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_key);
-    if (raw == null) return AppData();
+    if (raw == null) {
+      return AppData();
+    }
     try {
       return AppData.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {

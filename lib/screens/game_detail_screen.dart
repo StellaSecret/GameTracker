@@ -19,7 +19,9 @@ class GameDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final game = state.findGame(gameId);
-    if (game == null) return const SizedBox.shrink();
+    if (game == null) {
+      return const SizedBox.shrink();
+    }
 
     final sessions = List<GameSession>.from(game.sessions)
       ..sort((a, b) => b.playedAt.compareTo(a.playedAt));
@@ -110,7 +112,9 @@ class GameDetailScreen extends StatelessWidget {
   }
 
   Widget _buildStats(BuildContext context, Game game, AppState state) {
-    if (game.sessions.isEmpty) return const SizedBox.shrink();
+    if (game.sessions.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final wins = game.winsByPlayer;
 
     return GTCard(
@@ -214,7 +218,6 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.read<AppState>();
-    // Fallback vers format sans locale si intl pas dispo
     String dateStr;
     try {
       final fmt = DateFormat('d MMM y – HH:mm', 'fr_FR');
@@ -233,7 +236,6 @@ class _SessionCard extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 12, color: AppColors.textSecondary)),
               const Spacer(),
-              // Bouton éditer
               IconButton(
                 icon: const Icon(Icons.edit_outlined,
                     size: 18, color: AppColors.textSecondary),
@@ -243,7 +245,6 @@ class _SessionCard extends StatelessWidget {
                 tooltip: 'Modifier',
               ),
               const SizedBox(width: 12),
-              // Bouton supprimer
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded,
                     size: 18, color: AppColors.textSecondary),
@@ -289,11 +290,9 @@ class _SessionCard extends StatelessWidget {
         case GameMode.points:
           scoreText = '${e.value} pts';
           scoreColor = isWinner ? AppColors.accent : null;
-          break;
         case GameMode.ranking:
           scoreText = _ordinal(e.value);
           scoreColor = e.value == 1 ? const Color(0xFFFFD700) : null;
-          break;
         case GameMode.duel:
           final result = DuelResult.values[e.value];
           scoreText = result == DuelResult.win
@@ -306,7 +305,6 @@ class _SessionCard extends StatelessWidget {
               : result == DuelResult.loss
                   ? AppColors.error
                   : AppColors.warning;
-          break;
       }
 
       return Padding(
@@ -336,7 +334,7 @@ class _SessionCard extends StatelessWidget {
     }).toList();
   }
 
-  String _ordinal(int n) => n == 1 ? '1er' : '${n}ème';
+  String _ordinal(int n) => n == 1 ? '1er' : '$nème';
 
   void _editSession(BuildContext context, Game game) {
     Navigator.push(
