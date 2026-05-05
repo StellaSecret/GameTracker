@@ -28,7 +28,10 @@ class PlayersScreen extends StatelessWidget {
               ),
             )
           : ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16, right: 16, top: 16,
+                bottom: 16 + MediaQuery.of(context).padding.bottom,
+              ),
               itemCount: players.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) => _PlayerCard(player: players[i])

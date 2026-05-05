@@ -85,7 +85,7 @@ class GameDetailScreen extends StatelessWidget {
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + MediaQuery.of(context).padding.bottom),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (ctx, i) => Padding(

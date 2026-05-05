@@ -379,7 +379,7 @@ class _GlobalTab extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         // Chiffres clés
-        _SectionTitle('VUE D\'ENSEMBLE'),
+        const _SectionTitle('VUE D\'ENSEMBLE'),
         const SizedBox(height: 12),
         Row(children: [
           Expanded(child: _BigStatCard('🎲', '${stats.totalGames}', 'Jeux')),
@@ -447,6 +447,8 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _Divider extends StatelessWidget {
+  const _Divider();
+
   @override
   Widget build(BuildContext context) => const Divider(
     color: AppColors.cardBorder, height: 20, thickness: 1,
