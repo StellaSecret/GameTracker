@@ -44,25 +44,54 @@ jobs:
       - name: Perform Analysis
         uses: github/codeql-action/analyze@v3
 
-  # ── SÉCURITÉ 3 : AUDIT FLUTTER & PLACEHOLDERS ──────────
+  # ── QUALITÉ : LINT + TESTS ──────────────────────────────
   flutter-security:
-    name: Flutter Lint & Audit
+    name: Flutter Lint, Audit & Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+
       - name: Get Dependencies
         run: flutter pub get
+
       - name: Verify No Secrets in Code
         run: |
           if grep -q "AIzaSy" web/index.html; then
             echo "❌ Google API Key détectée dans l'index !" && exit 1
           fi
+
       - name: Flutter Analyze
         run: flutter analyze --no-fatal-infos
+
+      # ── Tests unitaires (pure Dart, pas de device) ──────
+      - name: Unit Tests
+        run: flutter test --no-pub --reporter=expanded
+        # --reporter=expanded : affiche chaque test individuellement dans les logs CI
+
+      # ── Rapport de couverture (sur les PRs uniquement) ──
+      - name: Test Coverage
+        if: github.event_name == 'pull_request'
+        run: |
+          flutter test --no-pub --coverage
+          # Résumé lisible dans les logs
+          if command -v lcov &> /dev/null; then
+            lcov --summary coverage/lcov.info
+          else
+            echo "lcov not available, skipping summary"
+          fi
+
+      - name: Upload Coverage Report
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.run_number }}
+          path: coverage/lcov.info
+          retention-days: 7
 
   # ── BUILD GLOBAL (Android + Web) ───────────────────────
   build:
