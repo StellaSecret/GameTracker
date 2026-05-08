@@ -7,7 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
 
 const _emojis = [
-  '🎲', '♟️', '🃏', '🎯', '🎮', '🧩', '🃏', '🎰', '🎱',
+  '🎲', '♟️', '🃏', '🎯', '🎮', '🧩', '🎰', '🎱',
   '⚔️', '🏆', '👑', '🌍', '🚂', '🏙️', '🌺', '🐉', '🦁',
 ];
 
@@ -26,6 +26,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
   GameMode _mode = GameMode.points;
   String? _emoji;
   bool _lowestScoreWins = false;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -218,8 +219,15 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: _save,
-              child: Text(isEditing ? 'Enregistrer' : 'Créer le jeu'),
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(isEditing ? 'Enregistrer' : 'Créer le jeu'),
             ),
           ],
         ),
@@ -228,6 +236,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     if (widget.existing == null) {
       final state = context.read<AppState>();
       final error = state.canAddGame();
@@ -239,6 +248,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    setState(() => _saving = true);
     final state = context.read<AppState>();
     if (widget.existing != null) {
       final updated = widget.existing!.copyWith(

@@ -129,7 +129,34 @@ class AppState extends ChangeNotifier {
 
   Future<void> deleteGame(String gameId) async {
     _data.games.removeWhere((g) => g.id == gameId);
-    await _persist();
+    // If in a group, we must push the deletion then briefly pause the stream
+    // to prevent Firestore from echoing the old data back and causing a black
+    // screen (the stream would call mergeWith which could restore the game).
+    if (_activeGroupId != null && !kIsWeb) {
+      _groupSub?.cancel();
+      _groupSub = null;
+      _data = AppData(
+        games: _data.games,
+        players: _data.players,
+        lastModified: DateTime.now(),
+      );
+      await _storage.save(_data);
+      await groupService.pushGroupData(_activeGroupId!, _data);
+      notifyListeners();
+      // Re-subscribe after a short delay so the echo from our own push is gone
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (_activeGroupId != null) {
+        _groupSub = groupService.watchGroupData(_activeGroupId!).listen((remote) {
+          if (remote != null) {
+            _data = _data.mergeWith(remote);
+            _storage.save(_data);
+            notifyListeners();
+          }
+        });
+      }
+    } else {
+      await _persist();
+    }
   }
 
   Game? findGame(String id) {
