@@ -65,7 +65,7 @@ class GoogleDriveService {
       }
 
       const space = 'appDataFolder';
-      final query = "name='$_fileName' and trashed=false";
+      const query = "name='$_fileName' and trashed=false";
       final existing = await api.files.list(
         q: query,
         spaces: space,
@@ -109,7 +109,7 @@ class GoogleDriveService {
       }
 
       const space = 'appDataFolder';
-      final query = "name='$_fileName' and trashed=false";
+      const query = "name='$_fileName' and trashed=false";
       final result = await api.files.list(
         q: query,
         spaces: space,

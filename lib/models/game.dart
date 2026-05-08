@@ -12,6 +12,10 @@ class Game {
   final DateTime createdAt;
   List<GameSession> sessions;
 
+  /// Points mode only: if true, the player with the LOWEST total wins.
+  /// e.g. "6 qui prend", "Hearts", "Golf".
+  bool lowestScoreWins;
+
   Game({
     String? id,
     required this.name,
@@ -20,6 +24,7 @@ class Game {
     this.coverEmoji,
     DateTime? createdAt,
     List<GameSession>? sessions,
+    this.lowestScoreWins = false,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now(),
         sessions = sessions ?? [];
@@ -32,6 +37,7 @@ class Game {
         'coverEmoji': coverEmoji,
         'createdAt': createdAt.toIso8601String(),
         'sessions': sessions.map((s) => s.toJson()).toList(),
+        'lowestScoreWins': lowestScoreWins,
       };
 
   factory Game.fromJson(Map<String, dynamic> json) => Game(
@@ -48,6 +54,8 @@ class Game {
                 ?.map((s) => GameSession.fromJson(s as Map<String, dynamic>))
                 .toList() ??
             [],
+        // Graceful fallback for existing saved games (field absent → false)
+        lowestScoreWins: json['lowestScoreWins'] as bool? ?? false,
       );
 
   Game copyWith({
@@ -56,6 +64,7 @@ class Game {
     String? description,
     String? coverEmoji,
     List<GameSession>? sessions,
+    bool? lowestScoreWins,
   }) =>
       Game(
         id: id,
@@ -65,15 +74,17 @@ class Game {
         coverEmoji: coverEmoji ?? this.coverEmoji,
         createdAt: createdAt,
         sessions: sessions ?? this.sessions,
+        lowestScoreWins: lowestScoreWins ?? this.lowestScoreWins,
       );
 
   // ── Stats helpers ──────────────────────────────────────────────────────────
 
-  /// Returns a map of playerId → wins (points mode: most points; duel: winner; ranking: 1st)
+  /// Returns a map of playerId → wins.
+  /// For points mode, respects [lowestScoreWins].
   Map<String, int> get winsByPlayer {
     final map = <String, int>{};
     for (final session in sessions) {
-      final winner = session.winner;
+      final winner = session.winnerFor(lowestScoreWins: lowestScoreWins);
       if (winner != null) {
         map[winner] = (map[winner] ?? 0) + 1;
       }
@@ -81,7 +92,7 @@ class Game {
     return map;
   }
 
-  /// Returns a map of playerId → total points (points mode only)
+  /// Returns a map of playerId → total points (points mode only).
   Map<String, int> get totalPointsByPlayer {
     final map = <String, int>{};
     for (final session in sessions) {
@@ -92,12 +103,16 @@ class Game {
     return map;
   }
 
-  /// Returns a map of playerId → record (max points in a single session)
+  /// Returns a map of playerId → record score in a single session.
+  /// For [lowestScoreWins] games, "record" means the lowest single-session score.
   Map<String, int> get recordsByPlayer {
     final map = <String, int>{};
     for (final session in sessions) {
       for (final entry in session.scores.entries) {
-        if ((map[entry.key] ?? 0) < entry.value) {
+        final current = map[entry.key];
+        final isBetter = current == null ||
+            (lowestScoreWins ? entry.value < current : entry.value > current);
+        if (isBetter) {
           map[entry.key] = entry.value;
         }
       }

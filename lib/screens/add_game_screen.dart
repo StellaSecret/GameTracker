@@ -1,4 +1,3 @@
-// lib/screens/add_game_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/game.dart';
@@ -26,6 +25,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
   late final TextEditingController _descCtrl;
   GameMode _mode = GameMode.points;
   String? _emoji;
+  bool _lowestScoreWins = false;
 
   @override
   void initState() {
@@ -35,6 +35,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
         TextEditingController(text: widget.existing?.description ?? '');
     _mode = widget.existing?.mode ?? GameMode.points;
     _emoji = widget.existing?.coverEmoji;
+    _lowestScoreWins = widget.existing?.lowestScoreWins ?? false;
   }
 
   @override
@@ -68,7 +69,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
             bottom: 16 + MediaQuery.of(context).padding.bottom,
           ),
           children: [
-            // Emoji picker
+            // ── Emoji picker ────────────────────────────────────────────────
             const GTSectionHeader(title: 'ICÔNE'),
             const SizedBox(height: 8),
             SizedBox(
@@ -104,7 +105,8 @@ class _AddGameScreenState extends State<AddGameScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // Name
+
+            // ── Name ────────────────────────────────────────────────────────
             const GTSectionHeader(title: 'NOM DU JEU'),
             const SizedBox(height: 8),
             TextFormField(
@@ -116,7 +118,8 @@ class _AddGameScreenState extends State<AddGameScreen> {
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 20),
-            // Description
+
+            // ── Description ─────────────────────────────────────────────────
             const GTSectionHeader(title: 'DESCRIPTION (optionnel)'),
             const SizedBox(height: 8),
             TextFormField(
@@ -126,13 +129,20 @@ class _AddGameScreenState extends State<AddGameScreen> {
               maxLines: 2,
             ),
             const SizedBox(height: 24),
-            // Mode
+
+            // ── Mode ────────────────────────────────────────────────────────
             const GTSectionHeader(title: 'MODE DE JEU'),
             const SizedBox(height: 12),
             ...GameMode.values.map((m) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: GestureDetector(
-                    onTap: () => setState(() => _mode = m),
+                    onTap: () => setState(() {
+                      _mode = m;
+                      // Reset lowestScoreWins when leaving points mode
+                      if (m != GameMode.points) {
+                        _lowestScoreWins = false;
+                      }
+                    }),
                     child: GTCard(
                       borderColor: _mode == m ? AppColors.primary : null,
                       child: Row(
@@ -167,6 +177,45 @@ class _AddGameScreenState extends State<AddGameScreen> {
                     ),
                   ),
                 )),
+
+            // ── Scoring rule (points mode only) ─────────────────────────────
+            if (_mode == GameMode.points) ...[
+              const SizedBox(height: 8),
+              GTCard(
+                child: Row(
+                  children: [
+                    const Text('🔻', style: TextStyle(fontSize: 22)),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Le moins de points gagne',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 15),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Ex: 6 qui prend, Hearts, Golf…',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _lowestScoreWins,
+                      onChanged: (v) =>
+                          setState(() => _lowestScoreWins = v),
+                      activeThumbColor: AppColors.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _save,
@@ -199,6 +248,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
             : _descCtrl.text.trim(),
         mode: _mode,
         coverEmoji: _emoji,
+        lowestScoreWins: _lowestScoreWins,
       );
       await state.updateGame(updated);
     } else {
@@ -208,6 +258,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
             _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
         mode: _mode,
         coverEmoji: _emoji,
+        lowestScoreWins: _lowestScoreWins,
       );
       await state.addGame(game);
     }
