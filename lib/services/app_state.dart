@@ -129,33 +129,22 @@ class AppState extends ChangeNotifier {
 
   Future<void> deleteGame(String gameId) async {
     _data.games.removeWhere((g) => g.id == gameId);
-    // If in a group, we must push the deletion then briefly pause the stream
-    // to prevent Firestore from echoing the old data back and causing a black
-    // screen (the stream would call mergeWith which could restore the game).
+    // Record the deletion as a tombstone so that mergeWith() never
+    // re-introduces this game when a Firestore echo arrives.
+    final updatedDeletedIds = List<String>.from(_data.deletedGameIds)
+      ..add(gameId);
+    _data = AppData(
+      games: _data.games,
+      players: _data.players,
+      lastModified: DateTime.now(),
+      deletedGameIds: updatedDeletedIds,
+    );
+    await _storage.save(_data);
+    notifyListeners();
+    // Push to group in the background – tombstone ensures the echo
+    // from our own push cannot restore the deleted game.
     if (_activeGroupId != null && !kIsWeb) {
-      _groupSub?.cancel();
-      _groupSub = null;
-      _data = AppData(
-        games: _data.games,
-        players: _data.players,
-        lastModified: DateTime.now(),
-      );
-      await _storage.save(_data);
-      await groupService.pushGroupData(_activeGroupId!, _data);
-      notifyListeners();
-      // Re-subscribe after a short delay so the echo from our own push is gone
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (_activeGroupId != null) {
-        _groupSub = groupService.watchGroupData(_activeGroupId!).listen((remote) {
-          if (remote != null) {
-            _data = _data.mergeWith(remote);
-            _storage.save(_data);
-            notifyListeners();
-          }
-        });
-      }
-    } else {
-      await _persist();
+      groupService.pushGroupData(_activeGroupId!, _data);
     }
   }
 
@@ -219,10 +208,12 @@ class AppState extends ChangeNotifier {
       lastModified: DateTime.now(),
     );
     await _storage.save(_data);
-    if (_activeGroupId != null && !kIsWeb) {
-      await groupService.pushGroupData(_activeGroupId!, _data);
-    }
     notifyListeners();
+    // Push to group in the background – do NOT await so that the UI
+    // (e.g. Navigator.pop) is never blocked by the network call.
+    if (_activeGroupId != null && !kIsWeb) {
+      groupService.pushGroupData(_activeGroupId!, _data);
+    }
   }
 
   // ── Drive sync ────────────────────────────────────────────────────────────
