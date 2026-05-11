@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit
+#
+# Runs fast quality checks before every commit.
+# Install once with:  bash scripts/setup_hooks.sh
+#
+# To bypass in an emergency:  git commit --no-verify
+
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+step() { echo -e "\n${YELLOW}▶ $1${NC}"; }
+ok()   { echo -e "${GREEN}✓ $1${NC}"; }
+fail() { echo -e "${RED}✗ $1${NC}"; exit 1; }
+
+# ── 1. Formatting ────────────────────────────────────────────────────────────
+step "dart format"
+if ! dart format --set-exit-if-changed . ; then
+  fail "Formatting issues found. Run 'dart format .' then re-stage your files."
+fi
+ok "Code is correctly formatted"
+
+# ── 2. Static analysis ───────────────────────────────────────────────────────
+step "flutter analyze --no-fatal-infos"
+ANALYZE_OUTPUT=$(flutter analyze --no-fatal-infos 2>&1)
+echo "$ANALYZE_OUTPUT"
+# Fail only on warnings or errors; info-level hints are allowed through.
+if echo "$ANALYZE_OUTPUT" | grep -qE "^warning •|^error •"; then
+  fail "Analysis found warnings or errors. Fix them before committing."
+fi
+ok "No warnings or errors"
+
+# ── 3. Unit & widget tests ───────────────────────────────────────────────────
+step "flutter test"
+if ! flutter test --no-pub --reporter=compact ; then
+  fail "Tests failed. Fix them before committing."
+fi
+ok "All tests passed"
+
+echo -e "\n${GREEN}All pre-commit checks passed.${NC}\n"
