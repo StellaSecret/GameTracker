@@ -14,6 +14,10 @@ permissions:
   security-events: write
   actions: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ── SÉCURITÉ 1 : SCAN DE SECRETS (TRUFFLEHOG) ──────────
   scan-secrets:
@@ -40,7 +44,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript # Flutter utilise JS pour le web, CodeQL couvre cette partie
+          languages: javascript
       - name: Perform Analysis
         uses: github/codeql-action/analyze@v3
 
@@ -68,17 +72,13 @@ jobs:
       - name: Flutter Analyze
         run: flutter analyze --no-fatal-infos
 
-      # ── Tests unitaires (pure Dart, pas de device) ──────
       - name: Unit Tests
         run: flutter test --no-pub --reporter=expanded
-        # --reporter=expanded : affiche chaque test individuellement dans les logs CI
 
-      # ── Rapport de couverture (sur les PRs uniquement) ──
       - name: Test Coverage
         if: github.event_name == 'pull_request'
         run: |
           flutter test --no-pub --coverage
-          # Résumé lisible dans les logs
           if command -v lcov &> /dev/null; then
             lcov --summary coverage/lcov.info
           else
@@ -93,10 +93,86 @@ jobs:
           path: coverage/lcov.info
           retention-days: 7
 
+  # ── E2E : TESTS D'INTÉGRATION (Android Emulator) ───────
+  e2e-android:
+    name: E2E – Android Emulator
+    # ubuntu-latest is x86_64 with KVM support — the only combination that
+    # works on GitHub Actions. macOS ARM runners block HVF (HV_UNSUPPORTED)
+    # despite being ARM64 hardware. Ubuntu + KVM + x86_64 is the correct setup.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Grant KVM access so the emulator can use hardware acceleration.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Create stub google-services.json
+        run: |
+          cat > android/app/google-services.json << 'JSON'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id":     "game-tracker-stub",
+              "storage_bucket": "game-tracker-stub.appspot.com"
+            },
+            "client": [{
+              "client_info": {
+                "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+                "android_client_info": { "package_name": "com.stellasecret.gametracker" }
+              },
+              "oauth_client":  [],
+              "api_key":       [{ "current_key": "stub" }],
+              "services":      { "appinvite_service": { "other_platform_oauth_client": [] } }
+            }],
+            "configuration_version": "1"
+          }
+          JSON
+
+      - name: Run E2E tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          avd-name: gt_e2e
+          disable-animations: true
+          script: |
+            flutter test integration_test/app_test.dart --no-pub --reporter expanded -d emulator-5554
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure-${{ github.run_number }}
+          path: |
+            build/integration_test/
+            /tmp/*.png
+          retention-days: 7
+
   # ── BUILD GLOBAL (Android + Web) ───────────────────────
   build:
     name: Build Android & Web
-    needs: [scan-secrets, codeql-analysis, flutter-security]
+    # e2e added here: build only runs if emulator tests pass
+    needs: [scan-secrets, codeql-analysis, flutter-security, e2e-android]
     runs-on: ubuntu-latest
     outputs:
       artifact-release-name: GameTracker-release-${{ github.run_number }}
@@ -115,7 +191,6 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # Phase Secrets & Config
       - name: Prepare Signing & Firebase
         if: github.event_name != 'pull_request'
         env:
@@ -132,7 +207,6 @@ jobs:
           PROPS
           sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/" android/app/build.gradle
 
-      # Build Android
       - name: Build Android (APK & AAB)
         if: github.event_name != 'pull_request'
         run: |
@@ -143,14 +217,12 @@ jobs:
         if: github.event_name == 'pull_request'
         run: flutter build apk --debug
 
-      # Build Web
       - name: Build Web
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           sed -i 's|%%GOOGLE_WEB_CLIENT_ID%%|${{ secrets.GOOGLE_WEB_CLIENT_ID }}|g' web/index.html
           flutter build web --base-href "/GameTracker/" --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
 
-      # Archivage
       - name: Collect Android Artifacts
         if: github.event_name != 'pull_request'
         run: |
