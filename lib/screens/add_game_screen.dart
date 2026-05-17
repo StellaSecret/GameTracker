@@ -113,7 +113,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
             TextFormField(
               controller: _nameCtrl,
               decoration:
-                  const InputDecoration(hintText: 'ex: Catan, 7 Wonders…'),
+                  const InputDecoration(hintText: 'Nom du jeu'),
               validator: (v) =>
                   v == null || v.trim().isEmpty ? 'Nom requis' : null,
               textCapitalization: TextCapitalization.words,

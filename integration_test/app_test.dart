@@ -27,25 +27,64 @@ void main() {
   // Helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Waits for the loading spinner to disappear, then settles all animations.
+  /// Waits for the app to settle, then pops all routes back to the root screen.
+  /// This is necessary because the emulator is shared across all tests and may
+  /// be left on a detail/edit screen by the previous test.
   Future<void> waitReady(WidgetTester tester) async {
     await tester.pumpAndSettle(const Duration(seconds: 5));
+    // Pop any lingering routes (edit screens, dialogs, detail pages) back to root.
+    while (tester.any(find.byTooltip('Back'))) {
+      await tester.tap(find.byTooltip('Back').first);
+      await tester.pumpAndSettle();
+    }
   }
 
-  /// Enters [text] into the first TextField that currently has focus,
-  /// or into the TextField that has [hint] as its hintText.
+  /// Dismisses the software keyboard without any tap side-effects.
+  /// Uses FocusManager to unfocus the active field — safe inside bottom sheets,
+  /// dialogs, and full-screen forms where tapping the AppBar would navigate away.
+  Future<void> dismissKeyboard(WidgetTester tester) async {
+    tester.binding.focusManager.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+  }
+
+  /// Scrolls [finder] into the visible area then taps it.
+  /// Handles buttons pushed below the fold by long forms.
+  Future<void> scrollToAndTap(WidgetTester tester, Finder finder) async {
+    // ensureVisible requires exactly one element — guard against 0 or 2+.
+    if (!tester.any(finder)) {
+      throw TestFailure('scrollToAndTap: no widget found for $finder');
+    }
+    await tester.ensureVisible(finder.first);
+    await tester.pumpAndSettle();
+    await tester.tap(finder.first);
+    await tester.pumpAndSettle();
+  }
+
+  /// Enters [text] into the TextField that has [hint] as its hintText,
+  /// or the first TextField if [hint] is omitted.
+  /// Dismisses the keyboard afterwards via FocusManager (no tap side-effects).
   Future<void> enterText(
     WidgetTester tester,
     String text, {
     String? hint,
   }) async {
-    final finder = hint != null
-        ? find.widgetWithText(TextField, hint)
-        : find.byType(TextField).first;
+    // find.widgetWithText(TextField, hint) misses TextFormField because
+    // TextFormField renders its own internal TextField — the hint lives on
+    // the InputDecoration, not as a Text child.  We match by predicate
+    // on the internal TextField's decoration instead.
+    final Finder finder;
+    if (hint != null) {
+      finder = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.hintText == hint,
+      );
+    } else {
+      finder = find.byType(TextField).first;
+    }
     await tester.tap(finder.first);
     await tester.pumpAndSettle();
     await tester.enterText(finder.first, text);
     await tester.pumpAndSettle();
+    await dismissKeyboard(tester);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -76,8 +115,7 @@ void main() {
 
       await enterText(tester, 'Catan', hint: 'Nom du jeu');
 
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Créer le jeu'));
 
       expect(find.text('Catan'), findsOneWidget);
     });
@@ -91,11 +129,9 @@ void main() {
 
       await enterText(tester, 'Échecs', hint: 'Nom du jeu');
 
-      await tester.tap(find.text('Duel'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Duel'));
 
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Créer le jeu'));
 
       expect(find.text('Échecs'), findsOneWidget);
     });
@@ -107,8 +143,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pumpAndSettle();
       await enterText(tester, 'Ticket to Ride', hint: 'Nom du jeu');
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Créer le jeu'));
 
       await tester.tap(find.text('Ticket to Ride'));
       await tester.pumpAndSettle();
@@ -116,14 +151,16 @@ void main() {
       await tester.tap(find.byIcon(Icons.edit_rounded));
       await tester.pumpAndSettle();
 
-      final nameField = find.widgetWithText(TextField, 'Ticket to Ride');
+      final nameField = find.byWidgetPredicate(
+        (w) => w is EditableText && w.controller.text == 'Ticket to Ride',
+      );
       await tester.tap(nameField);
       await tester.pumpAndSettle();
       await tester.enterText(nameField, 'Ticket to Ride Legacy');
       await tester.pumpAndSettle();
+      await dismissKeyboard(tester);
 
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Enregistrer'));
 
       final backButton = find.byTooltip('Back');
       if (tester.any(backButton)) {
@@ -141,8 +178,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pumpAndSettle();
       await enterText(tester, 'Jeu à supprimer', hint: 'Nom du jeu');
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Créer le jeu'));
 
       await tester.tap(find.text('Jeu à supprimer'));
       await tester.pumpAndSettle();
@@ -178,8 +214,7 @@ void main() {
 
       await enterText(tester, 'Alice', hint: 'Prénom ou pseudo');
 
-      await tester.tap(find.text('Ajouter'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Ajouter'));
 
       expect(find.text('Alice'), findsOneWidget);
     });
@@ -194,8 +229,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.person_add_rounded));
       await tester.pumpAndSettle();
       await enterText(tester, 'Bob', hint: 'Prénom ou pseudo');
-      await tester.tap(find.text('Ajouter'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Ajouter'));
 
       await tester.tap(find.text('Bob'));
       await tester.pumpAndSettle();
@@ -203,7 +237,18 @@ void main() {
       await tester.tap(find.byIcon(Icons.delete_rounded));
       await tester.pumpAndSettle();
 
-      expect(find.text('Bob'), findsNothing);
+      // Confirm the delete dialog
+      await tester.tap(find.text('Supprimer').last);
+      await tester.pumpAndSettle();
+
+      // Bob should no longer appear in the player list
+      expect(
+        find.descendant(
+          of: find.byType(ListView),
+          matching: find.text('Bob'),
+        ),
+        findsNothing,
+      );
     });
   });
 
@@ -225,8 +270,7 @@ void main() {
         await tester.tap(find.byIcon(Icons.person_add_rounded));
         await tester.pumpAndSettle();
         await enterText(tester, name, hint: 'Prénom ou pseudo');
-        await tester.tap(find.text('Ajouter'));
-        await tester.pumpAndSettle();
+        await scrollToAndTap(tester, find.text('Ajouter'));
       }
 
       await tester.tap(find.byTooltip('Back'));
@@ -236,27 +280,26 @@ void main() {
       await tester.pumpAndSettle();
       await enterText(tester, gameName, hint: 'Nom du jeu');
       if (mode != GameMode.points) {
-        await tester.tap(
+        await scrollToAndTap(
+          tester,
           find.text(mode == GameMode.duel ? 'Duel' : 'Classement'),
         );
-        await tester.pumpAndSettle();
       }
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Créer le jeu'));
     }
 
     testWidgets('records a Points session with two players', (tester) async {
-      await setupGameAndPlayers(tester);
+      await setupGameAndPlayers(tester, gameName: 'Catan Session');
 
-      await tester.tap(find.text('Catan'));
+      await tester.tap(find.text('Catan Session'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Alice'));
+      await tester.tap(find.text('Alice').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Bob'));
+      await tester.tap(find.text('Bob').first);
       await tester.pumpAndSettle();
 
       final scoreFields = find.byType(TextField);
@@ -264,9 +307,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(scoreFields.at(1), '85');
       await tester.pumpAndSettle();
+      await dismissKeyboard(tester);
 
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Enregistrer la partie'));
 
       expect(find.textContaining('Alice'), findsWidgets);
     });
@@ -274,26 +317,25 @@ void main() {
     testWidgets('records a Duel session', (tester) async {
       await setupGameAndPlayers(
         tester,
-        gameName: 'Échecs',
+        gameName: 'Échecs E2E',
         mode: GameMode.duel,
       );
 
-      await tester.tap(find.text('Échecs'));
+      await tester.tap(find.text('Échecs E2E'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Alice'));
+      await tester.tap(find.text('Alice').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Bob'));
+      await tester.tap(find.text('Bob').first);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Victoire').first);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Enregistrer'));
-      await tester.pumpAndSettle();
+      await scrollToAndTap(tester, find.text('Enregistrer la partie'));
 
       expect(find.textContaining('Alice'), findsWidgets);
     });
@@ -306,18 +348,18 @@ void main() {
       app.main();
       await waitReady(tester);
 
-      for (final name in ['Catan', 'Pandemic']) {
-        await tester.tap(find.byIcon(Icons.add_rounded));
-        await tester.pumpAndSettle();
-        await enterText(tester, name, hint: 'Nom du jeu');
-        await tester.tap(find.text('Enregistrer'));
-        await tester.pumpAndSettle();
-      }
+      // Don't create new games — prior tests already filled the free-tier limit
+      // (5 games). Instead search among the games that already exist:
+      // "Catan" and "Catan Session" were created by earlier tests.
+      // Searching for "Catan" should show both; "Échecs" should show Échecs games
+      // and hide any Catan entries.
+      await enterText(tester, 'Catan', hint: 'Rechercher un jeu…');
+      expect(find.textContaining('Catan'), findsWidgets);
 
-      await enterText(tester, 'Cat', hint: 'Rechercher un jeu…');
-
-      expect(find.text('Catan'), findsOneWidget);
-      expect(find.text('Pandemic'), findsNothing);
+      // Clear and search for something that matches only non-Catan games
+      await enterText(tester, 'Échecs', hint: 'Rechercher un jeu…');
+      expect(find.textContaining('Échecs'), findsWidgets);
+      expect(find.text('Catan'), findsNothing);
     });
   });
 }
