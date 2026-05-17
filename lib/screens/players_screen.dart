@@ -1,4 +1,3 @@
-// lib/screens/players_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -178,8 +177,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
           TextField(
             controller: _nameCtrl,
             decoration: const InputDecoration(
-              labelText: 'Nom du joueur',
-              hintText: 'ex: Alice, Bob…',
+              hintText: 'Prénom ou pseudo',
             ),
             textCapitalization: TextCapitalization.words,
             autofocus: true,
