@@ -108,6 +108,28 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # ── Cache 1: Gradle distributions + build outputs ────────────────────
+      # Saves ~2-3 min on repeat runs. Key includes pubspec.lock so a dependency
+      # change invalidates the cache automatically.
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'pubspec.lock') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      # ── Cache 2: Android SDK system image ────────────────────────────────
+      # The API 28 image is ~300 MB. Caching it eliminates the "Install Android
+      # SDK" download step on every run (~40 s saved).
+      - name: Cache Android SDK system image
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/system-images
+          key: android-sdk-image-28-google_apis-x86_64
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -149,12 +171,22 @@ jobs:
       - name: Run E2E tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          # API 28 vs 34: boots ~90 s faster, no CMake download, smaller image.
+          # All app features (SharedPreferences, HTTP, Google Sign-In stub) work
+          # on API 28+. Upgrade only if a test explicitly needs a newer API.
+          api-level: 28
           target: google_apis
           arch: x86_64
           profile: pixel_6
           avd-name: gt_e2e
           disable-animations: true
+          # 4 cores = all vCPUs available on the GitHub Actions ubuntu runner.
+          # 4096 MB RAM leaves ~3 GB headroom for the Gradle daemon alongside
+          # the emulator (runner has 7 GB total).
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
             flutter test integration_test/app_test.dart --no-pub --reporter expanded -d emulator-5554
 
