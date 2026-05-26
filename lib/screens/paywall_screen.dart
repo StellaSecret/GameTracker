@@ -48,39 +48,40 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🌟 GameTracker Premium'),
+        title: Text('🌟 GameTracker Premium'),
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
+          icon: Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (widget.reason != null) ...[
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.warning.withValues(alpha: 0.1),
+                        color: c.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: AppColors.warning.withValues(alpha: 0.4)),
+                            color: c.warning.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         children: [
-                          const Text('⚠️', style: TextStyle(fontSize: 18)),
-                          const SizedBox(width: 10),
+                          Text('⚠️', style: TextStyle(fontSize: 18)),
+                          SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               widget.reason!,
-                              style: const TextStyle(
-                                  color: AppColors.warning, fontSize: 13),
+                              style: TextStyle(
+                                  color: c.warning, fontSize: 13),
                             ),
                           ),
                         ],
@@ -97,20 +98,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   )
                       .animate()
                       .scale(duration: 400.ms, curve: Curves.elasticOut),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'Passez à Premium',
                     style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary),
+                        color: c.textPrimary),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     'Jeux illimités, historique complet\net sync temps réel entre joueurs.',
                     style: TextStyle(
-                        fontSize: 15, color: AppColors.textSecondary),
+                        fontSize: 15, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -128,15 +129,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         .fadeIn(duration: 300.ms)
                         .slideX(begin: 0.05);
                   }),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
 
                   // Packages
                   if (_offering == null)
-                    const Center(
+                    Center(
                       child: Text(
                         'Impossible de charger les offres.\nVérifiez votre connexion.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(color: c.textSecondary),
                       ),
                     )
                   else
@@ -148,20 +149,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         )),
 
                   if (_error != null) ...[
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
                       style:
-                          const TextStyle(color: AppColors.error, fontSize: 13),
+                          TextStyle(color: c.error, fontSize: 13),
                     ),
                   ],
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextButton(
                     onPressed: _purchasing ? null : _restore,
-                    child: const Text('Restaurer les achats',
-                        style: TextStyle(color: AppColors.textSecondary)),
+                    child: Text('Restaurer les achats',
+                        style: TextStyle(color: c.textSecondary)),
                   ),
                 ],
               ),
@@ -237,11 +238,12 @@ class _FeatureRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
+          Text(emoji, style: TextStyle(fontSize: 20)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -258,8 +260,8 @@ class _FeatureRow extends StatelessWidget {
             child: Text(
               free,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 12, color: c.textSecondary),
             ),
           ),
           SizedBox(
@@ -267,10 +269,10 @@ class _FeatureRow extends StatelessWidget {
             child: Text(
               premium,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: AppColors.accent,
+                color: c.accent,
               ),
             ),
           ),
@@ -293,6 +295,7 @@ class _PackageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final isMonthly =
         package.packageType == PackageType.monthly;
     final isAnnual =
@@ -307,23 +310,23 @@ class _PackageButton extends StatelessWidget {
           GestureDetector(
             onTap: purchasing ? null : onTap,
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.all(18),
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.all(18),
               decoration: BoxDecoration(
                 gradient: isAnnual
                     ? LinearGradient(
                         colors: [
-                          AppColors.primary.withValues(alpha: 0.3),
-                          AppColors.accent.withValues(alpha: 0.2),
+                          c.primary.withValues(alpha: 0.3),
+                          c.accent.withValues(alpha: 0.2),
                         ],
                       )
                     : null,
-                color: isAnnual ? null : AppColors.surface,
+                color: isAnnual ? null : c.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isAnnual
-                      ? AppColors.primary
-                      : AppColors.cardBorder,
+                      ? c.primary
+                      : c.cardBorder,
                   width: isAnnual ? 2 : 1,
                 ),
               ),
@@ -339,47 +342,47 @@ class _PackageButton extends StatelessWidget {
                               : isMonthly
                                   ? 'Mensuel'
                                   : package.storeProduct.title,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 16),
                         ),
                         if (isAnnual)
-                          const Text(
+                          Text(
                             '2 mois offerts',
                             style: TextStyle(
-                                fontSize: 12, color: AppColors.accent),
+                                fontSize: 12, color: c.accent),
                           ),
                       ],
                     ),
                   ),
                   Text(
                     package.storeProduct.priceString,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 18, fontWeight: FontWeight.w800),
                   ),
                   if (isAnnual) ...[
-                    const SizedBox(width: 4),
-                    const Text('/an',
+                    SizedBox(width: 4),
+                    Text('/an',
                         style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary)),
+                            color: c.textSecondary)),
                   ] else if (isMonthly) ...[
-                    const SizedBox(width: 4),
-                    const Text('/mois',
+                    SizedBox(width: 4),
+                    Text('/mois',
                         style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary)),
+                            color: c.textSecondary)),
                   ],
                   const SizedBox(width: 12),
                   if (purchasing)
-                    const SizedBox(
+                    SizedBox(
                       width: 20,
                       height: 20,
                       child:
                           CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    const Icon(Icons.arrow_forward_ios_rounded,
-                        size: 16, color: AppColors.textSecondary),
+                    Icon(Icons.arrow_forward_ios_rounded,
+                        size: 16, color: c.textSecondary),
                 ],
               ),
             ),
@@ -390,9 +393,9 @@ class _PackageButton extends StatelessWidget {
               right: 16,
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: c.accent,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(

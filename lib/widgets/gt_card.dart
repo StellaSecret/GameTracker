@@ -18,18 +18,19 @@ class GTCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: padding ?? const EdgeInsets.all(16),
+          padding: padding ?? EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: c.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: borderColor ?? AppColors.cardBorder,
+              color: borderColor ?? c.cardBorder,
             ),
           ),
           child: child,
@@ -47,14 +48,15 @@ class GTSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Row(
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: c.textSecondary,
             letterSpacing: 1.0,
           ),
         ),
@@ -125,29 +127,30 @@ class GTEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 64)),
-            const SizedBox(height: 16),
+            Text(emoji, style: TextStyle(fontSize: 64)),
+            SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: c.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: c.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -178,33 +181,34 @@ class GTStatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: c.textSecondary,
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: color ?? AppColors.textPrimary,
+            color: color ?? c.textPrimary,
           ),
         ),
         if (subtitle != null)
           Text(
             subtitle!,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: c.textSecondary,
             ),
           ),
       ],

@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import 'screens/games_screen.dart';
 import 'screens/players_screen.dart';
 import 'services/app_state.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,25 +26,18 @@ void main() async {
     }
   }
 
-  if (!kIsWeb) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: AppColors.background,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ));
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-  }
+  final themeNotifier = ThemeNotifier();
+  await themeNotifier.init();
 
   final state = AppState();
   await state.init();
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: state,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: state),
+        ChangeNotifierProvider.value(value: themeNotifier),
+      ],
       child: const GameTrackerApp(),
     ),
   );
@@ -55,10 +48,32 @@ class GameTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = context.watch<ThemeNotifier>();
+
+    // Sync system UI chrome with the active brightness.
+    final isDark = themeNotifier.isDark;
+    if (!kIsWeb) {
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor:
+            isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF5F4FB),
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+      ));
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
+
     return MaterialApp(
       title: 'GameTracker',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeNotifier.mode,
       localizationsDelegates: const [],
       routes: {
         '/': (_) => const GamesScreen(),

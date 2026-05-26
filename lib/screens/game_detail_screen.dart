@@ -17,6 +17,7 @@ class GameDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final game = state.findGame(gameId);
     if (game == null) {
@@ -33,7 +34,7 @@ class GameDetailScreen extends StatelessWidget {
             : game.name),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_rounded),
+            icon: Icon(Icons.edit_rounded),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => AddGameScreen(existing: game)),
@@ -45,14 +46,14 @@ class GameDetailScreen extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (game.description != null) ...[
                     Text(game.description!,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 14)),
+                        style: TextStyle(
+                            color: c.textSecondary, fontSize: 14)),
                     const SizedBox(height: 16),
                   ],
                   _buildStats(context, game, state),
@@ -106,12 +107,13 @@ class GameDetailScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addSession(context, game),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Nouvelle partie'),
+        label: Text('Nouvelle partie'),
       ),
     );
   }
 
   Widget _buildStats(BuildContext context, Game game, AppState state) {
+    final c = AppColors.of(context);
     if (game.sessions.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -121,36 +123,37 @@ class GameDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const GTSectionHeader(title: 'CLASSEMENT'),
-          const SizedBox(height: 16),
+          GTSectionHeader(title: 'CLASSEMENT'),
+          SizedBox(height: 16),
           if (wins.isEmpty)
-            const Text('Pas encore de vainqueur.',
-                style: TextStyle(color: AppColors.textSecondary))
+            Text('Pas encore de vainqueur.',
+                style: TextStyle(color: c.textSecondary))
           else
-            ..._buildLeaderboard(wins, game, state),
+            ..._buildLeaderboard(context, wins, game, state),
         ],
       ),
     );
   }
 
   List<Widget> _buildLeaderboard(
-      Map<String, int> wins, Game game, AppState state) {
+      BuildContext context, Map<String, int> wins, Game game, AppState state) {
     final sorted = wins.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final records = game.recordsByPlayer;
 
+    final c = AppColors.of(context);
     return sorted.asMap().entries.map((entry) {
       final rank = entry.key;
       final e = entry.value;
       final player = state.findPlayer(e.key);
       final name = player?.name ?? 'Joueur supprimé';
       final color = rank == 0
-          ? const Color(0xFFFFD700)
+          ? Color(0xFFFFD700)
           : rank == 1
-              ? const Color(0xFFC0C0C0)
+              ? Color(0xFFC0C0C0)
               : rank == 2
-                  ? const Color(0xFFCD7F32)
-                  : AppColors.textSecondary;
+                  ? Color(0xFFCD7F32)
+                  : c.textSecondary;
 
       return Padding(
         padding: const EdgeInsets.only(bottom: 10),
@@ -180,16 +183,16 @@ class GameDetailScreen extends StatelessWidget {
               children: [
                 Text(
                   '${e.value} victoire${e.value != 1 ? 's' : ''}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary),
+                      color: c.textPrimary),
                 ),
                 if (game.mode == GameMode.points && records[e.key] != null)
                   Text(
                     'Record: ${records[e.key]}pts',
-                    style: const TextStyle(
-                        fontSize: 11, color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 11, color: c.textSecondary),
                   ),
               ],
             ),
@@ -217,6 +220,7 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final state = context.read<AppState>();
     String dateStr;
     try {
@@ -233,36 +237,36 @@ class _SessionCard extends StatelessWidget {
           Row(
             children: [
               Text(dateStr,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary)),
-              const Spacer(),
+                  style: TextStyle(
+                      fontSize: 12, color: c.textSecondary)),
+              Spacer(),
               IconButton(
-                icon: const Icon(Icons.edit_outlined,
-                    size: 18, color: AppColors.textSecondary),
+                icon: Icon(Icons.edit_outlined,
+                    size: 18, color: c.textSecondary),
                 onPressed: () => _editSession(context, game),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+                constraints: BoxConstraints(),
                 tooltip: 'Modifier',
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded,
-                    size: 18, color: AppColors.textSecondary),
+                icon: Icon(Icons.delete_outline_rounded,
+                    size: 18, color: c.textSecondary),
                 onPressed: () => _confirmDelete(context, state),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+                constraints: BoxConstraints(),
                 tooltip: 'Supprimer',
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          ..._buildScores(state),
+          SizedBox(height: 8),
+          ..._buildScores(context, state),
           if (session.notes != null && session.notes!.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(session.notes!,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: c.textSecondary,
                     fontStyle: FontStyle.italic)),
           ],
         ],
@@ -270,7 +274,7 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildScores(AppState state) {
+  List<Widget> _buildScores(BuildContext context, AppState state) {
     final sorted = session.scores.entries.toList();
     if (session.mode == GameMode.points) {
       sorted.sort((a, b) => b.value.compareTo(a.value));
@@ -278,6 +282,7 @@ class _SessionCard extends StatelessWidget {
       sorted.sort((a, b) => a.value.compareTo(b.value));
     }
 
+    final c = AppColors.of(context);
     return sorted.map((e) {
       final player = state.findPlayer(e.key);
       final name = player?.name ?? 'Joueur supprimé';
@@ -289,10 +294,10 @@ class _SessionCard extends StatelessWidget {
       switch (session.mode) {
         case GameMode.points:
           scoreText = '${e.value} pts';
-          scoreColor = isWinner ? AppColors.accent : null;
+          scoreColor = isWinner ? c.accent : null;
         case GameMode.ranking:
           scoreText = _ordinal(e.value);
-          scoreColor = e.value == 1 ? const Color(0xFFFFD700) : null;
+          scoreColor = e.value == 1 ? Color(0xFFFFD700) : null;
         case GameMode.duel:
           final result = DuelResult.values[e.value];
           scoreText = result == DuelResult.win
@@ -301,10 +306,10 @@ class _SessionCard extends StatelessWidget {
                   ? 'Match nul'
                   : 'Défaite';
           scoreColor = result == DuelResult.win
-              ? AppColors.success
+              ? c.success
               : result == DuelResult.loss
-                  ? AppColors.error
-                  : AppColors.warning;
+                  ? c.error
+                  : c.warning;
       }
 
       return Padding(
@@ -317,7 +322,7 @@ class _SessionCard extends StatelessWidget {
               const SizedBox(width: 20),
             Expanded(
               child: Text(name,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w500)),
             ),
             Text(
@@ -325,7 +330,7 @@ class _SessionCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: scoreColor ?? AppColors.textPrimary,
+                color: scoreColor ?? c.textPrimary,
               ),
             ),
           ],
@@ -346,22 +351,23 @@ class _SessionCard extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, AppState state) async {
+    final c = AppColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Supprimer cette partie ?'),
-        content: const Text(
+        backgroundColor: c.surface,
+        title: Text('Supprimer cette partie ?'),
+        content: Text(
             'Cette action est irréversible.',
-            style: TextStyle(color: AppColors.textSecondary)),
+            style: TextStyle(color: c.textSecondary)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler')),
+              child: Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer',
-                style: TextStyle(color: AppColors.error)),
+            child: Text('Supprimer',
+                style: TextStyle(color: c.error)),
           ),
         ],
       ),

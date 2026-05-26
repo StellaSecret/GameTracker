@@ -48,6 +48,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final isEditing = widget.existing != null;
     return Scaffold(
       appBar: AppBar(
@@ -55,7 +56,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
         actions: [
           if (isEditing)
             IconButton(
-              icon: const Icon(Icons.delete_rounded, color: AppColors.error),
+              icon: Icon(Icons.delete_rounded, color: c.error),
               onPressed: _delete,
             ),
         ],
@@ -81,18 +82,18 @@ class _AddGameScreenState extends State<AddGameScreen> {
                   ..._emojis.map((e) => GestureDetector(
                         onTap: () => setState(() => _emoji = e),
                         child: Container(
-                          margin: const EdgeInsets.only(right: 8),
+                          margin: EdgeInsets.only(right: 8),
                           width: 52,
                           height: 52,
                           decoration: BoxDecoration(
                             color: _emoji == e
-                                ? AppColors.primary.withValues(alpha: 0.2)
-                                : AppColors.surfaceElevated,
+                                ? c.primary.withValues(alpha: 0.2)
+                                : c.surfaceElevated,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: _emoji == e
-                                  ? AppColors.primary
-                                  : AppColors.cardBorder,
+                                  ? c.primary
+                                  : c.cardBorder,
                               width: _emoji == e ? 2 : 1,
                             ),
                           ),
@@ -145,7 +146,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                       }
                     }),
                     child: GTCard(
-                      borderColor: _mode == m ? AppColors.primary : null,
+                      borderColor: _mode == m ? c.primary : null,
                       child: Row(
                         children: [
                           Text(m.icon,
@@ -156,23 +157,23 @@ class _AddGameScreenState extends State<AddGameScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(m.label,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 15)),
-                                const SizedBox(height: 2),
+                                SizedBox(height: 2),
                                 Text(m.description,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondary)),
+                                        color: c.textSecondary)),
                               ],
                             ),
                           ),
                           if (_mode == m)
-                            const Icon(Icons.radio_button_checked_rounded,
-                                color: AppColors.primary)
+                            Icon(Icons.radio_button_checked_rounded,
+                                color: c.primary)
                           else
-                            const Icon(Icons.radio_button_unchecked_rounded,
-                                color: AppColors.textSecondary),
+                            Icon(Icons.radio_button_unchecked_rounded,
+                                color: c.textSecondary),
                         ],
                       ),
                     ),
@@ -187,11 +188,11 @@ class _AddGameScreenState extends State<AddGameScreen> {
                   children: [
                     const Text('🔻', style: TextStyle(fontSize: 22)),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Le moins de points gagne',
                             style: TextStyle(
                                 fontWeight: FontWeight.w600, fontSize: 15),
@@ -201,7 +202,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                             'Ex: 6 qui prend, Hearts, Golf…',
                             style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textSecondary),
+                                color: c.textSecondary),
                           ),
                         ],
                       ),
@@ -210,7 +211,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                       value: _lowestScoreWins,
                       onChanged: (v) =>
                           setState(() => _lowestScoreWins = v),
-                      activeThumbColor: AppColors.primary,
+                      activeThumbColor: c.primary,
                     ),
                   ],
                 ),
@@ -236,7 +237,9 @@ class _AddGameScreenState extends State<AddGameScreen> {
   }
 
   Future<void> _save() async {
-    if (_saving) return;
+    if (_saving) {
+      return;
+    }
     if (widget.existing == null) {
       final state = context.read<AppState>();
       final error = state.canAddGame();
@@ -278,21 +281,22 @@ class _AddGameScreenState extends State<AddGameScreen> {
   }
 
   Future<void> _delete() async {
+    final c = AppColors.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Supprimer ce jeu ?'),
-        content: const Text(
+        backgroundColor: c.surface,
+        title: Text('Supprimer ce jeu ?'),
+        content: Text(
             'Toutes les parties seront supprimées. Cette action est irréversible.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler')),
+              child: Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer',
-                style: TextStyle(color: AppColors.error)),
+            child: Text('Supprimer',
+                style: TextStyle(color: c.error)),
           ),
         ],
       ),

@@ -32,13 +32,14 @@ class _StatsScreenState extends State<StatsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final engine = StatsEngine(state.games);
 
     if (state.games.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('📊 Statistiques')),
-        body: const GTEmptyState(
+        appBar: AppBar(title: Text('📊 Statistiques')),
+        body: GTEmptyState(
           emoji: '📊',
           title: 'Pas encore de stats',
           subtitle: 'Ajoutez des jeux et jouez des parties pour voir vos statistiques.',
@@ -48,12 +49,12 @@ class _StatsScreenState extends State<StatsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📊 Statistiques'),
+        title: Text('📊 Statistiques'),
         bottom: TabBar(
           controller: _tabs,
-          indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
+          indicatorColor: c.primary,
+          labelColor: c.primary,
+          unselectedLabelColor: c.textSecondary,
           tabs: const [
             Tab(text: 'Joueurs'),
             Tab(text: 'Jeux'),
@@ -97,6 +98,7 @@ class _PlayersTabState extends State<_PlayersTab> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final players = widget.state.players;
     if (players.isEmpty) {
       return const GTEmptyState(
@@ -119,7 +121,7 @@ class _PlayersTabState extends State<_PlayersTab> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: players.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, __) => SizedBox(width: 8),
             itemBuilder: (ctx, i) {
               final p = players[i];
               final selected = p.id == _selectedPlayerId;
@@ -127,18 +129,18 @@ class _PlayersTabState extends State<_PlayersTab> {
               try {
                 pColor = Color(int.parse(p.color.replaceFirst('#', '0xFF')));
               } catch (_) {
-                pColor = AppColors.primary;
+                pColor = c.primary;
               }
               return GestureDetector(
                 onTap: () => setState(() => _selectedPlayerId = p.id),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  duration: Duration(milliseconds: 200),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: selected ? pColor.withValues(alpha: 0.2) : AppColors.surface,
+                    color: selected ? pColor.withValues(alpha: 0.2) : c.surface,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: selected ? pColor : AppColors.cardBorder,
+                      color: selected ? pColor : c.cardBorder,
                       width: selected ? 2 : 1,
                     ),
                   ),
@@ -146,7 +148,7 @@ class _PlayersTabState extends State<_PlayersTab> {
                     p.name,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: selected ? pColor : AppColors.textSecondary,
+                      color: selected ? pColor : c.textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -241,6 +243,7 @@ class _GamesTabState extends State<_GamesTab> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final games = widget.state.games.where((g) => g.sessions.isNotEmpty).toList();
     if (games.isEmpty) {
       return const GTEmptyState(
@@ -266,22 +269,22 @@ class _GamesTabState extends State<_GamesTab> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: games.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, __) => SizedBox(width: 8),
             itemBuilder: (ctx, i) {
               final g = games[i];
               final selected = g.id == _selectedGameId;
               return GestureDetector(
                 onTap: () => setState(() => _selectedGameId = g.id),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  duration: Duration(milliseconds: 200),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: selected
-                        ? AppColors.primary.withValues(alpha: 0.2)
-                        : AppColors.surface,
+                        ? c.primary.withValues(alpha: 0.2)
+                        : c.surface,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: selected ? AppColors.primary : AppColors.cardBorder,
+                      color: selected ? c.primary : c.cardBorder,
                       width: selected ? 2 : 1,
                     ),
                   ),
@@ -289,7 +292,7 @@ class _GamesTabState extends State<_GamesTab> {
                     '${g.coverEmoji ?? g.mode.icon} ${g.name}',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: selected ? AppColors.primary : AppColors.textSecondary,
+                      color: selected ? c.primary : c.textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -450,9 +453,11 @@ class _Divider extends StatelessWidget {
   const _Divider();
 
   @override
-  Widget build(BuildContext context) => const Divider(
-    color: AppColors.cardBorder, height: 20, thickness: 1,
-  );
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Divider(
+    color: c.cardBorder, height: 20, thickness: 1,
+  );}
 }
 
 class _StatRow extends StatelessWidget {
@@ -461,13 +466,15 @@ class _StatRow extends StatelessWidget {
   const _StatRow(this.label, this.value);
 
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+      Text(label, style: TextStyle(color: c.textSecondary, fontSize: 14)),
       Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
     ],
-  );
+  );}
 }
 
 class _BigStatCard extends StatelessWidget {
@@ -477,18 +484,20 @@ class _BigStatCard extends StatelessWidget {
   const _BigStatCard(this.emoji, this.value, this.label);
 
   @override
-  Widget build(BuildContext context) => GTCard(
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return GTCard(
     child: Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 8),
-        Text(value, style: const TextStyle(
-          fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-        Text(label, style: const TextStyle(
-          fontSize: 12, color: AppColors.textSecondary)),
+        Text(emoji, style: TextStyle(fontSize: 24)),
+        SizedBox(height: 8),
+        Text(value, style: TextStyle(
+          fontSize: 28, fontWeight: FontWeight.w800, color: c.textPrimary)),
+        Text(label, style: TextStyle(
+          fontSize: 12, color: c.textSecondary)),
       ],
     ),
-  );
+  );}
 }
 
 // ── Stats joueur ──────────────────────────────────────────────────────────
@@ -499,6 +508,7 @@ class _KeyMetricsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final pct = (stats.winRate * 100).toStringAsFixed(0);
     return GTCard(
       child: Row(
@@ -506,23 +516,23 @@ class _KeyMetricsGrid extends StatelessWidget {
           Expanded(child: GTStatTile(
             label: 'PARTIES',
             value: '${stats.totalGames}',
-            color: AppColors.textPrimary,
+            color: c.textPrimary,
           )),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(child: GTStatTile(
             label: 'VICTOIRES',
             value: '${stats.totalWins}',
-            color: AppColors.accent,
+            color: c.accent,
           )),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(child: GTStatTile(
             label: 'TAUX',
             value: '$pct%',
             color: stats.winRate > 0.5
-                ? AppColors.success
+                ? c.success
                 : stats.winRate > 0.3
-                    ? AppColors.warning
-                    : AppColors.error,
+                    ? c.warning
+                    : c.error,
           )),
         ],
       ),
@@ -535,32 +545,34 @@ class _ScoresCard extends StatelessWidget {
   const _ScoresCard({required this.stats});
 
   @override
-  Widget build(BuildContext context) => GTCard(
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return GTCard(
     child: Row(
       children: [
         Expanded(child: GTStatTile(
           label: 'MEILLEUR',
           value: '${stats.bestScore}',
-          color: AppColors.accent,
+          color: c.accent,
           subtitle: 'pts',
         )),
-        const SizedBox(width: 16),
+        SizedBox(width: 16),
         Expanded(child: GTStatTile(
           label: 'PIRE',
           value: '${stats.worstScore}',
-          color: AppColors.error,
+          color: c.error,
           subtitle: 'pts',
         )),
-        const SizedBox(width: 16),
+        SizedBox(width: 16),
         Expanded(child: GTStatTile(
           label: 'MOYENNE',
           value: stats.avgScore?.toStringAsFixed(1) ?? '—',
-          color: AppColors.primary,
+          color: c.primary,
           subtitle: 'pts',
         )),
       ],
     ),
-  );
+  );}
 }
 
 class _StreaksCard extends StatelessWidget {
@@ -568,25 +580,27 @@ class _StreaksCard extends StatelessWidget {
   const _StreaksCard({required this.stats});
 
   @override
-  Widget build(BuildContext context) => GTCard(
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return GTCard(
     child: Row(
       children: [
         Expanded(child: GTStatTile(
           label: 'SÉRIE EN COURS',
           value: '${stats.currentStreak}',
-          color: stats.currentStreak > 0 ? AppColors.accent : AppColors.textSecondary,
+          color: stats.currentStreak > 0 ? c.accent : c.textSecondary,
           subtitle: stats.currentStreak > 1 ? '🔥 en feu !' : 'victoires',
         )),
-        const SizedBox(width: 16),
+        SizedBox(width: 16),
         Expanded(child: GTStatTile(
           label: 'MEILLEURE SÉRIE',
           value: '${stats.bestStreak}',
-          color: AppColors.warning,
+          color: c.warning,
           subtitle: 'victoires',
         )),
       ],
     ),
-  );
+  );}
 }
 
 class _FavoriteGameCard extends StatelessWidget {
@@ -596,6 +610,7 @@ class _FavoriteGameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final game = stats.favoriteGameId != null
         ? state.findGame(stats.favoriteGameId!)
         : null;
@@ -605,35 +620,35 @@ class _FavoriteGameCard extends StatelessWidget {
         : '0';
 
     return GTCard(
-      borderColor: AppColors.accent.withValues(alpha: 0.4),
+      borderColor: c.accent.withValues(alpha: 0.4),
       child: Row(
         children: [
           Container(
             width: 48, height: 48,
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.15),
+              color: c.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(child: Text(
               game?.coverEmoji ?? game?.mode.icon ?? '🎲',
-              style: const TextStyle(fontSize: 24),
+              style: TextStyle(fontSize: 24),
             )),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('🏠 Jeu favori', style: TextStyle(
-                fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-              Text(stats.favoriteGameName ?? '—', style: const TextStyle(
+              Text('🏠 Jeu favori', style: TextStyle(
+                fontSize: 11, color: c.textSecondary, fontWeight: FontWeight.w600)),
+              Text(stats.favoriteGameName ?? '—', style: TextStyle(
                 fontSize: 16, fontWeight: FontWeight.w700)),
             ],
           )),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text('${stats.favoriteGameWins} victoires', style: const TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.accent)),
-            Text('$rate% de réussite', style: const TextStyle(
-              fontSize: 12, color: AppColors.textSecondary)),
+            Text('${stats.favoriteGameWins} victoires', style: TextStyle(
+              fontSize: 14, fontWeight: FontWeight.w700, color: c.accent)),
+            Text('$rate% de réussite', style: TextStyle(
+              fontSize: 12, color: c.textSecondary)),
           ]),
         ],
       ),
@@ -648,6 +663,7 @@ class _WinRateByGameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final entries = stats.winRateByGame.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -659,35 +675,35 @@ class _WinRateByGameCard extends StatelessWidget {
           final wins = stats.winsByGame[e.key] ?? 0;
           final total = stats.gamesByGame[e.key] ?? 0;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  Text(game?.name ?? '—', style: const TextStyle(
+                  Text(game?.name ?? '—', style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w600)),
-                  const Spacer(),
-                  Text('$wins/$total', style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary)),
-                  const SizedBox(width: 8),
+                  Spacer(),
+                  Text('$wins/$total', style: TextStyle(
+                    fontSize: 12, color: c.textSecondary)),
+                  SizedBox(width: 8),
                   Text('${(rate * 100).toStringAsFixed(0)}%',
                     style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700,
-                      color: rate > 0.5 ? AppColors.success
-                          : rate > 0.3 ? AppColors.warning
-                          : AppColors.error)),
+                      color: rate > 0.5 ? c.success
+                          : rate > 0.3 ? c.warning
+                          : c.error)),
                 ]),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: rate,
                     minHeight: 6,
-                    backgroundColor: AppColors.cardBorder,
+                    backgroundColor: c.cardBorder,
                     valueColor: AlwaysStoppedAnimation(
-                      rate > 0.5 ? AppColors.success
-                          : rate > 0.3 ? AppColors.warning
-                          : AppColors.error),
+                      rate > 0.5 ? c.success
+                          : rate > 0.3 ? c.warning
+                          : c.error),
                   ),
                 ),
               ],
@@ -706,24 +722,25 @@ class _NemesisCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final nemesis = state.findPlayer(stats.nemesisId!);
     return GTCard(
-      borderColor: AppColors.error.withValues(alpha: 0.3),
+      borderColor: c.error.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(children: [
+          Row(children: [
             Text('💀', style: TextStyle(fontSize: 20)),
             SizedBox(width: 8),
             Text('Nemesis', style: TextStyle(
-              fontSize: 12, color: AppColors.error, fontWeight: FontWeight.w700,
+              fontSize: 12, color: c.error, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
           ]),
-          const SizedBox(height: 10),
-          Text(nemesis?.name ?? '—', style: const TextStyle(
+          SizedBox(height: 10),
+          Text(nemesis?.name ?? '—', style: TextStyle(
             fontSize: 18, fontWeight: FontWeight.w800)),
           Text('${stats.nemesisLosses} défaite${(stats.nemesisLosses ?? 0) > 1 ? 's' : ''} contre lui',
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            style: TextStyle(fontSize: 12, color: c.textSecondary)),
         ],
       ),
     );
@@ -737,24 +754,25 @@ class _RivalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final rival = state.findPlayer(stats.rivalId!);
     return GTCard(
-      borderColor: AppColors.warning.withValues(alpha: 0.3),
+      borderColor: c.warning.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(children: [
+          Row(children: [
             Text('⚔️', style: TextStyle(fontSize: 20)),
             SizedBox(width: 8),
             Text('Rival', style: TextStyle(
-              fontSize: 12, color: AppColors.warning, fontWeight: FontWeight.w700,
+              fontSize: 12, color: c.warning, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
           ]),
-          const SizedBox(height: 10),
-          Text(rival?.name ?? '—', style: const TextStyle(
+          SizedBox(height: 10),
+          Text(rival?.name ?? '—', style: TextStyle(
             fontSize: 18, fontWeight: FontWeight.w800)),
           Text('${stats.rivalGames} parties ensemble',
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            style: TextStyle(fontSize: 12, color: c.textSecondary)),
         ],
       ),
     );
@@ -772,8 +790,9 @@ class _DominantPlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final player = state.findPlayer(stats.dominantPlayerId!);
-    Color pColor = AppColors.primary;
+    Color pColor = c.primary;
     if (player != null) {
       try {
         pColor = Color(int.parse(player.color.replaceFirst('#', '0xFF')));
@@ -807,8 +826,8 @@ class _DominantPlayerCard extends StatelessWidget {
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Text('${stats.dominantWins}', style: TextStyle(
             fontSize: 28, fontWeight: FontWeight.w800, color: pColor)),
-          Text('victoires ($rate%)', style: const TextStyle(
-            fontSize: 11, color: AppColors.textSecondary)),
+          Text('victoires ($rate%)', style: TextStyle(
+            fontSize: 11, color: c.textSecondary)),
         ]),
       ]),
     );
@@ -822,24 +841,25 @@ class _TightestGameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final session = stats.tightestSession!;
     final sorted = session.scores.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return GTCard(
-      borderColor: AppColors.secondary.withValues(alpha: 0.3),
+      borderColor: c.secondary.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Text('🔥', style: TextStyle(fontSize: 16)),
-            const SizedBox(width: 8),
+            Text('🔥', style: TextStyle(fontSize: 16)),
+            SizedBox(width: 8),
             Text('Écart : ${stats.tightestGap} point${(stats.tightestGap ?? 0) > 1 ? 's' : ''}',
-              style: const TextStyle(fontSize: 12, color: AppColors.secondary,
+              style: TextStyle(fontSize: 12, color: c.secondary,
                 fontWeight: FontWeight.w700)),
-            const Spacer(),
+            Spacer(),
             Text(_formatDate(session.playedAt),
-              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              style: TextStyle(fontSize: 11, color: c.textSecondary)),
           ]),
           const SizedBox(height: 12),
           ...sorted.take(3).map((e) {
@@ -867,6 +887,7 @@ class _ScoreHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final history = stats.scoreHistory;
     final allPoints = history.values.expand((p) => p).toList();
     if (allPoints.isEmpty) {
@@ -882,7 +903,7 @@ class _ScoreHistoryCard extends StatelessWidget {
         children: [
           ...history.entries.take(4).map((entry) {
             final player = state.findPlayer(entry.key);
-            Color pColor = AppColors.primary;
+            Color pColor = c.primary;
             if (player != null) {
               try {
                 pColor = Color(int.parse(player.color.replaceFirst('#', '0xFF')));
@@ -896,13 +917,13 @@ class _ScoreHistoryCard extends StatelessWidget {
                 children: [
                   Row(children: [
                     CircleAvatar(radius: 8, backgroundColor: pColor),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(player?.name ?? '—', style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w600, color: pColor)),
-                    const Spacer(),
+                    Spacer(),
                     if (points.isNotEmpty)
                       Text('${points.last.value} pts (dernier)',
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        style: TextStyle(fontSize: 11, color: c.textSecondary)),
                   ]),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -994,6 +1015,7 @@ class _GlobalRankingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final medals = ['🥇', '🥈', '🥉'];
     return GTCard(
       child: Column(
@@ -1001,7 +1023,7 @@ class _GlobalRankingCard extends StatelessWidget {
           final rank = entry.key;
           final e = entry.value;
           final player = state.findPlayer(e.key);
-          Color pColor = AppColors.textSecondary;
+          Color pColor = c.textSecondary;
           if (player != null) {
             try {
               pColor = Color(int.parse(player.color.replaceFirst('#', '0xFF')));
@@ -1023,15 +1045,15 @@ class _GlobalRankingCard extends StatelessWidget {
                   style: TextStyle(color: pColor, fontWeight: FontWeight.w700, fontSize: 12),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(child: Text(player?.name ?? '—', style: TextStyle(
                 fontWeight: rank == 0 ? FontWeight.w700 : FontWeight.w500,
                 fontSize: 15,
-                color: rank == 0 ? const Color(0xFFFFD700) : AppColors.textPrimary,
+                color: rank == 0 ? Color(0xFFFFD700) : c.textPrimary,
               ))),
               Text('${e.value} victoire${e.value > 1 ? 's' : ''}',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary)),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                  color: c.textSecondary)),
             ]),
           );
         }).toList(),
@@ -1047,8 +1069,9 @@ class _MostActiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final player = state.findPlayer(stats.mostActivePlayerId!);
-    Color pColor = AppColors.primary;
+    Color pColor = c.primary;
     if (player != null) {
       try {
         pColor = Color(int.parse(player.color.replaceFirst('#', '0xFF')));
@@ -1057,15 +1080,15 @@ class _MostActiveCard extends StatelessWidget {
     return GTCard(
       borderColor: pColor.withValues(alpha: 0.3),
       child: Row(children: [
-        const Text('🕹️', style: TextStyle(fontSize: 32)),
-        const SizedBox(width: 14),
+        Text('🕹️', style: TextStyle(fontSize: 32)),
+        SizedBox(width: 14),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(player?.name ?? '—', style: const TextStyle(
+            Text(player?.name ?? '—', style: TextStyle(
               fontSize: 20, fontWeight: FontWeight.w800)),
             Text('${stats.mostActiveSessions} parties jouées',
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              style: TextStyle(fontSize: 13, color: c.textSecondary)),
           ],
         )),
       ]),
@@ -1080,11 +1103,12 @@ class _AbsoluteRecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final player = stats.absoluteRecordHolder != null
         ? state.findPlayer(stats.absoluteRecordHolder!)
         : null;
     return GTCard(
-      borderColor: const Color(0xFFFFD700).withValues(alpha: 0.4),
+      borderColor: Color(0xFFFFD700).withValues(alpha: 0.4),
       child: Row(children: [
         const Text('⭐', style: TextStyle(fontSize: 36)),
         const SizedBox(width: 14),
@@ -1092,12 +1116,12 @@ class _AbsoluteRecordCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${stats.absoluteRecord} pts',
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800,
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800,
                 color: Color(0xFFFFD700))),
-            Text(player?.name ?? '—', style: const TextStyle(
+            Text(player?.name ?? '—', style: TextStyle(
               fontSize: 14, fontWeight: FontWeight.w600)),
             Text('${stats.absoluteRecordGame ?? ''}${stats.absoluteRecordDate != null ? ' · ${_formatDate(stats.absoluteRecordDate!)}' : ''}',
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ],
         )),
       ]),
@@ -1112,26 +1136,27 @@ class _GlobalNemesisCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final playerA = state.findPlayer(stats.globalNemesisA!);
     final playerB = state.findPlayer(stats.globalNemesisB!);
     return GTCard(
-      borderColor: AppColors.error.withValues(alpha: 0.3),
+      borderColor: c.error.withValues(alpha: 0.3),
       child: Row(children: [
-        const Text('💀', style: TextStyle(fontSize: 24)),
-        const SizedBox(width: 12),
+        Text('💀', style: TextStyle(fontSize: 24)),
+        SizedBox(width: 12),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('NEMESIS', style: TextStyle(
-              fontSize: 11, color: AppColors.error, fontWeight: FontWeight.w700,
+            Text('NEMESIS', style: TextStyle(
+              fontSize: 11, color: c.error, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               '${playerA?.name ?? '—'} domine ${playerB?.name ?? '—'}',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             Text('${stats.globalNemesisScore} victoires d\'affilée',
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ],
         )),
       ]),
@@ -1146,26 +1171,27 @@ class _GlobalRivalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final playerA = state.findPlayer(stats.globalRivalA!);
     final playerB = state.findPlayer(stats.globalRivalB!);
     return GTCard(
-      borderColor: AppColors.warning.withValues(alpha: 0.3),
+      borderColor: c.warning.withValues(alpha: 0.3),
       child: Row(children: [
-        const Text('⚔️', style: TextStyle(fontSize: 24)),
-        const SizedBox(width: 12),
+        Text('⚔️', style: TextStyle(fontSize: 24)),
+        SizedBox(width: 12),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('RIVAUX', style: TextStyle(
-              fontSize: 11, color: AppColors.warning, fontWeight: FontWeight.w700,
+            Text('RIVAUX', style: TextStyle(
+              fontSize: 11, color: c.warning, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               '${playerA?.name ?? '—'} vs ${playerB?.name ?? '—'}',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             Text('${stats.globalRivalGames} parties ensemble',
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ],
         )),
       ]),

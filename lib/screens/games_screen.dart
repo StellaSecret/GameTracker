@@ -6,6 +6,7 @@ import '../models/game.dart';
 import '../models/game_mode.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_notifier.dart';
 import '../widgets/gt_card.dart';
 import 'add_game_screen.dart';
 import 'game_detail_screen.dart';
@@ -25,6 +26,7 @@ class _GamesScreenState extends State<GamesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final games = state.games
         .where((g) => g.name.toLowerCase().contains(_search.toLowerCase()))
@@ -32,15 +34,24 @@ class _GamesScreenState extends State<GamesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎲 GameTracker'),
+        title: Text('🎲 GameTracker'),
         actions: [
           // Group sync badge (premium)
           if (state.isInGroup)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(right: 4),
               child: Icon(Icons.wifi_tethering_rounded,
-                  color: AppColors.primary, size: 20),
+                  color: c.primary, size: 20),
             ),
+          IconButton(
+            icon: Icon(
+              context.watch<ThemeNotifier>().isDark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+            ),
+            tooltip: 'Changer le thème',
+            onPressed: () => context.read<ThemeNotifier>().toggle(),
+          ),
           IconButton(
             icon: const Icon(Icons.bar_chart_rounded),
             tooltip: 'Statistiques',
@@ -55,26 +66,26 @@ class _GamesScreenState extends State<GamesScreen> {
             onPressed: () => _openGroups(context, state),
           ),
           IconButton(
-            icon: const Icon(Icons.sync_rounded),
+            icon: Icon(Icons.sync_rounded),
             tooltip: 'Sync Drive',
             onPressed: () => _showSyncSheet(context),
           ),
           IconButton(
-            icon: const Icon(Icons.people_alt_rounded),
+            icon: Icon(Icons.people_alt_rounded),
             tooltip: 'Joueurs',
             onPressed: () => Navigator.pushNamed(context, '/players'),
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: Size.fromHeight(60),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               onChanged: (v) => setState(() => _search = v),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Rechercher un jeu…',
                 prefixIcon:
-                    Icon(Icons.search_rounded, color: AppColors.textSecondary),
+                    Icon(Icons.search_rounded, color: c.textSecondary),
                 isDense: true,
               ),
             ),
@@ -161,19 +172,20 @@ class _GamesScreenState extends State<GamesScreen> {
       padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + MediaQuery.of(context).padding.bottom),
       itemCount: letters.length,
       itemBuilder: (context, idx) {
+        final c = AppColors.of(context);
         final letter = letters[idx];
         final letterGames = grouped[letter]!;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+              padding: EdgeInsets.fromLTRB(4, 16, 4, 8),
               child: Text(
                 letter,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: c.primary,
                   letterSpacing: 1.5,
                 ),
               ),
@@ -194,9 +206,10 @@ class _GamesScreenState extends State<GamesScreen> {
   }
 
   void _showSyncSheet(BuildContext context) {
+    final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: c.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -213,34 +226,35 @@ class _FreeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final gameCount = state.games.length;
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const PaywallScreen()),
+        MaterialPageRoute(builder: (_) => PaywallScreen()),
       ),
       child: Container(
         width: double.infinity,
         padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: AppColors.primary.withValues(alpha: 0.08),
+            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: c.primary.withValues(alpha: 0.08),
         child: Row(
           children: [
-            const Icon(Icons.star_border_rounded,
-                color: AppColors.primary, size: 16),
-            const SizedBox(width: 8),
+            Icon(Icons.star_border_rounded,
+                color: c.primary, size: 16),
+            SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Plan gratuit · $gameCount/${state.entitlement.isPremium ? '∞' : '5'} jeux',
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.primary),
+                style: TextStyle(
+                    fontSize: 12, color: c.primary),
               ),
             ),
-            const Text('Passer à Premium →',
+            Text('Passer à Premium →',
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
+                    color: c.primary)),
           ],
         ),
       ),
@@ -256,13 +270,14 @@ class _SyncBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.surfaceElevated,
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: c.surfaceElevated,
       child: Text(message,
-          style: const TextStyle(
-              fontSize: 12, color: AppColors.textSecondary)),
+          style: TextStyle(
+              fontSize: 12, color: c.textSecondary)),
     );
   }
 }
@@ -275,8 +290,9 @@ class _GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final sessionCount = game.sessions.length;
-    final modeColor = _modeColor(game.mode);
+    final modeColor = _modeColor(context, game.mode);
 
     return GTCard(
       onTap: () => Navigator.push(
@@ -308,10 +324,10 @@ class _GameCard extends StatelessWidget {
               children: [
                 Text(
                   game.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: c.textPrimary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -323,32 +339,33 @@ class _GameCard extends StatelessWidget {
                       color: modeColor,
                       emoji: game.mode.icon,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
                       '$sessionCount partie${sessionCount != 1 ? 's' : ''}',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 12, color: c.textSecondary),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded,
-              color: AppColors.textSecondary),
+          Icon(Icons.chevron_right_rounded,
+              color: c.textSecondary),
         ],
       ),
     );
   }
 
-  Color _modeColor(GameMode mode) {
+  Color _modeColor(BuildContext context, GameMode mode) {
+    final c = AppColors.of(context);
     switch (mode) {
       case GameMode.points:
-        return AppColors.primary;
+        return c.primary;
       case GameMode.duel:
-        return AppColors.secondary;
+        return c.secondary;
       case GameMode.ranking:
-        return AppColors.accent;
+        return c.accent;
     }
   }
 }
@@ -368,6 +385,7 @@ class _SyncSheetState extends State<_SyncSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final isSignedIn = state.driveService.isSignedIn;
     final user = state.driveService.currentUser;
@@ -381,59 +399,59 @@ class _SyncSheetState extends State<_SyncSheet> {
         children: [
           Row(
             children: [
-              const Text('☁️', style: TextStyle(fontSize: 24)),
-              const SizedBox(width: 8),
-              const Text('Google Drive',
+              Text('☁️', style: TextStyle(fontSize: 24)),
+              SizedBox(width: 8),
+              Text('Google Drive',
                   style: TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w700)),
-              const Spacer(),
+              Spacer(),
               if (isSignedIn)
-                const GTBadge(
+                GTBadge(
                     label: 'Connecté',
-                    color: AppColors.success,
+                    color: c.success,
                     emoji: '✓'),
             ],
           ),
-          const SizedBox(height: 6),
-          const Text(
+          SizedBox(height: 6),
+          Text(
             'Sauvegarde manuelle de vos données (plan gratuit & premium).',
             style:
-                TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                TextStyle(fontSize: 12, color: c.textSecondary),
           ),
           const SizedBox(height: 16),
           if (!isSignedIn)
             ElevatedButton.icon(
               onPressed: _loading ? null : () => _signIn(state),
-              icon: const Icon(Icons.login_rounded),
-              label: const Text('Se connecter avec Google'),
+              icon: Icon(Icons.login_rounded),
+              label: Text('Se connecter avec Google'),
             )
           else ...[
             Text(user?.email ?? '',
-                style: const TextStyle(
-                    color: AppColors.textSecondary, fontSize: 13)),
-            const SizedBox(height: 16),
+                style: TextStyle(
+                    color: c.textSecondary, fontSize: 13)),
+            SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _upload(state),
-                    icon: const Icon(Icons.cloud_upload_rounded),
-                    label: const Text('Sauvegarder'),
+                    icon: Icon(Icons.cloud_upload_rounded),
+                    label: Text('Sauvegarder'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
+                      foregroundColor: c.primary,
+                      side: BorderSide(color: c.primary),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _download(state),
-                    icon: const Icon(Icons.cloud_download_rounded),
-                    label: const Text('Restaurer'),
+                    icon: Icon(Icons.cloud_download_rounded),
+                    label: Text('Restaurer'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.accent,
-                      side: const BorderSide(color: AppColors.accent),
+                      foregroundColor: c.accent,
+                      side: BorderSide(color: c.accent),
                     ),
                   ),
                 ),
@@ -448,31 +466,31 @@ class _SyncSheetState extends State<_SyncSheet> {
                   nav.pop();
                 }
               },
-              icon: const Icon(Icons.logout_rounded),
-              label: const Text('Se déconnecter'),
+              icon: Icon(Icons.logout_rounded),
+              label: Text('Se déconnecter'),
               style:
-                  TextButton.styleFrom(foregroundColor: AppColors.error),
+                  TextButton.styleFrom(foregroundColor: c.error),
             ),
           ],
           if (_msg != null) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
+                color: c.surfaceElevated,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
                   if (_loading)
-                    const SizedBox(
+                    SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    const Icon(Icons.info_rounded,
-                        color: AppColors.primary, size: 18),
+                    Icon(Icons.info_rounded,
+                        color: c.primary, size: 18),
                   const SizedBox(width: 10),
                   Expanded(
                       child: Text(_msg!,

@@ -286,6 +286,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final players = state.players;
     final limitError = state.canAddSession(widget.game.id);
@@ -307,15 +308,15 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                   onTap: () => _pickDate(context),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today_rounded,
-                          color: AppColors.primary, size: 20),
-                      const SizedBox(width: 12),
+                      Icon(Icons.calendar_today_rounded,
+                          color: c.primary, size: 20),
+                      SizedBox(width: 12),
                       Text(_formatDate(_playedAt),
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontWeight: FontWeight.w600)),
-                      const Spacer(),
-                      const Icon(Icons.chevron_right_rounded,
-                          color: AppColors.textSecondary),
+                      Spacer(),
+                      Icon(Icons.chevron_right_rounded,
+                          color: c.textSecondary),
                     ],
                   ),
                 ),
@@ -357,7 +358,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                         side: BorderSide(
                           color: selected
                               ? color
-                              : AppColors.cardBorder,
+                              : c.cardBorder,
                         ),
                       );
                     }).toList(),
@@ -415,6 +416,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   // ── Score builders ─────────────────────────────────────────────────────────
 
   Widget _buildRoundsSection(AppState state) {
+    final c = AppColors.of(context);
     final totals = _runningTotals;
     return Column(
       children: [
@@ -447,14 +449,14 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             )),
 
         // Add round button
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: _addRound,
-          icon: const Icon(Icons.add_rounded, size: 18),
+          icon: Icon(Icons.add_rounded, size: 18),
           label: Text(_isPoints ? '+ Manche' : '+ Round'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary),
+            foregroundColor: c.primary,
+            side: BorderSide(color: c.primary),
           ),
         ),
       ],
@@ -516,6 +518,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   }
 
   List<Widget> _buildRankingInputs(AppState state) {
+    final c = AppColors.of(context);
     final players = _selectedPlayerIds
         .map((id) => state.findPlayer(id))
         .whereType<Player>()
@@ -528,15 +531,15 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         child: Row(
           children: [
             _PlayerAvatar(player: player),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Text(player.name,
-                  style: const TextStyle(fontWeight: FontWeight.w500)),
+                  style: TextStyle(fontWeight: FontWeight.w500)),
             ),
             DropdownButton<int>(
               value: rank,
-              dropdownColor: AppColors.surfaceElevated,
-              underline: const SizedBox.shrink(),
+              dropdownColor: c.surfaceElevated,
+              underline: SizedBox.shrink(),
               borderRadius: BorderRadius.circular(12),
               items: List.generate(count, (i) {
                 final r = i + 1;
@@ -546,8 +549,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                     _ordinal(r),
                     style: TextStyle(
                       color: r == 1
-                          ? const Color(0xFFFFD700)
-                          : AppColors.textPrimary,
+                          ? Color(0xFFFFD700)
+                          : c.textPrimary,
                       fontWeight: r == 1
                           ? FontWeight.w700
                           : FontWeight.normal,
@@ -645,6 +648,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   // ── Date picker ────────────────────────────────────────────────────────────
 
   Future<void> _pickDate(BuildContext context) async {
+    final c = AppColors.of(context);
     final date = await showDatePicker(
       context: context,
       initialDate: _playedAt,
@@ -653,7 +657,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme:
-              const ColorScheme.dark(primary: AppColors.primary),
+              ColorScheme.dark(primary: c.primary),
         ),
         child: child!,
       ),
@@ -695,10 +699,11 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   String _ordinal(int n) => n == 1 ? '1er' : '$nème';
 
   Color _hexColor(String hex) {
+    final c = AppColors.of(context);
     try {
       return Color(int.parse(hex.replaceFirst('#', '0xFF')));
     } catch (_) {
-      return AppColors.primary;
+      return c.primary;
     }
   }
 }
@@ -716,29 +721,30 @@ class _RoundsToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return GTCard(
       child: Row(
         children: [
-          const Text('🔢', style: TextStyle(fontSize: 20)),
+          Text('🔢', style: TextStyle(fontSize: 20)),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Saisie par manches',
+                const Text('Saisie par manches',
                     style: TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 15)),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text('Calculer le total manche par manche',
                     style: TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
+                        fontSize: 12, color: c.textSecondary)),
               ],
             ),
           ),
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
+            activeThumbColor: c.primary,
           ),
         ],
       ),
@@ -765,6 +771,7 @@ class _TotalsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     // Find leader
     String? leaderId;
     if (totals.isNotEmpty) {
@@ -798,21 +805,21 @@ class _TotalsHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text('📊',
+              Text('📊',
                   style: TextStyle(fontSize: 14)),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               Text(
                 isDuel ? 'Manches gagnées' : 'Totaux en cours',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary),
+                    color: c.textSecondary),
               ),
               if (lowestScoreWins && !isDuel) ...[
-                const SizedBox(width: 6),
-                const GTBadge(
+                SizedBox(width: 6),
+                GTBadge(
                     label: 'moins = mieux',
-                    color: AppColors.accent,
+                    color: c.accent,
                     emoji: '🔻'),
               ],
             ],
@@ -824,14 +831,14 @@ class _TotalsHeader extends StatelessWidget {
             final total = totals[pid] ?? 0;
             final isLeader = pid == leaderId;
             return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
                   if (isLeader)
-                    const Text('👑 ',
+                    Text('👑 ',
                         style: TextStyle(fontSize: 13))
                   else
-                    const SizedBox(width: 20),
+                    SizedBox(width: 20),
                   Expanded(
                     child: Text(name,
                         style: TextStyle(
@@ -839,8 +846,8 @@ class _TotalsHeader extends StatelessWidget {
                               ? FontWeight.w700
                               : FontWeight.w500,
                           color: isLeader
-                              ? AppColors.accent
-                              : AppColors.textPrimary,
+                              ? c.accent
+                              : c.textPrimary,
                         )),
                   ),
                   Text(
@@ -851,8 +858,8 @@ class _TotalsHeader extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
                       color: isLeader
-                          ? AppColors.accent
-                          : AppColors.textPrimary,
+                          ? c.accent
+                          : c.textPrimary,
                     ),
                   ),
                 ],
@@ -892,8 +899,9 @@ class _RoundCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: GTCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -903,18 +911,18 @@ class _RoundCard extends StatelessWidget {
               children: [
                 Text(
                   'Manche ${roundIndex + 1}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    color: AppColors.primary,
+                    color: c.primary,
                   ),
                 ),
-                const Spacer(),
+                Spacer(),
                 if (onRemove != null)
                   GestureDetector(
                     onTap: onRemove,
-                    child: const Icon(Icons.close_rounded,
-                        size: 18, color: AppColors.textSecondary),
+                    child: Icon(Icons.close_rounded,
+                        size: 18, color: c.textSecondary),
                   ),
               ],
             ),
@@ -1007,39 +1015,40 @@ class _DuelPlayerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return GTCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
             _PlayerAvatar(player: player),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Text(player.name,
                 style:
-                    const TextStyle(fontWeight: FontWeight.w600)),
+                    TextStyle(fontWeight: FontWeight.w600)),
           ]),
           SizedBox(height: compact ? 6 : 10),
           Row(children: [
             _DuelButton(
               label: 'Victoire',
               emoji: '🏆',
-              color: AppColors.success,
+              color: c.success,
               selected: result == DuelResult.win,
               onTap: () => onChanged(DuelResult.win),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             _DuelButton(
               label: 'Nul',
               emoji: '🤝',
-              color: AppColors.warning,
+              color: c.warning,
               selected: result == DuelResult.draw,
               onTap: () => onChanged(DuelResult.draw),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             _DuelButton(
               label: 'Défaite',
               emoji: '💀',
-              color: AppColors.error,
+              color: c.error,
               selected: result == DuelResult.loss,
               onTap: () => onChanged(DuelResult.loss),
             ),
@@ -1083,12 +1092,13 @@ class _PlayerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     Color color;
     try {
       color =
           Color(int.parse(player.color.replaceFirst('#', '0xFF')));
     } catch (_) {
-      color = AppColors.primary;
+      color = c.primary;
     }
     return CircleAvatar(
       radius: 18,
@@ -1122,33 +1132,34 @@ class _DuelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          duration: Duration(milliseconds: 150),
+          padding: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: selected
                 ? color.withValues(alpha: 0.2)
-                : AppColors.surfaceElevated,
+                : c.surfaceElevated,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: selected ? color : AppColors.cardBorder,
+              color: selected ? color : c.cardBorder,
               width: selected ? 2 : 1,
             ),
           ),
           child: Column(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 20)),
-              const SizedBox(height: 2),
+              Text(emoji, style: TextStyle(fontSize: 20)),
+              SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color:
-                      selected ? color : AppColors.textSecondary,
+                      selected ? color : c.textSecondary,
                 ),
               ),
             ],

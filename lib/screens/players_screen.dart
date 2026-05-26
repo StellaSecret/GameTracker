@@ -1,3 +1,4 @@
+// lib/screens/players_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +33,7 @@ class PlayersScreen extends StatelessWidget {
                 bottom: 16 + MediaQuery.of(context).padding.bottom,
               ),
               itemCount: players.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, __) => SizedBox(height: 8),
               itemBuilder: (ctx, i) => _PlayerCard(player: players[i])
                   .animate(delay: Duration(milliseconds: i * 40))
                   .fadeIn(duration: 250.ms)
@@ -40,17 +41,18 @@ class PlayersScreen extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddPlayer(context),
-        icon: const Icon(Icons.person_add_rounded),
-        label: const Text('Nouveau joueur'),
+        icon: Icon(Icons.person_add_rounded),
+        label: Text('Nouveau joueur'),
       ),
     );
   }
 
   void _showAddPlayer(BuildContext context, [Player? existing]) {
+    final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: c.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -65,12 +67,13 @@ class _PlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final state = context.read<AppState>();
     Color color;
     try {
       color = Color(int.parse(player.color.replaceFirst('#', '0xFF')));
     } catch (_) {
-      color = AppColors.primary;
+      color = c.primary;
     }
 
     final gamesPlayed = state.games
@@ -100,20 +103,20 @@ class _PlayerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(player.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 15)),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   '$gamesPlayed jeu${gamesPlayed != 1 ? 'x' : ''} · $totalWins victoire${totalWins != 1 ? 's' : ''}',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(
+                      fontSize: 12, color: c.textSecondary),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.edit_rounded,
-                size: 18, color: AppColors.textSecondary),
+            icon: Icon(Icons.edit_rounded,
+                size: 18, color: c.textSecondary),
             onPressed: () => _showEdit(context),
           ),
         ],
@@ -122,10 +125,11 @@ class _PlayerCard extends StatelessWidget {
   }
 
   void _showEdit(BuildContext context) {
+    final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: c.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -161,6 +165,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final isEditing = widget.existing != null;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -182,13 +187,13 @@ class _PlayerSheetState extends State<_PlayerSheet> {
             textCapitalization: TextCapitalization.words,
             autofocus: true,
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
-          const Text('COULEUR',
+          Text('COULEUR',
               style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
+                  color: c.textSecondary,
                   letterSpacing: 1)),
           const SizedBox(height: 10),
           Wrap(
@@ -203,7 +208,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
               return GestureDetector(
                 onTap: () => setState(() => _color = hex),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+                  duration: Duration(milliseconds: 150),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
@@ -218,14 +223,14 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                         : [],
                   ),
                   child: selected
-                      ? const Icon(Icons.check_rounded,
+                      ? Icon(Icons.check_rounded,
                           color: Colors.white, size: 18)
                       : null,
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           Row(
             children: [
@@ -233,12 +238,12 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _delete,
-                    icon: const Icon(Icons.delete_rounded,
-                        color: AppColors.error, size: 18),
-                    label: const Text('Supprimer',
-                        style: TextStyle(color: AppColors.error)),
+                    icon: Icon(Icons.delete_rounded,
+                        color: c.error, size: 18),
+                    label: Text('Supprimer',
+                        style: TextStyle(color: c.error)),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.error),
+                      side: BorderSide(color: c.error),
                     ),
                   ),
                 ),
@@ -274,21 +279,22 @@ class _PlayerSheetState extends State<_PlayerSheet> {
   }
 
   Future<void> _delete() async {
+    final c = AppColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Supprimer ce joueur ?'),
-        content: const Text(
+        backgroundColor: c.surface,
+        title: Text('Supprimer ce joueur ?'),
+        content: Text(
             'Ses scores dans les parties existantes seront conservés.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler')),
+              child: Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer',
-                style: TextStyle(color: AppColors.error)),
+            child: Text('Supprimer',
+                style: TextStyle(color: c.error)),
           ),
         ],
       ),
