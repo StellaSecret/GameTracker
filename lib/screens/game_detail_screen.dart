@@ -17,7 +17,7 @@ class GameDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final game = state.findGame(gameId);
     if (game == null) {
@@ -34,7 +34,7 @@ class GameDetailScreen extends StatelessWidget {
             : game.name),
         actions: [
           IconButton(
-            icon: Icon(Icons.edit_rounded),
+            icon: const Icon(Icons.edit_rounded),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => AddGameScreen(existing: game)),
@@ -46,7 +46,7 @@ class GameDetailScreen extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -107,13 +107,13 @@ class GameDetailScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addSession(context, game),
         icon: const Icon(Icons.add_rounded),
-        label: Text('Nouvelle partie'),
+        label: const Text('Nouvelle partie'),
       ),
     );
   }
 
   Widget _buildStats(BuildContext context, Game game, AppState state) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     if (game.sessions.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -137,11 +137,11 @@ class GameDetailScreen extends StatelessWidget {
 
   List<Widget> _buildLeaderboard(
       BuildContext context, Map<String, int> wins, Game game, AppState state) {
+    final c = AppColors.of(context);
     final sorted = wins.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final records = game.recordsByPlayer;
 
-    final c = AppColors.of(context);
     return sorted.asMap().entries.map((entry) {
       final rank = entry.key;
       final e = entry.value;
@@ -220,7 +220,7 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.read<AppState>();
     String dateStr;
     try {
@@ -254,13 +254,13 @@ class _SessionCard extends StatelessWidget {
                     size: 18, color: c.textSecondary),
                 onPressed: () => _confirmDelete(context, state),
                 padding: EdgeInsets.zero,
-                constraints: BoxConstraints(),
+                constraints: const BoxConstraints(),
                 tooltip: 'Supprimer',
               ),
             ],
           ),
           SizedBox(height: 8),
-          ..._buildScores(context, state),
+          ..._buildScores(c, state),
           if (session.notes != null && session.notes!.isNotEmpty) ...[
             SizedBox(height: 8),
             Text(session.notes!,
@@ -274,7 +274,7 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildScores(BuildContext context, AppState state) {
+  List<Widget> _buildScores(AppColors c, AppState state) {
     final sorted = session.scores.entries.toList();
     if (session.mode == GameMode.points) {
       sorted.sort((a, b) => b.value.compareTo(a.value));
@@ -282,7 +282,6 @@ class _SessionCard extends StatelessWidget {
       sorted.sort((a, b) => a.value.compareTo(b.value));
     }
 
-    final c = AppColors.of(context);
     return sorted.map((e) {
       final player = state.findPlayer(e.key);
       final name = player?.name ?? 'Joueur supprimé';
@@ -297,7 +296,7 @@ class _SessionCard extends StatelessWidget {
           scoreColor = isWinner ? c.accent : null;
         case GameMode.ranking:
           scoreText = _ordinal(e.value);
-          scoreColor = e.value == 1 ? Color(0xFFFFD700) : null;
+          scoreColor = e.value == 1 ? const Color(0xFFFFD700) : null;
         case GameMode.duel:
           final result = DuelResult.values[e.value];
           scoreText = result == DuelResult.win
@@ -322,7 +321,7 @@ class _SessionCard extends StatelessWidget {
               const SizedBox(width: 20),
             Expanded(
               child: Text(name,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w500)),
             ),
             Text(
@@ -351,7 +350,7 @@ class _SessionCard extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, AppState state) async {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(

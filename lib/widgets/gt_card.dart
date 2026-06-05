@@ -18,14 +18,14 @@ class GTCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: padding ?? EdgeInsets.all(16),
+          padding: padding ?? const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: c.surface,
             borderRadius: BorderRadius.circular(16),
@@ -48,7 +48,7 @@ class GTSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Row(
       children: [
         Text(
@@ -127,7 +127,7 @@ class GTEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -181,7 +181,7 @@ class GTStatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

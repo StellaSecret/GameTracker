@@ -1,26 +1,65 @@
 // lib/models/entitlement.dart
 
-/// Describes what the user is allowed to do.
+/// Three independent entitlements — each can be held simultaneously.
+///
+/// Free (everyone)
+///   • Unlimited games, sessions, players
+///   • Drive backup (local/user-owned, no server cost)
+///
+/// Premium (one-time purchase or annual subscription)
+///   • Advanced stats — win-rate trends, head-to-head, streaks
+///   • CSV export     — session history download
+///
+/// Group Sync (monthly subscription — kept separate because Firestore
+///   reads/writes cost money at scale; a one-time Premium payment cannot
+///   sustainably fund an ongoing per-user infrastructure cost)
+///   • Real-time sync between players via Firestore
+///
+/// Users can hold Premium + Group Sync simultaneously.
 class Entitlement {
-  /// Max number of games allowed on free plan. null = unlimited.
-  static const int freeGameLimit = 5;
-
-  /// Max number of sessions stored per game on free plan. null = unlimited.
-  static const int freeSessionLimit = 20;
-
   final bool isPremium;
+  final bool hasGroupSync;
 
-  const Entitlement({required this.isPremium});
+  const Entitlement({
+    required this.isPremium,
+    required this.hasGroupSync,
+  });
 
-  const Entitlement.free() : isPremium = false;
-  const Entitlement.premium() : isPremium = true;
+  const Entitlement.free()
+      : isPremium = false,
+        hasGroupSync = false;
 
-  bool canAddGame(int currentCount) =>
-      isPremium || currentCount < freeGameLimit;
+  const Entitlement.premiumOnly()
+      : isPremium = true,
+        hasGroupSync = false;
 
-  bool canAddSession(int currentSessionCount) =>
-      isPremium || currentSessionCount < freeSessionLimit;
+  const Entitlement.groupSyncOnly()
+      : isPremium = false,
+        hasGroupSync = true;
 
-  /// Real-time group sync is a premium feature.
-  bool get canUseGroupSync => isPremium;
+  const Entitlement.full()
+      : isPremium = true,
+        hasGroupSync = true;
+
+  // ── Always free ───────────────────────────────────────────────────────────
+
+  bool get canAddGame => true;
+  bool canAddSession(int _) => true;
+
+  /// Drive backup is free — local/user-owned operation, no server cost.
+  bool get canUseDriveBackup => true;
+
+  // ── Premium features ──────────────────────────────────────────────────────
+
+  /// Advanced stats: win-rate trends, head-to-head records, streak details.
+  bool get canUseAdvancedStats => isPremium;
+
+  /// CSV export of session history.
+  bool get canExportSessions => isPremium;
+
+  // ── Group Sync subscription ───────────────────────────────────────────────
+
+  /// Real-time group sync via Firestore.
+  /// Gated separately because Firestore cost scales with active groups.
+  bool get canUseGroupSync => hasGroupSync;
 }

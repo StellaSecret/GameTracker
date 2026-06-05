@@ -48,7 +48,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final isEditing = widget.existing != null;
     return Scaffold(
       appBar: AppBar(
@@ -82,7 +82,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                   ..._emojis.map((e) => GestureDetector(
                         onTap: () => setState(() => _emoji = e),
                         child: Container(
-                          margin: EdgeInsets.only(right: 8),
+                          margin: const EdgeInsets.only(right: 8),
                           width: 52,
                           height: 52,
                           decoration: BoxDecoration(
@@ -197,7 +197,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                             style: TextStyle(
                                 fontWeight: FontWeight.w600, fontSize: 15),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
                             'Ex: 6 qui prend, Hearts, Golf…',
                             style: TextStyle(
@@ -240,14 +240,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
     if (_saving) {
       return;
     }
-    if (widget.existing == null) {
-      final state = context.read<AppState>();
-      final error = state.canAddGame();
-      if (error != null && mounted) {
-        Navigator.pop(context);
-        return;
-      }
-    }
+    // Games are unlimited on all plans — no gate needed.
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -286,8 +279,8 @@ class _AddGameScreenState extends State<AddGameScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: Text('Supprimer ce jeu ?'),
-        content: Text(
+        title: const Text('Supprimer ce jeu ?'),
+        content: const Text(
             'Toutes les parties seront supprimées. Cette action est irréversible.'),
         actions: [
           TextButton(

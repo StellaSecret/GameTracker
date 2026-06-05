@@ -2,14 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
-import '../models/entitlement.dart';
 import '../services/app_state.dart';
+import '../services/purchase_service.dart';
 import '../theme/app_theme.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Which product to pitch
+// ─────────────────────────────────────────────────────────────────────────────
+enum PaywallTarget { premium, groupSync }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PaywallScreen
+// ─────────────────────────────────────────────────────────────────────────────
 class PaywallScreen extends StatefulWidget {
+  final PaywallTarget target;
   final String? reason;
 
-  const PaywallScreen({super.key, this.reason});
+  const PaywallScreen({
+    super.key,
+    this.target = PaywallTarget.premium,
+    this.reason,
+  });
+
+  // Named constructors for convenience at call sites.
+  const PaywallScreen.premium({super.key, this.reason})
+      : target = PaywallTarget.premium;
+
+  const PaywallScreen.groupSync({super.key, this.reason})
+      : target = PaywallTarget.groupSync;
 
   @override
   State<PaywallScreen> createState() => _PaywallScreenState();
@@ -21,12 +41,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
   bool _purchasing = false;
   String? _error;
 
+  bool get _isGroupSync => widget.target == PaywallTarget.groupSync;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ps = context.read<AppState>().purchaseService;
-      if (ps.isPremium && mounted) {
+      // Already unlocked — close immediately.
+      final alreadyUnlocked = _isGroupSync
+          ? ps.hasGroupSync
+          : ps.isPremium;
+      if (alreadyUnlocked && mounted) {
         Navigator.pop(context, true);
         return;
       }
@@ -36,7 +62,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Future<void> _load() async {
     final ps = context.read<AppState>().purchaseService;
-    final offering = await ps.getOffering();
+    final offering = await ps.getOffering(
+      productId: _isGroupSync
+          ? PurchaseService.kGroupSyncId
+          : PurchaseService.kPremiumId,
+    );
     if (!mounted) {
       return;
     }
@@ -51,37 +81,36 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final c = AppColors.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('🌟 GameTracker Premium'),
+        title: Text(_isGroupSync ? '👥 Groupes temps réel' : '🌟 GameTracker Premium'),
         leading: IconButton(
-          icon: Icon(Icons.close_rounded),
+          icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Optional reason banner
                   if (widget.reason != null) ...[
                     Container(
-                      padding: EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: c.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: c.warning.withValues(alpha: 0.4)),
+                        border: Border.all(color: c.warning.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         children: [
-                          Text('⚠️', style: TextStyle(fontSize: 18)),
-                          SizedBox(width: 10),
+                          const Text('⚠️', style: TextStyle(fontSize: 18)),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               widget.reason!,
-                              style: TextStyle(
-                                  color: c.warning, fontSize: 13),
+                              style: TextStyle(color: c.warning, fontSize: 13),
                             ),
                           ),
                         ],
@@ -90,48 +119,40 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     const SizedBox(height: 24),
                   ],
 
-                  // Hero
-                  const Text(
-                    '🎲',
-                    style: TextStyle(fontSize: 72),
-                    textAlign: TextAlign.center,
-                  )
-                      .animate()
-                      .scale(duration: 400.ms, curve: Curves.elasticOut),
-                  SizedBox(height: 16),
+                  // Hero emoji
                   Text(
-                    'Passez à Premium',
+                    _isGroupSync ? '👥' : '🎲',
+                    style: const TextStyle(fontSize: 72),
+                    textAlign: TextAlign.center,
+                  ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
+                  const SizedBox(height: 16),
+
+                  // Title & subtitle
+                  Text(
+                    _isGroupSync ? 'Jouez ensemble' : 'Passez à Premium',
                     style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: c.textPrimary),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Jeux illimités, historique complet\net sync temps réel entre joueurs.',
-                    style: TextStyle(
-                        fontSize: 15, color: c.textSecondary),
+                    _isGroupSync
+                        ? 'Synchronisez vos scores en temps réel\nentre tous vos appareils.'
+                        : 'Stats avancées et export CSV\nsans rien sacrifier sur le plan gratuit.',
+                    style: TextStyle(fontSize: 15, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
 
-                  // Feature list
-                  ..._features.asMap().entries.map((entry) {
-                    final f = entry.value;
-                    return _FeatureRow(
-                      emoji: f.emoji,
-                      title: f.title,
-                      free: f.free,
-                      premium: f.premium,
-                    )
-                        .animate(delay: Duration(milliseconds: entry.key * 80))
-                        .fadeIn(duration: 300.ms)
-                        .slideX(begin: 0.05);
-                  }),
-                  SizedBox(height: 32),
+                  // Feature comparison table
+                  _FeatureTable(
+                    features: _isGroupSync ? _groupSyncFeatures : _premiumFeatures,
+                  ),
+                  const SizedBox(height: 32),
 
-                  // Packages
+                  // Packages from RevenueCat
                   if (_offering == null)
                     Center(
                       child: Text(
@@ -141,29 +162,31 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                     )
                   else
-                    ..._offering!.availablePackages.map((pkg) =>
-                        _PackageButton(
+                    ..._offering!.availablePackages.map((pkg) => _PackageButton(
                           package: pkg,
                           purchasing: _purchasing,
                           onTap: () => _purchase(pkg),
                         )),
 
                   if (_error != null) ...[
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style:
-                          TextStyle(color: c.error, fontSize: 13),
+                      style: TextStyle(color: c.error, fontSize: 13),
                     ),
                   ],
 
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: _purchasing ? null : _restore,
                     child: Text('Restaurer les achats',
                         style: TextStyle(color: c.textSecondary)),
                   ),
+
+                  // Cross-sell: if showing one paywall, mention the other
+                  const SizedBox(height: 8),
+                  _CrossSell(isGroupSync: _isGroupSync),
                 ],
               ),
             ),
@@ -207,34 +230,83 @@ class _PaywallScreenState extends State<PaywallScreen> {
     }
   }
 
-  static final _features = <_FeatureData>[
-    const _FeatureData('🎲', 'Jeux', free: '${Entitlement.freeGameLimit} jeux max', premium: 'Illimités'),
-    const _FeatureData('📋', 'Historique', free: '${Entitlement.freeSessionLimit} parties/jeu', premium: 'Illimité'),
-    const _FeatureData('🔄', 'Sync Drive', free: 'Backup manuel', premium: 'Backup manuel'),
-    const _FeatureData('👥', 'Groupes temps réel', free: '—', premium: 'Inclus ✓'),
-    const _FeatureData('📊', 'Statistiques avancées', free: '—', premium: 'Bientôt ✓'),
+  // ── Feature data ──────────────────────────────────────────────────────────
+
+  static const _premiumFeatures = <_FeatureData>[
+    _FeatureData('🎲', 'Jeux & parties',    free: 'Illimités ✓', value: 'Illimités ✓'),
+    _FeatureData('🔄', 'Backup Drive',       free: 'Inclus ✓',    value: 'Inclus ✓'),
+    _FeatureData('📊', 'Stats avancées',     free: '—',            value: 'Inclus ✓'),
+    _FeatureData('📤', 'Export CSV',         free: '—',            value: 'Inclus ✓'),
+    _FeatureData('👥', 'Groupes temps réel', free: 'Abonnement séparé', value: 'Abonnement séparé'),
+  ];
+
+  static const _groupSyncFeatures = <_FeatureData>[
+    _FeatureData('🎲', 'Jeux & parties',    free: 'Illimités ✓', value: 'Illimités ✓'),
+    _FeatureData('🔄', 'Backup Drive',       free: 'Inclus ✓',    value: 'Inclus ✓'),
+    _FeatureData('👥', 'Sync temps réel',    free: '—',            value: 'Inclus ✓'),
+    _FeatureData('🔁', 'Multi-appareils',    free: '—',            value: 'Inclus ✓'),
+    _FeatureData('📊', 'Stats avancées',     free: '—',            value: 'Premium séparé'),
   ];
 }
 
-class _FeatureData {
-  final String emoji;
-  final String title;
-  final String free;
-  final String premium;
+// ─────────────────────────────────────────────────────────────────────────────
+// Feature comparison table
+// ─────────────────────────────────────────────────────────────────────────────
+class _FeatureTable extends StatelessWidget {
+  final List<_FeatureData> features;
+  const _FeatureTable({required this.features});
 
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Column(
+      children: [
+        // Header row
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              const Expanded(child: SizedBox()),
+              SizedBox(
+                width: 80,
+                child: Text('Gratuit',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: c.textSecondary)),
+              ),
+              SizedBox(
+                width: 90,
+                child: Text('Ce plan',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: c.accent)),
+              ),
+            ],
+          ),
+        ),
+        ...features.asMap().entries.map((entry) => _FeatureRow(
+              data: entry.value,
+            ).animate(delay: Duration(milliseconds: entry.key * 60))
+              .fadeIn(duration: 250.ms)
+              .slideX(begin: 0.05)),
+      ],
+    );
+  }
+}
+
+class _FeatureData {
+  final String emoji, title, free, value;
   const _FeatureData(this.emoji, this.title,
-      {required this.free, required this.premium});
+      {required this.free, required this.value});
 }
 
 class _FeatureRow extends StatelessWidget {
-  final String emoji, title, free, premium;
-
-  const _FeatureRow({
-    required this.emoji,
-    required this.title,
-    required this.free,
-    required this.premium,
-  });
+  final _FeatureData data;
+  const _FeatureRow({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -243,38 +315,27 @@ class _FeatureRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(emoji, style: TextStyle(fontSize: 20)),
+          Text(data.emoji, style: const TextStyle(fontSize: 20)),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14)),
-              ],
-            ),
+            child: Text(data.title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600, fontSize: 14)),
           ),
           SizedBox(
             width: 80,
-            child: Text(
-              free,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12, color: c.textSecondary),
-            ),
+            child: Text(data.free,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ),
           SizedBox(
             width: 90,
-            child: Text(
-              premium,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: c.accent,
-              ),
-            ),
+            child: Text(data.value,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: c.accent)),
           ),
         ],
       ),
@@ -282,6 +343,41 @@ class _FeatureRow extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Cross-sell nudge at the bottom
+// ─────────────────────────────────────────────────────────────────────────────
+class _CrossSell extends StatelessWidget {
+  final bool isGroupSync;
+  const _CrossSell({required this.isGroupSync});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final label = isGroupSync
+        ? 'Vous cherchez les stats avancées ? Découvrez Premium.'
+        : 'Vous voulez jouer en groupe ? Découvrez le sync temps réel.';
+    return GestureDetector(
+      onTap: () => Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => isGroupSync
+              ? const PaywallScreen.premium()
+              : const PaywallScreen.groupSync(),
+        ),
+      ),
+      child: Text(label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 12,
+              color: c.primary,
+              decoration: TextDecoration.underline)),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Package button (unchanged visual, same as before)
+// ─────────────────────────────────────────────────────────────────────────────
 class _PackageButton extends StatelessWidget {
   final Package package;
   final bool purchasing;
@@ -296,11 +392,8 @@ class _PackageButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final isMonthly =
-        package.packageType == PackageType.monthly;
-    final isAnnual =
-        package.packageType == PackageType.annual;
-    final isBadged = isAnnual;
+    final isMonthly = package.packageType == PackageType.monthly;
+    final isAnnual  = package.packageType == PackageType.annual;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -310,23 +403,19 @@ class _PackageButton extends StatelessWidget {
           GestureDetector(
             onTap: purchasing ? null : onTap,
             child: AnimatedContainer(
-              duration: Duration(milliseconds: 150),
-              padding: EdgeInsets.all(18),
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 gradient: isAnnual
-                    ? LinearGradient(
-                        colors: [
-                          c.primary.withValues(alpha: 0.3),
-                          c.accent.withValues(alpha: 0.2),
-                        ],
-                      )
+                    ? LinearGradient(colors: [
+                        c.primary.withValues(alpha: 0.3),
+                        c.accent.withValues(alpha: 0.2),
+                      ])
                     : null,
                 color: isAnnual ? null : c.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isAnnual
-                      ? c.primary
-                      : c.cardBorder,
+                  color: isAnnual ? c.primary : c.cardBorder,
                   width: isAnnual ? 2 : 1,
                 ),
               ),
@@ -342,44 +431,35 @@ class _PackageButton extends StatelessWidget {
                               : isMonthly
                                   ? 'Mensuel'
                                   : package.storeProduct.title,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 16),
                         ),
                         if (isAnnual)
-                          Text(
-                            '2 mois offerts',
-                            style: TextStyle(
-                                fontSize: 12, color: c.accent),
-                          ),
+                          Text('2 mois offerts',
+                              style: TextStyle(fontSize: 12, color: c.accent)),
                       ],
                     ),
                   ),
-                  Text(
-                    package.storeProduct.priceString,
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w800),
-                  ),
+                  Text(package.storeProduct.priceString,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w800)),
                   if (isAnnual) ...[
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text('/an',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: c.textSecondary)),
+                        style:
+                            TextStyle(fontSize: 12, color: c.textSecondary)),
                   ] else if (isMonthly) ...[
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text('/mois',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: c.textSecondary)),
+                        style:
+                            TextStyle(fontSize: 12, color: c.textSecondary)),
                   ],
                   const SizedBox(width: 12),
                   if (purchasing)
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child:
-                          CircularProgressIndicator(strokeWidth: 2),
-                    )
+                    const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))
                   else
                     Icon(Icons.arrow_forward_ios_rounded,
                         size: 16, color: c.textSecondary),
@@ -387,24 +467,22 @@ class _PackageButton extends StatelessWidget {
               ),
             ),
           ),
-          if (isBadged)
+          if (isAnnual)
             Positioned(
               top: -10,
               right: 16,
               child: Container(
                 padding:
-                    EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: c.accent,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'POPULAIRE',
-                  style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black),
-                ),
+                child: const Text('POPULAIRE',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black)),
               ),
             ),
         ],

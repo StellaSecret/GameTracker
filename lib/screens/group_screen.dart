@@ -22,7 +22,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final gs = state.groupService;
 
@@ -61,6 +61,7 @@ class _GroupScreenState extends State<GroupScreen> {
             child: StreamBuilder<List<GroupInfo>>(
               stream: gs.watchMyGroups(),
               builder: (context, snap) {
+                  final c = AppColors.of(context);
                 if (snap.hasError) {
                   return Center(
                     child: Text('Erreur: ${snap.error}',
@@ -137,13 +138,13 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   Future<void> _leaveGroup(AppState state) async {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: Text('Quitter le groupe ?'),
-        content: Text(
+        title: const Text('Quitter le groupe ?'),
+        content: const Text(
             'Vos données locales seront conservées.'),
         actions: [
           TextButton(
@@ -163,13 +164,13 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   Future<void> _showInvite(AppState state, String groupId) async {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final emailCtrl = TextEditingController();
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: c.surface,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Padding(
@@ -194,13 +195,13 @@ class _GroupScreenState extends State<GroupScreen> {
                       content: Text('ID copié dans le presse-papier')),
                 );
               },
-              icon: const Icon(Icons.copy_rounded, size: 14),
-              label: const Text('Copier l\'ID'),
+              icon: Icon(Icons.copy_rounded, size: 14),
+              label: Text('Copier l\'ID'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: emailCtrl,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Email du joueur',
                 hintText: 'ami@exemple.com',
               ),
@@ -232,7 +233,7 @@ class _GroupScreenState extends State<GroupScreen> {
                     );
                   }
                 },
-                child: const Text('Inviter'),
+                child: Text('Inviter'),
               ),
             ),
           ],
@@ -242,7 +243,7 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   Future<String?> _askGroupName(BuildContext context) async {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final ctrl = TextEditingController();
     return showDialog<String>(
       context: context,
@@ -292,8 +293,8 @@ class _SignInPrompt extends StatelessWidget {
           ? const CircularProgressIndicator()
           : ElevatedButton.icon(
               onPressed: onSignIn,
-              icon: Icon(Icons.login_rounded),
-              label: Text('Se connecter avec Google'),
+              icon: const Icon(Icons.login_rounded),
+              label: const Text('Se connecter avec Google'),
             ),
     );
   }
@@ -306,10 +307,10 @@ class _ActiveGroupBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       color: c.primary.withValues(alpha: 0.15),
       child: Row(
         children: [
@@ -346,7 +347,7 @@ class _GroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return GTCard(
       borderColor: isActive ? c.primary : null,
       child: Row(
@@ -384,7 +385,7 @@ class _GroupCard extends StatelessWidget {
             OutlinedButton(
               onPressed: onJoin,
               style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 foregroundColor: c.primary,
                 side: BorderSide(color: c.primary),

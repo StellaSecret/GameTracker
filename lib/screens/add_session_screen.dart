@@ -8,7 +8,6 @@ import '../models/player.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
-import 'paywall_screen.dart';
 
 class AddSessionScreen extends StatefulWidget {
   final Game game;
@@ -286,16 +285,12 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final players = state.players;
-    final limitError = state.canAddSession(widget.game.id);
-
     return Scaffold(
       appBar: AppBar(title: Text('Partie – ${widget.game.name}')),
-      body: limitError != null
-          ? _LimitReached(reason: limitError)
-          : ListView(
+      body: ListView(
               padding: EdgeInsets.only(
                 left: 16,
                 right: 16,
@@ -539,7 +534,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             DropdownButton<int>(
               value: rank,
               dropdownColor: c.surfaceElevated,
-              underline: SizedBox.shrink(),
+              underline: const SizedBox.shrink(),
               borderRadius: BorderRadius.circular(12),
               items: List.generate(count, (i) {
                 final r = i + 1;
@@ -665,9 +660,6 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     if (date == null || !mounted) {
       return;
     }
-    if (!context.mounted) {
-      return;
-    }
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_playedAt),
@@ -699,11 +691,10 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   String _ordinal(int n) => n == 1 ? '1er' : '$nème';
 
   Color _hexColor(String hex) {
-    final c = AppColors.of(context);
     try {
       return Color(int.parse(hex.replaceFirst('#', '0xFF')));
     } catch (_) {
-      return c.primary;
+      return Colors.blue;
     }
   }
 }
@@ -721,11 +712,11 @@ class _RoundsToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return GTCard(
       child: Row(
         children: [
-          Text('🔢', style: TextStyle(fontSize: 20)),
+          const Text('🔢', style: TextStyle(fontSize: 20)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -771,7 +762,7 @@ class _TotalsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     // Find leader
     String? leaderId;
     if (totals.isNotEmpty) {
@@ -805,7 +796,7 @@ class _TotalsHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('📊',
+              const Text('📊',
                   style: TextStyle(fontSize: 14)),
               SizedBox(width: 6),
               Text(
@@ -831,14 +822,14 @@ class _TotalsHeader extends StatelessWidget {
             final total = totals[pid] ?? 0;
             final isLeader = pid == leaderId;
             return Padding(
-              padding: EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
                   if (isLeader)
-                    Text('👑 ',
+                    const Text('👑 ',
                         style: TextStyle(fontSize: 13))
                   else
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                   Expanded(
                     child: Text(name,
                         style: TextStyle(
@@ -899,9 +890,9 @@ class _RoundCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Padding(
-      padding: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 10),
       child: GTCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1015,14 +1006,14 @@ class _DuelPlayerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return GTCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
             _PlayerAvatar(player: player),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Text(player.name,
                 style:
                     TextStyle(fontWeight: FontWeight.w600)),
@@ -1059,31 +1050,6 @@ class _DuelPlayerRow extends StatelessWidget {
   }
 }
 
-// ── Limit reached ─────────────────────────────────────────────────────────────
-
-class _LimitReached extends StatelessWidget {
-  final String reason;
-  const _LimitReached({required this.reason});
-
-  @override
-  Widget build(BuildContext context) {
-    return GTEmptyState(
-      emoji: '🔒',
-      title: 'Limite atteinte',
-      subtitle: reason,
-      action: ElevatedButton.icon(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => PaywallScreen(reason: reason)),
-        ),
-        icon: const Icon(Icons.star_rounded),
-        label: const Text('Passer à Premium'),
-      ),
-    );
-  }
-}
-
 // ── Player avatar ─────────────────────────────────────────────────────────────
 
 class _PlayerAvatar extends StatelessWidget {
@@ -1092,7 +1058,7 @@ class _PlayerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     Color color;
     try {
       color =
@@ -1132,13 +1098,13 @@ class _DuelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
           duration: Duration(milliseconds: 150),
-          padding: EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: selected
                 ? color.withValues(alpha: 0.2)
@@ -1151,7 +1117,7 @@ class _DuelButton extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text(emoji, style: TextStyle(fontSize: 20)),
+              Text(emoji, style: const TextStyle(fontSize: 20)),
               SizedBox(height: 2),
               Text(
                 label,

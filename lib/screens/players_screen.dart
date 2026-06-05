@@ -33,7 +33,7 @@ class PlayersScreen extends StatelessWidget {
                 bottom: 16 + MediaQuery.of(context).padding.bottom,
               ),
               itemCount: players.length,
-              separatorBuilder: (_, __) => SizedBox(height: 8),
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) => _PlayerCard(player: players[i])
                   .animate(delay: Duration(milliseconds: i * 40))
                   .fadeIn(duration: 250.ms)
@@ -41,14 +41,14 @@ class PlayersScreen extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddPlayer(context),
-        icon: Icon(Icons.person_add_rounded),
-        label: Text('Nouveau joueur'),
+        icon: const Icon(Icons.person_add_rounded),
+        label: const Text('Nouveau joueur'),
       ),
     );
   }
 
   void _showAddPlayer(BuildContext context, [Player? existing]) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -67,7 +67,7 @@ class _PlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.read<AppState>();
     Color color;
     try {
@@ -125,7 +125,7 @@ class _PlayerCard extends StatelessWidget {
   }
 
   void _showEdit(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -165,7 +165,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final isEditing = widget.existing != null;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -182,6 +182,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
           TextField(
             controller: _nameCtrl,
             decoration: const InputDecoration(
+              labelText: 'Nom du joueur',
               hintText: 'Prénom ou pseudo',
             ),
             textCapitalization: TextCapitalization.words,
@@ -208,7 +209,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
               return GestureDetector(
                 onTap: () => setState(() => _color = hex),
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 150),
+                  duration: const Duration(milliseconds: 150),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
@@ -223,14 +224,14 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                         : [],
                   ),
                   child: selected
-                      ? Icon(Icons.check_rounded,
+                      ? const Icon(Icons.check_rounded,
                           color: Colors.white, size: 18)
                       : null,
                 ),
               );
             }).toList(),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           Row(
             children: [
@@ -279,13 +280,13 @@ class _PlayerSheetState extends State<_PlayerSheet> {
   }
 
   Future<void> _delete() async {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: Text('Supprimer ce joueur ?'),
-        content: Text(
+        title: const Text('Supprimer ce joueur ?'),
+        content: const Text(
             'Ses scores dans les parties existantes seront conservés.'),
         actions: [
           TextButton(

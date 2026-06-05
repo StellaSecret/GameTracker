@@ -6,7 +6,6 @@ import '../models/game.dart';
 import '../models/game_mode.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
-import '../theme/theme_notifier.dart';
 import '../widgets/gt_card.dart';
 import 'add_game_screen.dart';
 import 'game_detail_screen.dart';
@@ -26,7 +25,7 @@ class _GamesScreenState extends State<GamesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final games = state.games
         .where((g) => g.name.toLowerCase().contains(_search.toLowerCase()))
@@ -44,15 +43,6 @@ class _GamesScreenState extends State<GamesScreen> {
                   color: c.primary, size: 20),
             ),
           IconButton(
-            icon: Icon(
-              context.watch<ThemeNotifier>().isDark
-                  ? Icons.light_mode_rounded
-                  : Icons.dark_mode_rounded,
-            ),
-            tooltip: 'Changer le thème',
-            onPressed: () => context.read<ThemeNotifier>().toggle(),
-          ),
-          IconButton(
             icon: const Icon(Icons.bar_chart_rounded),
             tooltip: 'Statistiques',
             onPressed: () => Navigator.push(
@@ -66,20 +56,20 @@ class _GamesScreenState extends State<GamesScreen> {
             onPressed: () => _openGroups(context, state),
           ),
           IconButton(
-            icon: Icon(Icons.sync_rounded),
+            icon: const Icon(Icons.sync_rounded),
             tooltip: 'Sync Drive',
             onPressed: () => _showSyncSheet(context),
           ),
           IconButton(
-            icon: Icon(Icons.people_alt_rounded),
+            icon: const Icon(Icons.people_alt_rounded),
             tooltip: 'Joueurs',
             onPressed: () => Navigator.pushNamed(context, '/players'),
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               onChanged: (v) => setState(() => _search = v),
               decoration: InputDecoration(
@@ -126,16 +116,7 @@ class _GamesScreenState extends State<GamesScreen> {
   }
 
   void _addGame(BuildContext context, AppState state) {
-    final error = state.canAddGame();
-    if (error != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PaywallScreen(reason: error),
-        ),
-      );
-      return;
-    }
+    // Games are unlimited — go straight to creation.
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AddGameScreen()),
@@ -147,8 +128,8 @@ class _GamesScreenState extends State<GamesScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const PaywallScreen(
-            reason: 'Les groupes temps réel sont une fonctionnalité Premium.',
+          builder: (_) => const PaywallScreen.groupSync(
+            reason: 'Les groupes nécessitent l\'abonnement Sync.',
           ),
         ),
       );
@@ -172,14 +153,14 @@ class _GamesScreenState extends State<GamesScreen> {
       padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + MediaQuery.of(context).padding.bottom),
       itemCount: letters.length,
       itemBuilder: (context, idx) {
-        final c = AppColors.of(context);
+          final c = AppColors.of(context);
         final letter = letters[idx];
         final letterGames = grouped[letter]!;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(4, 16, 4, 8),
+              padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
               child: Text(
                 letter,
                 style: TextStyle(
@@ -206,7 +187,7 @@ class _GamesScreenState extends State<GamesScreen> {
   }
 
   void _showSyncSheet(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: c.surface,
@@ -226,17 +207,20 @@ class _FreeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    final gameCount = state.games.length;
+      final c = AppColors.of(context);
+    // Don't show anything if already premium.
+    if (state.entitlement.isPremium) {
+      return const SizedBox.shrink();
+    }
+
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => PaywallScreen()),
+        MaterialPageRoute(builder: (_) => const PaywallScreen.premium()),
       ),
       child: Container(
         width: double.infinity,
-        padding:
-            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         color: c.primary.withValues(alpha: 0.08),
         child: Row(
           children: [
@@ -245,12 +229,11 @@ class _FreeBanner extends StatelessWidget {
             SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Plan gratuit · $gameCount/${state.entitlement.isPremium ? '∞' : '5'} jeux',
-                style: TextStyle(
-                    fontSize: 12, color: c.primary),
+                'Débloquer les groupes & stats avancées',
+                style: TextStyle(fontSize: 12, color: c.primary),
               ),
             ),
-            Text('Passer à Premium →',
+            Text('Premium →',
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -270,10 +253,10 @@ class _SyncBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: c.surfaceElevated,
       child: Text(message,
           style: TextStyle(
@@ -290,9 +273,9 @@ class _GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final sessionCount = game.sessions.length;
-    final modeColor = _modeColor(context, game.mode);
+    final modeColor = _modeColor(game.mode, c);
 
     return GTCard(
       onTap: () => Navigator.push(
@@ -357,8 +340,7 @@ class _GameCard extends StatelessWidget {
     );
   }
 
-  Color _modeColor(BuildContext context, GameMode mode) {
-    final c = AppColors.of(context);
+  Color _modeColor(GameMode mode, AppColors c) {
     switch (mode) {
       case GameMode.points:
         return c.primary;
@@ -385,7 +367,7 @@ class _SyncSheetState extends State<_SyncSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final isSignedIn = state.driveService.isSignedIn;
     final user = state.driveService.currentUser;
@@ -399,8 +381,8 @@ class _SyncSheetState extends State<_SyncSheet> {
         children: [
           Row(
             children: [
-              Text('☁️', style: TextStyle(fontSize: 24)),
-              SizedBox(width: 8),
+              const Text('☁️', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 8),
               Text('Google Drive',
                   style: TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w700)),
@@ -429,7 +411,7 @@ class _SyncSheetState extends State<_SyncSheet> {
             Text(user?.email ?? '',
                 style: TextStyle(
                     color: c.textSecondary, fontSize: 13)),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -475,7 +457,7 @@ class _SyncSheetState extends State<_SyncSheet> {
           if (_msg != null) ...[
             SizedBox(height: 12),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: c.surfaceElevated,
                 borderRadius: BorderRadius.circular(10),

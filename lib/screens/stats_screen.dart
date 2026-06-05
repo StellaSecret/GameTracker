@@ -32,14 +32,14 @@ class _StatsScreenState extends State<StatsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final engine = StatsEngine(state.games);
 
     if (state.games.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text('📊 Statistiques')),
-        body: GTEmptyState(
+        appBar: AppBar(title: const Text('📊 Statistiques')),
+        body: const GTEmptyState(
           emoji: '📊',
           title: 'Pas encore de stats',
           subtitle: 'Ajoutez des jeux et jouez des parties pour voir vos statistiques.',
@@ -98,7 +98,7 @@ class _PlayersTabState extends State<_PlayersTab> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final players = widget.state.players;
     if (players.isEmpty) {
       return const GTEmptyState(
@@ -121,7 +121,7 @@ class _PlayersTabState extends State<_PlayersTab> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: players.length,
-            separatorBuilder: (_, __) => SizedBox(width: 8),
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (ctx, i) {
               final p = players[i];
               final selected = p.id == _selectedPlayerId;
@@ -135,7 +135,7 @@ class _PlayersTabState extends State<_PlayersTab> {
                 onTap: () => setState(() => _selectedPlayerId = p.id),
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 200),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: selected ? pColor.withValues(alpha: 0.2) : c.surface,
                     borderRadius: BorderRadius.circular(24),
@@ -243,7 +243,7 @@ class _GamesTabState extends State<_GamesTab> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final games = widget.state.games.where((g) => g.sessions.isNotEmpty).toList();
     if (games.isEmpty) {
       return const GTEmptyState(
@@ -269,7 +269,7 @@ class _GamesTabState extends State<_GamesTab> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: games.length,
-            separatorBuilder: (_, __) => SizedBox(width: 8),
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (ctx, i) {
               final g = games[i];
               final selected = g.id == _selectedGameId;
@@ -277,7 +277,7 @@ class _GamesTabState extends State<_GamesTab> {
                 onTap: () => setState(() => _selectedGameId = g.id),
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 200),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: selected
                         ? c.primary.withValues(alpha: 0.2)
@@ -454,10 +454,11 @@ class _Divider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Divider(
     color: c.cardBorder, height: 20, thickness: 1,
-  );}
+  );
+  }
 }
 
 class _StatRow extends StatelessWidget {
@@ -467,14 +468,15 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       Text(label, style: TextStyle(color: c.textSecondary, fontSize: 14)),
       Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
     ],
-  );}
+  );
+  }
 }
 
 class _BigStatCard extends StatelessWidget {
@@ -485,7 +487,7 @@ class _BigStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return GTCard(
     child: Column(
       children: [
@@ -497,7 +499,8 @@ class _BigStatCard extends StatelessWidget {
           fontSize: 12, color: c.textSecondary)),
       ],
     ),
-  );}
+  );
+  }
 }
 
 // ── Stats joueur ──────────────────────────────────────────────────────────
@@ -508,7 +511,7 @@ class _KeyMetricsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final pct = (stats.winRate * 100).toStringAsFixed(0);
     return GTCard(
       child: Row(
@@ -546,7 +549,7 @@ class _ScoresCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return GTCard(
     child: Row(
       children: [
@@ -572,7 +575,8 @@ class _ScoresCard extends StatelessWidget {
         )),
       ],
     ),
-  );}
+  );
+  }
 }
 
 class _StreaksCard extends StatelessWidget {
@@ -581,7 +585,7 @@ class _StreaksCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     return GTCard(
     child: Row(
       children: [
@@ -600,7 +604,8 @@ class _StreaksCard extends StatelessWidget {
         )),
       ],
     ),
-  );}
+  );
+  }
 }
 
 class _FavoriteGameCard extends StatelessWidget {
@@ -610,7 +615,7 @@ class _FavoriteGameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final game = stats.favoriteGameId != null
         ? state.findGame(stats.favoriteGameId!)
         : null;
@@ -631,7 +636,7 @@ class _FavoriteGameCard extends StatelessWidget {
             ),
             child: Center(child: Text(
               game?.coverEmoji ?? game?.mode.icon ?? '🎲',
-              style: TextStyle(fontSize: 24),
+              style: const TextStyle(fontSize: 24),
             )),
           ),
           SizedBox(width: 14),
@@ -663,7 +668,7 @@ class _WinRateByGameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final entries = stats.winRateByGame.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -675,7 +680,7 @@ class _WinRateByGameCard extends StatelessWidget {
           final wins = stats.winsByGame[e.key] ?? 0;
           final total = stats.gamesByGame[e.key] ?? 0;
           return Padding(
-            padding: EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -722,7 +727,7 @@ class _NemesisCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final nemesis = state.findPlayer(stats.nemesisId!);
     return GTCard(
       borderColor: c.error.withValues(alpha: 0.3),
@@ -754,7 +759,7 @@ class _RivalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final rival = state.findPlayer(stats.rivalId!);
     return GTCard(
       borderColor: c.warning.withValues(alpha: 0.3),
@@ -790,7 +795,7 @@ class _DominantPlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final player = state.findPlayer(stats.dominantPlayerId!);
     Color pColor = c.primary;
     if (player != null) {
@@ -841,7 +846,7 @@ class _TightestGameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final session = stats.tightestSession!;
     final sorted = session.scores.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -887,7 +892,7 @@ class _ScoreHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final history = stats.scoreHistory;
     final allPoints = history.values.expand((p) => p).toList();
     if (allPoints.isEmpty) {
@@ -1015,7 +1020,7 @@ class _GlobalRankingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final medals = ['🥇', '🥈', '🥉'];
     return GTCard(
       child: Column(
@@ -1069,7 +1074,7 @@ class _MostActiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final player = state.findPlayer(stats.mostActivePlayerId!);
     Color pColor = c.primary;
     if (player != null) {
@@ -1080,7 +1085,7 @@ class _MostActiveCard extends StatelessWidget {
     return GTCard(
       borderColor: pColor.withValues(alpha: 0.3),
       child: Row(children: [
-        Text('🕹️', style: TextStyle(fontSize: 32)),
+        const Text('🕹️', style: TextStyle(fontSize: 32)),
         SizedBox(width: 14),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1103,12 +1108,12 @@ class _AbsoluteRecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final player = stats.absoluteRecordHolder != null
         ? state.findPlayer(stats.absoluteRecordHolder!)
         : null;
     return GTCard(
-      borderColor: Color(0xFFFFD700).withValues(alpha: 0.4),
+      borderColor: const Color(0xFFFFD700).withValues(alpha: 0.4),
       child: Row(children: [
         const Text('⭐', style: TextStyle(fontSize: 36)),
         const SizedBox(width: 14),
@@ -1136,7 +1141,7 @@ class _GlobalNemesisCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final playerA = state.findPlayer(stats.globalNemesisA!);
     final playerB = state.findPlayer(stats.globalNemesisB!);
     return GTCard(
@@ -1171,7 +1176,7 @@ class _GlobalRivalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
+      final c = AppColors.of(context);
     final playerA = state.findPlayer(stats.globalRivalA!);
     final playerB = state.findPlayer(stats.globalRivalB!);
     return GTCard(

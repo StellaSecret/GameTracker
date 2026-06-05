@@ -107,12 +107,8 @@ class AppState extends ChangeNotifier {
 
   // ── Games ─────────────────────────────────────────────────────────────────
 
-  String? canAddGame() {
-    if (entitlement.canAddGame(_data.games.length)) {
-      return null;
-    }
-    return 'Limite de ${Entitlement.freeGameLimit} jeux atteinte sur le plan gratuit.';
-  }
+  /// Always returns null (no game limit on free tier).
+  String? canAddGame() => null;
 
   Future<void> addGame(Game game) async {
     _data.games.add(game);
@@ -158,16 +154,8 @@ class AppState extends ChangeNotifier {
 
   // ── Sessions ──────────────────────────────────────────────────────────────
 
-  String? canAddSession(String gameId) {
-    final game = findGame(gameId);
-    if (game == null) {
-      return null;
-    }
-    if (entitlement.canAddSession(game.sessions.length)) {
-      return null;
-    }
-    return 'Limite de ${Entitlement.freeSessionLimit} parties par jeu atteinte sur le plan gratuit.';
-  }
+  /// Always returns null (no session limit on free tier).
+  String? canAddSession(String gameId) => null;
 
   Future<void> addSession(String gameId, GameSession session) async {
     final game = findGame(gameId);
