@@ -10,8 +10,9 @@
 //   purchases) by doing nothing – they are guarded by kIsWeb / try-catch
 //   in AppState.init() already, so on a plain Android emulator they simply
 //   no-op without crashing.
-// • SharedPreferences starts empty on a fresh emulator, so every run begins
-//   from a clean slate – no fixtures needed.
+// • SharedPreferences persists across tests in the same run. Each test that
+//   needs specific data creates it explicitly — never relying on side-effects
+//   from earlier tests.
 // • We find widgets by their visible text / tooltip / icon; this mirrors what
 //   a real user sees and survives minor refactors better than key-based lookup.
 
@@ -27,11 +28,20 @@ void main() {
   // Helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Waits for the app to settle, then pops all routes back to the root screen.
-  /// This is necessary because the emulator is shared across all tests and may
-  /// be left on a detail/edit screen by the previous test.
+  /// Dismisses any open dialog (e.g. a stale confirmation dialog left by a
+  /// previous test) by tapping outside it.
+  Future<void> dismissStaleDialog(WidgetTester tester) async {
+    if (tester.any(find.byType(AlertDialog))) {
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    }
+  }
+
+  /// Waits for the app to settle, dismisses any stale dialog, then pops all
+  /// routes back to the root screen.
   Future<void> waitReady(WidgetTester tester) async {
     await tester.pumpAndSettle(const Duration(seconds: 5));
+    await dismissStaleDialog(tester);
     // Pop any lingering routes (edit screens, dialogs, detail pages) back to root.
     while (tester.any(find.byTooltip('Back'))) {
       await tester.tap(find.byTooltip('Back').first);
@@ -258,7 +268,7 @@ void main() {
     Future<void> setupGameAndPlayers(
       WidgetTester tester, {
       String gameName = 'Catan',
-      GameMode mode = GameMode.points,
+      _GameMode mode = _GameMode.points,
     }) async {
       app.main();
       await waitReady(tester);
@@ -279,10 +289,10 @@ void main() {
       await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pumpAndSettle();
       await enterText(tester, gameName, hint: 'Nom du jeu');
-      if (mode != GameMode.points) {
+      if (mode != _GameMode.points) {
         await scrollToAndTap(
           tester,
-          find.text(mode == GameMode.duel ? 'Duel' : 'Classement'),
+          find.text(mode == _GameMode.duel ? 'Duel' : 'Classement'),
         );
       }
       await scrollToAndTap(tester, find.text('Créer le jeu'));
@@ -318,7 +328,7 @@ void main() {
       await setupGameAndPlayers(
         tester,
         gameName: 'Échecs E2E',
-        mode: GameMode.duel,
+        mode: _GameMode.duel,
       );
 
       await tester.tap(find.text('Échecs E2E'));
@@ -348,22 +358,29 @@ void main() {
       app.main();
       await waitReady(tester);
 
-      // Don't create new games — prior tests already filled the free-tier limit
-      // (5 games). Instead search among the games that already exist:
-      // "Catan" and "Catan Session" were created by earlier tests.
-      // Searching for "Catan" should show both; "Échecs" should show Échecs games
-      // and hide any Catan entries.
-      await enterText(tester, 'Catan', hint: 'Rechercher un jeu…');
-      expect(find.textContaining('Catan'), findsWidgets);
+      // Create two games with distinct names so the test is self-contained
+      // and does not depend on games created by earlier tests.
+      for (final name in ['SearchGame Alpha', 'SearchGame Beta']) {
+        await tester.tap(find.byIcon(Icons.add_rounded));
+        await tester.pumpAndSettle();
+        await enterText(tester, name, hint: 'Nom du jeu');
+        await scrollToAndTap(tester, find.text('Créer le jeu'));
+        await waitReady(tester);
+      }
 
-      // Clear and search for something that matches only non-Catan games
-      await enterText(tester, 'Échecs', hint: 'Rechercher un jeu…');
-      expect(find.textContaining('Échecs'), findsWidgets);
-      expect(find.text('Catan'), findsNothing);
+      // Searching for 'Alpha' should show only SearchGame Alpha.
+      await enterText(tester, 'Alpha', hint: 'Rechercher un jeu…');
+      expect(find.textContaining('Alpha'), findsWidgets);
+      expect(find.text('SearchGame Beta'), findsNothing);
+
+      // Searching for 'Beta' should show only SearchGame Beta.
+      await enterText(tester, 'Beta', hint: 'Rechercher un jeu…');
+      expect(find.textContaining('Beta'), findsWidgets);
+      expect(find.text('SearchGame Alpha'), findsNothing);
     });
   });
 }
 
-// Local alias so the helper can reference GameMode without a relative import
-// (integration_test lives outside lib/).
-enum GameMode { points, duel, ranking }
+// Private alias so helpers inside main() can reference game modes without a
+// relative import (integration_test lives outside lib/).
+enum _GameMode { points, duel }
