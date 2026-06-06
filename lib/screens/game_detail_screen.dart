@@ -123,8 +123,8 @@ class GameDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GTSectionHeader(title: 'CLASSEMENT'),
-          SizedBox(height: 16),
+          const GTSectionHeader(title: 'CLASSEMENT'),
+          const SizedBox(height: 16),
           if (wins.isEmpty)
             Text('Pas encore de vainqueur.',
                 style: TextStyle(color: c.textSecondary))
@@ -148,11 +148,11 @@ class GameDetailScreen extends StatelessWidget {
       final player = state.findPlayer(e.key);
       final name = player?.name ?? 'Joueur supprimé';
       final color = rank == 0
-          ? Color(0xFFFFD700)
+          ? const Color(0xFFFFD700)
           : rank == 1
-              ? Color(0xFFC0C0C0)
+              ? const Color(0xFFC0C0C0)
               : rank == 2
-                  ? Color(0xFFCD7F32)
+                  ? const Color(0xFFCD7F32)
                   : c.textSecondary;
 
       return Padding(
@@ -239,16 +239,16 @@ class _SessionCard extends StatelessWidget {
               Text(dateStr,
                   style: TextStyle(
                       fontSize: 12, color: c.textSecondary)),
-              Spacer(),
+              const Spacer(),
               IconButton(
                 icon: Icon(Icons.edit_outlined,
                     size: 18, color: c.textSecondary),
                 onPressed: () => _editSession(context, game),
                 padding: EdgeInsets.zero,
-                constraints: BoxConstraints(),
+                constraints: const BoxConstraints(),
                 tooltip: 'Modifier',
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               IconButton(
                 icon: Icon(Icons.delete_outline_rounded,
                     size: 18, color: c.textSecondary),
@@ -259,10 +259,10 @@ class _SessionCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           ..._buildScores(c, state),
           if (session.notes != null && session.notes!.isNotEmpty) ...[
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(session.notes!,
                 style: TextStyle(
                     fontSize: 12,
@@ -355,14 +355,14 @@ class _SessionCard extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: Text('Supprimer cette partie ?'),
+        title: const Text('Supprimer cette partie ?'),
         content: Text(
             'Cette action est irréversible.',
             style: TextStyle(color: c.textSecondary)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Annuler')),
+              child: const Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('Supprimer',

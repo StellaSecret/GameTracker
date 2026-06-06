@@ -1,5 +1,6 @@
 // lib/services/storage_service.dart
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_data.dart';
 
@@ -14,7 +15,13 @@ class StorageService {
     }
     try {
       return AppData.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
+    } catch (e, stack) {
+      developer.log(
+        'StorageService: failed to parse saved data, starting fresh.',
+        name: 'GameTracker',
+        error: e,
+        stackTrace: stack,
+      );
       return AppData();
     }
   }

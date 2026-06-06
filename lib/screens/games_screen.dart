@@ -33,12 +33,12 @@ class _GamesScreenState extends State<GamesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('🎲 GameTracker'),
+        title: const Text('🎲 GameTracker'),
         actions: [
           // Group sync badge (premium)
           if (state.isInGroup)
             Padding(
-              padding: EdgeInsets.only(right: 4),
+              padding: const EdgeInsets.only(right: 4),
               child: Icon(Icons.wifi_tethering_rounded,
                   color: c.primary, size: 20),
             ),
@@ -226,7 +226,7 @@ class _FreeBanner extends StatelessWidget {
           children: [
             Icon(Icons.star_border_rounded,
                 color: c.primary, size: 16),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Débloquer les groupes & stats avancées',
@@ -322,7 +322,7 @@ class _GameCard extends StatelessWidget {
                       color: modeColor,
                       emoji: game.mode.icon,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       '$sessionCount partie${sessionCount != 1 ? 's' : ''}',
                       style: TextStyle(
@@ -383,10 +383,10 @@ class _SyncSheetState extends State<_SyncSheet> {
             children: [
               const Text('☁️', style: TextStyle(fontSize: 24)),
               const SizedBox(width: 8),
-              Text('Google Drive',
+              const Text('Google Drive',
                   style: TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w700)),
-              Spacer(),
+              const Spacer(),
               if (isSignedIn)
                 GTBadge(
                     label: 'Connecté',
@@ -394,7 +394,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                     emoji: '✓'),
             ],
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
             'Sauvegarde manuelle de vos données (plan gratuit & premium).',
             style:
@@ -404,8 +404,8 @@ class _SyncSheetState extends State<_SyncSheet> {
           if (!isSignedIn)
             ElevatedButton.icon(
               onPressed: _loading ? null : () => _signIn(state),
-              icon: Icon(Icons.login_rounded),
-              label: Text('Se connecter avec Google'),
+              icon: const Icon(Icons.login_rounded),
+              label: const Text('Se connecter avec Google'),
             )
           else ...[
             Text(user?.email ?? '',
@@ -417,20 +417,20 @@ class _SyncSheetState extends State<_SyncSheet> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _upload(state),
-                    icon: Icon(Icons.cloud_upload_rounded),
-                    label: Text('Sauvegarder'),
+                    icon: const Icon(Icons.cloud_upload_rounded),
+                    label: const Text('Sauvegarder'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: c.primary,
                       side: BorderSide(color: c.primary),
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _download(state),
-                    icon: Icon(Icons.cloud_download_rounded),
-                    label: Text('Restaurer'),
+                    icon: const Icon(Icons.cloud_download_rounded),
+                    label: const Text('Restaurer'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: c.accent,
                       side: BorderSide(color: c.accent),
@@ -448,14 +448,14 @@ class _SyncSheetState extends State<_SyncSheet> {
                   nav.pop();
                 }
               },
-              icon: Icon(Icons.logout_rounded),
-              label: Text('Se déconnecter'),
+              icon: const Icon(Icons.logout_rounded),
+              label: const Text('Se déconnecter'),
               style:
                   TextButton.styleFrom(foregroundColor: c.error),
             ),
           ],
           if (_msg != null) ...[
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -465,7 +465,7 @@ class _SyncSheetState extends State<_SyncSheet> {
               child: Row(
                 children: [
                   if (_loading)
-                    SizedBox(
+                    const SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),

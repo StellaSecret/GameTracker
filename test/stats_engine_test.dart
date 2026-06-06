@@ -13,7 +13,7 @@ import 'package:game_tracker/models/stats_engine.dart';
 GameSession pts(Map<String, int> scores, {int day = 0}) => GameSession(
       mode: GameMode.points,
       scores: scores,
-      playedAt: DateTime(2024, 1, 1).add(Duration(days: day)),
+      playedAt: DateTime(2024, 1, day + 1),
     );
 
 GameSession duel(String winner, String loser,
@@ -23,13 +23,13 @@ GameSession duel(String winner, String loser,
       scores: draw
           ? {winner: DuelResult.draw.index, loser: DuelResult.draw.index}
           : {winner: DuelResult.win.index, loser: DuelResult.loss.index},
-      playedAt: DateTime(2024, 1, 1).add(Duration(days: day)),
+      playedAt: DateTime(2024, 1, day + 1),
     );
 
 GameSession rank(Map<String, int> ranks, {int day = 0}) => GameSession(
       mode: GameMode.ranking,
       scores: ranks,
-      playedAt: DateTime(2024, 1, 1).add(Duration(days: day)),
+      playedAt: DateTime(2024, 1, day + 1),
     );
 
 /// Standard 3-player, 2-game scenario.

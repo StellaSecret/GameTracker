@@ -134,8 +134,8 @@ class GTEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(emoji, style: TextStyle(fontSize: 64)),
-            SizedBox(height: 16),
+            Text(emoji, style: const TextStyle(fontSize: 64)),
+            const SizedBox(height: 16),
             Text(
               title,
               style: TextStyle(
@@ -145,7 +145,7 @@ class GTEmptyState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               subtitle,
               style: TextStyle(
@@ -194,7 +194,7 @@ class GTStatTile extends StatelessWidget {
             letterSpacing: 0.5,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(

@@ -157,10 +157,10 @@ class _AddGameScreenState extends State<AddGameScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(m.label,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 15)),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(m.description,
                                     style: TextStyle(
                                         fontSize: 12,
@@ -285,7 +285,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Annuler')),
+              child: const Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('Supprimer',

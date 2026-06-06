@@ -103,9 +103,9 @@ class _PlayerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(player.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 15)),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   '$gamesPlayed jeu${gamesPlayed != 1 ? 'x' : ''} · $totalWins victoire${totalWins != 1 ? 's' : ''}',
                   style: TextStyle(
@@ -188,7 +188,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
             textCapitalization: TextCapitalization.words,
             autofocus: true,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           Text('COULEUR',
               style: TextStyle(
@@ -291,7 +291,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Annuler')),
+              child: const Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('Supprimer',

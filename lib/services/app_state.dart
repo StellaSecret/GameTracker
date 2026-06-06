@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import '../models/app_data.dart';
 import '../models/entitlement.dart';
@@ -19,6 +20,7 @@ class AppState extends ChangeNotifier {
   AppData _data = AppData();
   bool _isLoading = true;
   String? _syncMessage;
+  bool _disposed = false;
 
   String? _activeGroupId;
   StreamSubscription<AppData?>? _groupSub;
@@ -70,6 +72,7 @@ class AppState extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _groupSub?.cancel();
     if (!kIsWeb) {
       purchaseService.removeListener(notifyListeners);
@@ -97,13 +100,8 @@ class AppState extends ChangeNotifier {
     await _persist();
   }
 
-  Player? findPlayer(String id) {
-    try {
-      return _data.players.firstWhere((p) => p.id == id);
-    } catch (_) {
-      return null;
-    }
-  }
+  Player? findPlayer(String id) =>
+      _data.players.firstWhereOrNull((p) => p.id == id);
 
   // ── Games ─────────────────────────────────────────────────────────────────
 
@@ -144,13 +142,8 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Game? findGame(String id) {
-    try {
-      return _data.games.firstWhere((g) => g.id == id);
-    } catch (_) {
-      return null;
-    }
-  }
+  Game? findGame(String id) =>
+      _data.games.firstWhereOrNull((g) => g.id == id);
 
   // ── Sessions ──────────────────────────────────────────────────────────────
 
@@ -194,6 +187,7 @@ class AppState extends ChangeNotifier {
       games: _data.games,
       players: _data.players,
       lastModified: DateTime.now(),
+      deletedGameIds: _data.deletedGameIds,
     );
     await _storage.save(_data);
     notifyListeners();
@@ -283,8 +277,10 @@ class AppState extends ChangeNotifier {
     _syncMessage = msg;
     notifyListeners();
     Future.delayed(const Duration(seconds: 3), () {
-      _syncMessage = null;
-      notifyListeners();
+      if (!_disposed) {
+        _syncMessage = null;
+        notifyListeners();
+      }
     });
   }
 }

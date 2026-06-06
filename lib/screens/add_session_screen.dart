@@ -305,11 +305,11 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                     children: [
                       Icon(Icons.calendar_today_rounded,
                           color: c.primary, size: 20),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Text(_formatDate(_playedAt),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontWeight: FontWeight.w600)),
-                      Spacer(),
+                      const Spacer(),
                       Icon(Icons.chevron_right_rounded,
                           color: c.textSecondary),
                     ],
@@ -444,10 +444,10 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             )),
 
         // Add round button
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: _addRound,
-          icon: Icon(Icons.add_rounded, size: 18),
+          icon: const Icon(Icons.add_rounded, size: 18),
           label: Text(_isPoints ? '+ Manche' : '+ Round'),
           style: OutlinedButton.styleFrom(
             foregroundColor: c.primary,
@@ -526,10 +526,10 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         child: Row(
           children: [
             _PlayerAvatar(player: player),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(player.name,
-                  style: TextStyle(fontWeight: FontWeight.w500)),
+                  style: const TextStyle(fontWeight: FontWeight.w500)),
             ),
             DropdownButton<int>(
               value: rank,
@@ -544,7 +544,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                     _ordinal(r),
                     style: TextStyle(
                       color: r == 1
-                          ? Color(0xFFFFD700)
+                          ? const Color(0xFFFFD700)
                           : c.textPrimary,
                       fontWeight: r == 1
                           ? FontWeight.w700
@@ -660,6 +660,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     if (date == null || !mounted) {
       return;
     }
+    // ignore: use_build_context_synchronously
+    // Context is safe here: mounted is checked immediately above and this
+    // is a deliberate chained-picker pattern with no intervening state change.
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_playedAt),
@@ -798,7 +801,7 @@ class _TotalsHeader extends StatelessWidget {
             children: [
               const Text('📊',
                   style: TextStyle(fontSize: 14)),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
                 isDuel ? 'Manches gagnées' : 'Totaux en cours',
                 style: TextStyle(
@@ -807,7 +810,7 @@ class _TotalsHeader extends StatelessWidget {
                     color: c.textSecondary),
               ),
               if (lowestScoreWins && !isDuel) ...[
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 GTBadge(
                     label: 'moins = mieux',
                     color: c.accent,
@@ -908,7 +911,7 @@ class _RoundCard extends StatelessWidget {
                     color: c.primary,
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 if (onRemove != null)
                   GestureDetector(
                     onTap: onRemove,
@@ -970,7 +973,7 @@ class _RoundCard extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: _DuelPlayerRow(
                     player: player ??
-                        Player(id: pid, name: name, color: '#6C63FF'),
+                        Player(id: pid, name: name),
                     result: result,
                     onChanged: (r) {
                       if (onDuelChanged != null) {
@@ -1016,7 +1019,7 @@ class _DuelPlayerRow extends StatelessWidget {
             const SizedBox(width: 10),
             Text(player.name,
                 style:
-                    TextStyle(fontWeight: FontWeight.w600)),
+                    const TextStyle(fontWeight: FontWeight.w600)),
           ]),
           SizedBox(height: compact ? 6 : 10),
           Row(children: [
@@ -1027,7 +1030,7 @@ class _DuelPlayerRow extends StatelessWidget {
               selected: result == DuelResult.win,
               onTap: () => onChanged(DuelResult.win),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             _DuelButton(
               label: 'Nul',
               emoji: '🤝',
@@ -1035,7 +1038,7 @@ class _DuelPlayerRow extends StatelessWidget {
               selected: result == DuelResult.draw,
               onTap: () => onChanged(DuelResult.draw),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             _DuelButton(
               label: 'Défaite',
               emoji: '💀',
@@ -1103,7 +1106,7 @@ class _DuelButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: selected
@@ -1118,7 +1121,7 @@ class _DuelButton extends StatelessWidget {
           child: Column(
             children: [
               Text(emoji, style: const TextStyle(fontSize: 20)),
-              SizedBox(height: 2),
+              const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(

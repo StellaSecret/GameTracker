@@ -49,7 +49,7 @@ class _StatsScreenState extends State<StatsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('📊 Statistiques'),
+        title: const Text('📊 Statistiques'),
         bottom: TabBar(
           controller: _tabs,
           indicatorColor: c.primary,
@@ -134,7 +134,7 @@ class _PlayersTabState extends State<_PlayersTab> {
               return GestureDetector(
                 onTap: () => setState(() => _selectedPlayerId = p.id),
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: selected ? pColor.withValues(alpha: 0.2) : c.surface,
@@ -276,7 +276,7 @@ class _GamesTabState extends State<_GamesTab> {
               return GestureDetector(
                 onTap: () => setState(() => _selectedGameId = g.id),
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: selected
@@ -492,7 +492,7 @@ class _BigStatCard extends StatelessWidget {
     child: Column(
       children: [
         Text(emoji, style: TextStyle(fontSize: 24)),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(value, style: TextStyle(
           fontSize: 28, fontWeight: FontWeight.w800, color: c.textPrimary)),
         Text(label, style: TextStyle(
@@ -521,13 +521,13 @@ class _KeyMetricsGrid extends StatelessWidget {
             value: '${stats.totalGames}',
             color: c.textPrimary,
           )),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(child: GTStatTile(
             label: 'VICTOIRES',
             value: '${stats.totalWins}',
             color: c.accent,
           )),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(child: GTStatTile(
             label: 'TAUX',
             value: '$pct%',
@@ -559,14 +559,14 @@ class _ScoresCard extends StatelessWidget {
           color: c.accent,
           subtitle: 'pts',
         )),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(child: GTStatTile(
           label: 'PIRE',
           value: '${stats.worstScore}',
           color: c.error,
           subtitle: 'pts',
         )),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(child: GTStatTile(
           label: 'MOYENNE',
           value: stats.avgScore?.toStringAsFixed(1) ?? '—',
@@ -595,7 +595,7 @@ class _StreaksCard extends StatelessWidget {
           color: stats.currentStreak > 0 ? c.accent : c.textSecondary,
           subtitle: stats.currentStreak > 1 ? '🔥 en feu !' : 'victoires',
         )),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(child: GTStatTile(
           label: 'MEILLEURE SÉRIE',
           value: '${stats.bestStreak}',
@@ -639,7 +639,7 @@ class _FavoriteGameCard extends StatelessWidget {
               style: const TextStyle(fontSize: 24),
             )),
           ),
-          SizedBox(width: 14),
+          const SizedBox(width: 14),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -687,10 +687,10 @@ class _WinRateByGameCard extends StatelessWidget {
                 Row(children: [
                   Text(game?.name ?? '—', style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w600)),
-                  Spacer(),
+                  const Spacer(),
                   Text('$wins/$total', style: TextStyle(
                     fontSize: 12, color: c.textSecondary)),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text('${(rate * 100).toStringAsFixed(0)}%',
                     style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700,
@@ -698,7 +698,7 @@ class _WinRateByGameCard extends StatelessWidget {
                           : rate > 0.3 ? c.warning
                           : c.error)),
                 ]),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
@@ -735,13 +735,13 @@ class _NemesisCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('💀', style: TextStyle(fontSize: 20)),
-            SizedBox(width: 8),
+            const Text('💀', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 8),
             Text('Nemesis', style: TextStyle(
               fontSize: 12, color: c.error, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
           ]),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(nemesis?.name ?? '—', style: TextStyle(
             fontSize: 18, fontWeight: FontWeight.w800)),
           Text('${stats.nemesisLosses} défaite${(stats.nemesisLosses ?? 0) > 1 ? 's' : ''} contre lui',
@@ -767,13 +767,13 @@ class _RivalCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('⚔️', style: TextStyle(fontSize: 20)),
-            SizedBox(width: 8),
+            const Text('⚔️', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 8),
             Text('Rival', style: TextStyle(
               fontSize: 12, color: c.warning, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
           ]),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(rival?.name ?? '—', style: TextStyle(
             fontSize: 18, fontWeight: FontWeight.w800)),
           Text('${stats.rivalGames} parties ensemble',
@@ -857,12 +857,12 @@ class _TightestGameCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('🔥', style: TextStyle(fontSize: 16)),
-            SizedBox(width: 8),
+            const Text('🔥', style: TextStyle(fontSize: 16)),
+            const SizedBox(width: 8),
             Text('Écart : ${stats.tightestGap} point${(stats.tightestGap ?? 0) > 1 ? 's' : ''}',
               style: TextStyle(fontSize: 12, color: c.secondary,
                 fontWeight: FontWeight.w700)),
-            Spacer(),
+            const Spacer(),
             Text(_formatDate(session.playedAt),
               style: TextStyle(fontSize: 11, color: c.textSecondary)),
           ]),
@@ -922,10 +922,10 @@ class _ScoreHistoryCard extends StatelessWidget {
                 children: [
                   Row(children: [
                     CircleAvatar(radius: 8, backgroundColor: pColor),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(player?.name ?? '—', style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w600, color: pColor)),
-                    Spacer(),
+                    const Spacer(),
                     if (points.isNotEmpty)
                       Text('${points.last.value} pts (dernier)',
                         style: TextStyle(fontSize: 11, color: c.textSecondary)),
@@ -1050,11 +1050,11 @@ class _GlobalRankingCard extends StatelessWidget {
                   style: TextStyle(color: pColor, fontWeight: FontWeight.w700, fontSize: 12),
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(child: Text(player?.name ?? '—', style: TextStyle(
                 fontWeight: rank == 0 ? FontWeight.w700 : FontWeight.w500,
                 fontSize: 15,
-                color: rank == 0 ? Color(0xFFFFD700) : c.textPrimary,
+                color: rank == 0 ? const Color(0xFFFFD700) : c.textPrimary,
               ))),
               Text('${e.value} victoire${e.value > 1 ? 's' : ''}',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
@@ -1086,7 +1086,7 @@ class _MostActiveCard extends StatelessWidget {
       borderColor: pColor.withValues(alpha: 0.3),
       child: Row(children: [
         const Text('🕹️', style: TextStyle(fontSize: 32)),
-        SizedBox(width: 14),
+        const SizedBox(width: 14),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1121,9 +1121,9 @@ class _AbsoluteRecordCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${stats.absoluteRecord} pts',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800,
                 color: Color(0xFFFFD700))),
-            Text(player?.name ?? '—', style: TextStyle(
+            Text(player?.name ?? '—', style: const TextStyle(
               fontSize: 14, fontWeight: FontWeight.w600)),
             Text('${stats.absoluteRecordGame ?? ''}${stats.absoluteRecordDate != null ? ' · ${_formatDate(stats.absoluteRecordDate!)}' : ''}',
               style: TextStyle(fontSize: 12, color: c.textSecondary)),
@@ -1147,18 +1147,18 @@ class _GlobalNemesisCard extends StatelessWidget {
     return GTCard(
       borderColor: c.error.withValues(alpha: 0.3),
       child: Row(children: [
-        Text('💀', style: TextStyle(fontSize: 24)),
-        SizedBox(width: 12),
+        const Text('💀', style: TextStyle(fontSize: 24)),
+        const SizedBox(width: 12),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('NEMESIS', style: TextStyle(
               fontSize: 11, color: c.error, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               '${playerA?.name ?? '—'} domine ${playerB?.name ?? '—'}',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             Text('${stats.globalNemesisScore} victoires d\'affilée',
               style: TextStyle(fontSize: 12, color: c.textSecondary)),
@@ -1182,18 +1182,18 @@ class _GlobalRivalCard extends StatelessWidget {
     return GTCard(
       borderColor: c.warning.withValues(alpha: 0.3),
       child: Row(children: [
-        Text('⚔️', style: TextStyle(fontSize: 24)),
-        SizedBox(width: 12),
+        const Text('⚔️', style: TextStyle(fontSize: 24)),
+        const SizedBox(width: 12),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('RIVAUX', style: TextStyle(
               fontSize: 11, color: c.warning, fontWeight: FontWeight.w700,
               letterSpacing: 1)),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               '${playerA?.name ?? '—'} vs ${playerB?.name ?? '—'}',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             Text('${stats.globalRivalGames} parties ensemble',
               style: TextStyle(fontSize: 12, color: c.textSecondary)),

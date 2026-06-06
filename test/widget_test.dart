@@ -140,22 +140,102 @@ void main() {
     });
   });
 
-  group('AppData', () {
-    test('serializes and deserializes round-trip', () {
+  group('AppData.mergeWith', () {
+    test('games from both sides are merged by id', () {
+      final g1 = Game(id: 'g1', name: 'Chess', mode: GameMode.duel);
+      final g2 = Game(id: 'g2', name: 'Catan', mode: GameMode.points);
+      final local = AppData(games: [g1]);
+      final remote = AppData(games: [g2]);
+      final merged = local.mergeWith(remote);
+      expect(merged.games.map((g) => g.id), containsAll(['g1', 'g2']));
+    });
+
+    test('players from both sides are merged by id', () {
+      final p1 = Player(id: 'p1', name: 'Alice');
+      final p2 = Player(id: 'p2', name: 'Bob');
+      final local = AppData(players: [p1]);
+      final remote = AppData(players: [p2]);
+      final merged = local.mergeWith(remote);
+      expect(merged.players.map((p) => p.id), containsAll(['p1', 'p2']));
+    });
+
+    test('deleted game on local side is not present after merge', () {
+      final g = Game(id: 'g1', name: 'Chess', mode: GameMode.duel);
+      final local = AppData(deletedGameIds: ['g1']);
+      final remote = AppData(games: [g]);
+      final merged = local.mergeWith(remote);
+      expect(merged.games.where((x) => x.id == 'g1'), isEmpty);
+    });
+
+    test('deleted game on remote side is not present after merge', () {
+      final g = Game(id: 'g1', name: 'Chess', mode: GameMode.duel);
+      final local = AppData(games: [g]);
+      final remote = AppData(deletedGameIds: ['g1']);
+      final merged = local.mergeWith(remote);
+      expect(merged.games.where((x) => x.id == 'g1'), isEmpty);
+    });
+
+    test('tombstone set is the union of both sides', () {
+      final local = AppData(deletedGameIds: ['g1']);
+      final remote = AppData(deletedGameIds: ['g2']);
+      final merged = local.mergeWith(remote);
+      expect(merged.deletedGameIds, containsAll(['g1', 'g2']));
+    });
+
+    test('lastModified is the later of the two', () {
+      final earlier = DateTime(2024, 3, 15);
+      final later = DateTime(2024, 9, 20);
+      final local = AppData(lastModified: earlier);
+      final remote = AppData(lastModified: later);
+      expect(local.mergeWith(remote).lastModified, later);
+      expect(remote.mergeWith(local).lastModified, later);
+    });
+
+    test('duplicate game id: local copy is kept', () {
+      final gLocal = Game(
+        id: 'g1', name: 'Local name', mode: GameMode.points,
+        createdAt: DateTime(2024, 9, 20),
+      );
+      final gRemote = Game(
+        id: 'g1', name: 'Remote name', mode: GameMode.points,
+        createdAt: DateTime(2024, 3, 15),
+      );
+      final merged = AppData(games: [gLocal]).mergeWith(AppData(games: [gRemote]));
+      expect(merged.games.first.name, 'Local name');
+    });
+
+    test('deletedGameIds survive a subsequent _persist-style reconstruction', () {
+      // Regression test for the bug where _persist() dropped deletedGameIds.
+      final original = AppData(deletedGameIds: ['g1', 'g2']);
+      // Simulate what _persist() now does (including deletedGameIds).
+      final reconstructed = AppData(
+        games: original.games,
+        players: original.players,
+        deletedGameIds: original.deletedGameIds,
+      );
+      expect(reconstructed.deletedGameIds, containsAll(['g1', 'g2']));
+    });
+  });
+
+  group('AppData serialization', () {
+    test('round-trip preserves games, players and deletedGameIds', () {
       final data = AppData(
         games: [Game(name: 'Chess', mode: GameMode.duel)],
         players: [Player(name: 'Alice'), Player(name: 'Bob')],
+        deletedGameIds: ['old-id'],
       );
       final data2 = AppData.fromJson(data.toJson());
       expect(data2.games.length, 1);
       expect(data2.players.length, 2);
       expect(data2.games.first.name, 'Chess');
+      expect(data2.deletedGameIds, contains('old-id'));
     });
 
     test('empty AppData has no games or players', () {
       final data = AppData();
       expect(data.games, isEmpty);
       expect(data.players, isEmpty);
+      expect(data.deletedGameIds, isEmpty);
     });
   });
 }

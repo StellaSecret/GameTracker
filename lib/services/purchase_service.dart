@@ -109,7 +109,9 @@ class PurchaseService extends ChangeNotifier {
       try {
         final fbEmail =
             FirebaseAuth.instance.currentUser?.email?.toLowerCase().trim();
-        if (fbEmail != null && allowed.contains(fbEmail)) return true;
+        if (fbEmail != null && allowed.contains(fbEmail)) {
+          return true;
+        }
       } catch (_) {}
     }
     return false;

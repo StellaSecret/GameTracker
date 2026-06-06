@@ -42,7 +42,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('👥 Groupes'),
+        title: const Text('👥 Groupes'),
         actions: [
           if (state.isInGroup)
             TextButton.icon(
@@ -149,7 +149,7 @@ class _GroupScreenState extends State<GroupScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Annuler')),
+              child: const Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('Quitter',
@@ -180,10 +180,10 @@ class _GroupScreenState extends State<GroupScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Inviter un joueur',
+            const Text('Inviter un joueur',
                 style: TextStyle(
                     fontSize: 20, fontWeight: FontWeight.w700)),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text('ID du groupe : $groupId',
                 style: TextStyle(
                     fontSize: 12, color: c.textSecondary)),
@@ -195,13 +195,13 @@ class _GroupScreenState extends State<GroupScreen> {
                       content: Text('ID copié dans le presse-papier')),
                 );
               },
-              icon: Icon(Icons.copy_rounded, size: 14),
-              label: Text('Copier l\'ID'),
+              icon: const Icon(Icons.copy_rounded, size: 14),
+              label: const Text('Copier l\'ID'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: emailCtrl,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Email du joueur',
                 hintText: 'ami@exemple.com',
               ),
@@ -233,7 +233,7 @@ class _GroupScreenState extends State<GroupScreen> {
                     );
                   }
                 },
-                child: Text('Inviter'),
+                child: const Text('Inviter'),
               ),
             ),
           ],
@@ -316,7 +316,7 @@ class _ActiveGroupBanner extends StatelessWidget {
         children: [
           Icon(Icons.wifi_tethering_rounded,
               color: c.primary, size: 18),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Sync temps réel actif · Groupe ${state.activeGroupId!.substring(0, 8)}…',
@@ -370,9 +370,9 @@ class _GroupCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(info.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 15)),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   '${info.memberEmails.length} membre${info.memberEmails.length != 1 ? 's' : ''}',
                   style: TextStyle(
@@ -390,12 +390,12 @@ class _GroupCard extends StatelessWidget {
                 foregroundColor: c.primary,
                 side: BorderSide(color: c.primary),
               ),
-              child: Text('Rejoindre', style: TextStyle(fontSize: 12)),
+              child: const Text('Rejoindre', style: TextStyle(fontSize: 12)),
             )
           else
             GTBadge(
                 label: 'Actif', color: c.success, emoji: '●'),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           IconButton(
             icon: Icon(Icons.person_add_rounded,
                 size: 18, color: c.textSecondary),
