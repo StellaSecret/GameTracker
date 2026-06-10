@@ -9,22 +9,22 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
   security-events: write
   actions: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ── SÉCURITÉ 1 : SCAN DE SECRETS (TRUFFLEHOG) ──────────
+  # ── PARALLEL SECURITY JOBS ────────────────────────────
   scan-secrets:
     name: Secret Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: TruffleHog OSS
@@ -35,12 +35,11 @@ jobs:
           head: ${{ github.sha }}
           extra_args: --only-verified
 
-  # ── SÉCURITÉ 2 : ANALYSE STATIQUE (CODEQL) ─────────────
   codeql-analysis:
-    name: CodeQL
+    name: CodeQL Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -48,33 +47,39 @@ jobs:
       - name: Perform Analysis
         uses: github/codeql-action/analyze@v3
 
-  # ── QUALITÉ : LINT + TESTS ──────────────────────────────
-  flutter-security:
-    name: Flutter Lint, Audit & Tests
+  flutter-audit:
+    name: Flutter Audit & Placeholders
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v6
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - name: Get Dependencies
         run: flutter pub get
-
       - name: Verify No Secrets in Code
         run: |
           if grep -q "AIzaSy" web/index.html; then
             echo "❌ Google API Key détectée dans l'index !" && exit 1
           fi
-
       - name: Flutter Analyze
         run: flutter analyze --no-fatal-infos
 
-      - name: Unit Tests
+  # ── PARALLEL TEST JOBS ────────────────────────────────
+  unit-tests:
+    name: Flutter Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get Dependencies
+        run: flutter pub get
+      - name: Run Tests
         run: flutter test --no-pub --reporter=expanded
-
       - name: Test Coverage
         if: github.event_name == 'pull_request'
         run: |
@@ -84,33 +89,23 @@ jobs:
           else
             echo "lcov not available, skipping summary"
           fi
-
       - name: Upload Coverage Report
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report-${{ github.run_number }}
           path: coverage/lcov.info
           retention-days: 7
 
-  # ── E2E : TESTS D'INTÉGRATION (Android Emulator) ───────
   e2e-android:
     name: E2E – Android Emulator
-    # ubuntu-latest is x86_64 with KVM support — the only combination that
-    # works on GitHub Actions. macOS ARM runners block HVF (HV_UNSUPPORTED)
-    # despite being ARM64 hardware. Ubuntu + KVM + x86_64 is the correct setup.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
-      # ── Cache 1: Gradle distributions + build outputs ────────────────────
-      # Saves ~2-3 min on repeat runs. Key includes pubspec.lock so a dependency
-      # change invalidates the cache automatically.
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -120,32 +115,23 @@ jobs:
             ~/.android/build-cache
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'pubspec.lock') }}
           restore-keys: gradle-${{ runner.os }}-
-
-      # ── Cache 2: Android SDK system image ────────────────────────────────
-      # The API 28 image is ~300 MB. Caching it eliminates the "Install Android
-      # SDK" download step on every run (~40 s saved).
       - name: Cache Android SDK system image
         uses: actions/cache@v4
         with:
           path: /usr/local/lib/android/sdk/system-images
           key: android-sdk-image-28-google_apis-x86_64
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - name: Install dependencies
         run: flutter pub get
-
-      # Grant KVM access so the emulator can use hardware acceleration.
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
       - name: Create stub google-services.json
         run: |
           cat > android/app/google-services.json << 'JSON'
@@ -167,32 +153,24 @@ jobs:
             "configuration_version": "1"
           }
           JSON
-
       - name: Run E2E tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          # API 28 vs 34: boots ~90 s faster, no CMake download, smaller image.
-          # All app features (SharedPreferences, HTTP, Google Sign-In stub) work
-          # on API 28+. Upgrade only if a test explicitly needs a newer API.
           api-level: 28
           target: google_apis
           arch: x86_64
           profile: pixel_6
           avd-name: gt_e2e
           disable-animations: true
-          # 4 cores = all vCPUs available on the GitHub Actions ubuntu runner.
-          # 4096 MB RAM leaves ~3 GB headroom for the Gradle daemon alongside
-          # the emulator (runner has 7 GB total).
           cores: 4
           ram-size: 4096M
           heap-size: 512M
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
             flutter test integration_test/app_test.dart --no-pub --reporter expanded -d emulator-5554
-
       - name: Upload failure artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-failure-${{ github.run_number }}
           path: |
@@ -200,18 +178,47 @@ jobs:
             /tmp/*.png
           retention-days: 7
 
-  # ── BUILD GLOBAL (Android + Web) ───────────────────────
-  build:
-    name: Build Android & Web
-    # e2e added here: build only runs if emulator tests pass
-    needs: [scan-secrets, codeql-analysis, flutter-security, e2e-android]
+  # ── SEQUENTIAL DEPLOYMENT JOBS ───────────────────────
+  deploy-web:
+    name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [unit-tests, e2e-android]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Build Web
+        run: |
+          sed -i 's|%%GOOGLE_WEB_CLIENT_ID%%|${{ secrets.GOOGLE_WEB_CLIENT_ID }}|g' web/index.html
+          flutter build web --base-href "/GameTracker/" --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/web
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+  build-android:
+    name: Build Android
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    needs: [scan-secrets, codeql-analysis, flutter-audit, unit-tests, e2e-android]
     runs-on: ubuntu-latest
     outputs:
-      artifact-release-name: GameTracker-release-${{ github.run_number }}
-      artifact-web-name: GameTracker-web-${{ github.run_number }}
+      artifact-name: GameTracker-release-${{ github.run_number }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -219,10 +226,8 @@ jobs:
         with:
           channel: stable
           cache: true
-
       - name: Get dependencies
         run: flutter pub get
-
       - name: Prepare Signing & Firebase
         if: github.event_name != 'pull_request'
         env:
@@ -238,23 +243,14 @@ jobs:
           storeFile=keystore.jks
           PROPS
           sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/" android/app/build.gradle
-
       - name: Build Android (APK & AAB)
         if: github.event_name != 'pull_request'
         run: |
           flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
           flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
-
       - name: Build Debug APK (PR)
         if: github.event_name == 'pull_request'
         run: flutter build apk --debug
-
-      - name: Build Web
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: |
-          sed -i 's|%%GOOGLE_WEB_CLIENT_ID%%|${{ secrets.GOOGLE_WEB_CLIENT_ID }}|g' web/index.html
-          flutter build web --base-href "/GameTracker/" --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
-
       - name: Collect Android Artifacts
         if: github.event_name != 'pull_request'
         run: |
@@ -262,57 +258,25 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk dist/gametracker-${{ github.run_number }}-arm64.apk
           cp build/app/outputs/bundle/release/app-release.aab dist/gametracker-${{ github.run_number }}.aab
           [ -f build/app/outputs/mapping/release/mapping.txt ] && cp build/app/outputs/mapping/release/mapping.txt dist/mapping-${{ github.run_number }}.txt || true
-
       - name: Upload Release Artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: GameTracker-release-${{ github.run_number }}
           path: dist/
-          retention-days: 1
+          retention-days: 7
 
-      - name: Upload Web Artifacts
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: GameTracker-web-${{ github.run_number }}
-          path: build/web/
-          retention-days: 1
-
-  # ── DÉPLOIEMENT WEB (Pages) ────────────────────────────
-  deploy-web:
-    name: Deploy Web
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Download web artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.artifact-web-name }}
-          path: build/web/
-      - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-  # ── RELEASE GITHUB ─────────────────────────────────────
   release:
     name: Create Release
-    needs: build
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build-android
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: ${{ needs.build.outputs.artifact-release-name }}
+          name: GameTracker-release-${{ github.run_number }}
           path: dist/
       - name: Create Release
         uses: softprops/action-gh-release@v2
