@@ -32,10 +32,8 @@ void main() {
   });
 
   group('GameMode', () {
-    test('all modes have label, description, icon', () {
+    test('all modes have an icon emoji', () {
       for (final m in GameMode.values) {
-        expect(m.label, isNotEmpty);
-        expect(m.description, isNotEmpty);
         expect(m.icon, isNotEmpty);
       }
     });

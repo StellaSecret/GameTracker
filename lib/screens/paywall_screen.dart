@@ -2,18 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import '../l10n/app_localizations.dart';
 import '../services/app_state.dart';
 import '../services/purchase_service.dart';
 import '../theme/app_theme.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Which product to pitch
-// ─────────────────────────────────────────────────────────────────────────────
 enum PaywallTarget { premium, groupSync }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PaywallScreen
-// ─────────────────────────────────────────────────────────────────────────────
 class PaywallScreen extends StatefulWidget {
   final PaywallTarget target;
   final String? reason;
@@ -24,7 +19,6 @@ class PaywallScreen extends StatefulWidget {
     this.reason,
   });
 
-  // Named constructors for convenience at call sites.
   const PaywallScreen.premium({super.key, this.reason})
       : target = PaywallTarget.premium;
 
@@ -48,10 +42,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ps = context.read<AppState>().purchaseService;
-      // Already unlocked — close immediately.
-      final alreadyUnlocked = _isGroupSync
-          ? ps.hasGroupSync
-          : ps.isPremium;
+      final alreadyUnlocked =
+          _isGroupSync ? ps.hasGroupSync : ps.isPremium;
       if (alreadyUnlocked && mounted) {
         Navigator.pop(context, true);
         return;
@@ -78,10 +70,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isGroupSync ? '👥 Groupes temps réel' : '🌟 GameTracker Premium'),
+        title: Text(_isGroupSync
+            ? l.paywallGroupSyncTitle
+            : l.paywallPremiumTitle),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
@@ -94,23 +90,25 @@ class _PaywallScreenState extends State<PaywallScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Optional reason banner
                   if (widget.reason != null) ...[
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: c.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: c.warning.withValues(alpha: 0.4)),
+                        border: Border.all(
+                            color: c.warning.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         children: [
-                          const Text('⚠️', style: TextStyle(fontSize: 18)),
+                          const Text('⚠️',
+                              style: TextStyle(fontSize: 18)),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               widget.reason!,
-                              style: TextStyle(color: c.warning, fontSize: 13),
+                              style: TextStyle(
+                                  color: c.warning, fontSize: 13),
                             ),
                           ),
                         ],
@@ -119,17 +117,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     const SizedBox(height: 24),
                   ],
 
-                  // Hero emoji
                   Text(
                     _isGroupSync ? '👥' : '🎲',
                     style: const TextStyle(fontSize: 72),
                     textAlign: TextAlign.center,
-                  ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
+                  ).animate().scale(
+                      duration: 400.ms, curve: Curves.elasticOut),
                   const SizedBox(height: 16),
 
-                  // Title & subtitle
                   Text(
-                    _isGroupSync ? 'Jouez ensemble' : 'Passez à Premium',
+                    _isGroupSync
+                        ? l.paywallGroupSyncHero
+                        : l.paywallPremiumHero,
                     style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
@@ -139,52 +138,51 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _isGroupSync
-                        ? 'Synchronisez vos scores en temps réel\nentre tous vos appareils.'
-                        : 'Stats avancées et export CSV\nsans rien sacrifier sur le plan gratuit.',
-                    style: TextStyle(fontSize: 15, color: c.textSecondary),
+                        ? l.paywallGroupSyncSub
+                        : l.paywallPremiumSub,
+                    style: TextStyle(
+                        fontSize: 15, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
 
-                  // Feature comparison table
-                  _FeatureTable(
-                    features: _isGroupSync ? _groupSyncFeatures : _premiumFeatures,
-                  ),
+                  _FeatureTable(isGroupSync: _isGroupSync),
                   const SizedBox(height: 32),
 
-                  // Packages from RevenueCat
                   if (_offering == null)
                     Center(
                       child: Text(
-                        'Impossible de charger les offres.\nVérifiez votre connexion.',
+                        l.paywallLoadingError,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: c.textSecondary),
                       ),
                     )
                   else
-                    ..._offering!.availablePackages.map((pkg) => _PackageButton(
-                          package: pkg,
-                          purchasing: _purchasing,
-                          onTap: () => _purchase(pkg),
-                        )),
+                    ..._offering!.availablePackages
+                        .map((pkg) => _PackageButton(
+                              package: pkg,
+                              purchasing: _purchasing,
+                              onTap: () => _purchase(pkg),
+                            )),
 
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: c.error, fontSize: 13),
+                      style:
+                          TextStyle(color: c.error, fontSize: 13),
                     ),
                   ],
 
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: _purchasing ? null : _restore,
-                    child: Text('Restaurer les achats',
-                        style: TextStyle(color: c.textSecondary)),
+                    child: Text(l.paywallRestoreBtn,
+                        style:
+                            TextStyle(color: c.textSecondary)),
                   ),
 
-                  // Cross-sell: if showing one paywall, mention the other
                   const SizedBox(height: 8),
                   _CrossSell(isGroupSync: _isGroupSync),
                 ],
@@ -212,6 +210,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _restore() async {
+    final l = AppLocalizations.of(context)!;
     setState(() {
       _purchasing = true;
       _error = null;
@@ -226,42 +225,53 @@ class _PaywallScreenState extends State<PaywallScreen> {
       Navigator.pop(context, true);
     } else {
       setState(() =>
-          _error = ps.lastError ?? 'Aucun achat trouvé à restaurer.');
+          _error = ps.lastError ?? l.paywallNoRestoreFound);
     }
   }
-
-  // ── Feature data ──────────────────────────────────────────────────────────
-
-  static const _premiumFeatures = <_FeatureData>[
-    _FeatureData('🎲', 'Jeux & parties',    free: 'Illimités ✓', value: 'Illimités ✓'),
-    _FeatureData('🔄', 'Backup Drive',       free: 'Inclus ✓',    value: 'Inclus ✓'),
-    _FeatureData('📊', 'Stats avancées',     free: '—',            value: 'Inclus ✓'),
-    _FeatureData('📤', 'Export CSV',         free: '—',            value: 'Inclus ✓'),
-    _FeatureData('👥', 'Groupes temps réel', free: 'Abonnement séparé', value: 'Abonnement séparé'),
-  ];
-
-  static const _groupSyncFeatures = <_FeatureData>[
-    _FeatureData('🎲', 'Jeux & parties',    free: 'Illimités ✓', value: 'Illimités ✓'),
-    _FeatureData('🔄', 'Backup Drive',       free: 'Inclus ✓',    value: 'Inclus ✓'),
-    _FeatureData('👥', 'Sync temps réel',    free: '—',            value: 'Inclus ✓'),
-    _FeatureData('🔁', 'Multi-appareils',    free: '—',            value: 'Inclus ✓'),
-    _FeatureData('📊', 'Stats avancées',     free: '—',            value: 'Premium séparé'),
-  ];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Feature comparison table
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Feature table ─────────────────────────────────────────────────────────────
+
 class _FeatureTable extends StatelessWidget {
-  final List<_FeatureData> features;
-  const _FeatureTable({required this.features});
+  final bool isGroupSync;
+  const _FeatureTable({required this.isGroupSync});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
+
+    // Build feature rows from localised strings.
+    final features = isGroupSync
+        ? [
+            _FeatureData('🎲', l.featureGamesAndSessions,
+                free: l.featureUnlimited, value: l.featureUnlimited),
+            _FeatureData('🔄', l.featureDriveBackup,
+                free: l.featureIncluded, value: l.featureIncluded),
+            _FeatureData('👥', l.featureGroupSync,
+                free: l.featureNotIncluded, value: l.featureIncluded),
+            _FeatureData('🔁', l.featureMultiDevice,
+                free: l.featureNotIncluded, value: l.featureIncluded),
+            _FeatureData('📊', l.featureAdvancedStats,
+                free: l.featureNotIncluded,
+                value: l.featureSeparatePremium),
+          ]
+        : [
+            _FeatureData('🎲', l.featureGamesAndSessions,
+                free: l.featureUnlimited, value: l.featureUnlimited),
+            _FeatureData('🔄', l.featureDriveBackup,
+                free: l.featureIncluded, value: l.featureIncluded),
+            _FeatureData('📊', l.featureAdvancedStats,
+                free: l.featureNotIncluded, value: l.featureIncluded),
+            _FeatureData('📤', l.featureCsvExport,
+                free: l.featureNotIncluded, value: l.featureIncluded),
+            _FeatureData('👥', l.featureGroupSync,
+                free: l.featureNotIncluded,
+                value: l.featureSeparateSub),
+          ];
+
     return Column(
       children: [
-        // Header row
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
@@ -269,7 +279,7 @@ class _FeatureTable extends StatelessWidget {
               const Expanded(child: SizedBox()),
               SizedBox(
                 width: 80,
-                child: Text('Gratuit',
+                child: Text(l.paywallTableFree,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 12,
@@ -278,7 +288,7 @@ class _FeatureTable extends StatelessWidget {
               ),
               SizedBox(
                 width: 90,
-                child: Text('Ce plan',
+                child: Text(l.paywallTableThisPlan,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 12,
@@ -288,11 +298,13 @@ class _FeatureTable extends StatelessWidget {
             ],
           ),
         ),
-        ...features.asMap().entries.map((entry) => _FeatureRow(
-              data: entry.value,
-            ).animate(delay: Duration(milliseconds: entry.key * 60))
-              .fadeIn(duration: 250.ms)
-              .slideX(begin: 0.05)),
+        ...features.asMap().entries.map(
+              (entry) => _FeatureRow(data: entry.value)
+                  .animate(
+                      delay: Duration(milliseconds: entry.key * 60))
+                  .fadeIn(duration: 250.ms)
+                  .slideX(begin: 0.05),
+            ),
       ],
     );
   }
@@ -326,7 +338,8 @@ class _FeatureRow extends StatelessWidget {
             width: 80,
             child: Text(data.free,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                style: TextStyle(
+                    fontSize: 12, color: c.textSecondary)),
           ),
           SizedBox(
             width: 90,
@@ -343,19 +356,19 @@ class _FeatureRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Cross-sell nudge at the bottom
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Cross-sell nudge ──────────────────────────────────────────────────────────
+
 class _CrossSell extends StatelessWidget {
   final bool isGroupSync;
   const _CrossSell({required this.isGroupSync});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final label = isGroupSync
-        ? 'Vous cherchez les stats avancées ? Découvrez Premium.'
-        : 'Vous voulez jouer en groupe ? Découvrez le sync temps réel.';
+        ? l.paywallCrossSellPremium
+        : l.paywallCrossSellGroupSync;
     return GestureDetector(
       onTap: () => Navigator.pushReplacement(
         context,
@@ -375,9 +388,8 @@ class _CrossSell extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Package button (unchanged visual, same as before)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Package button ────────────────────────────────────────────────────────────
+
 class _PackageButton extends StatelessWidget {
   final Package package;
   final bool purchasing;
@@ -391,9 +403,10 @@ class _PackageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final isMonthly = package.packageType == PackageType.monthly;
-    final isAnnual  = package.packageType == PackageType.annual;
+    final isAnnual = package.packageType == PackageType.annual;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -427,16 +440,18 @@ class _PackageButton extends StatelessWidget {
                       children: [
                         Text(
                           isAnnual
-                              ? 'Annuel'
+                              ? l.paywallAnnual
                               : isMonthly
-                                  ? 'Mensuel'
+                                  ? l.paywallMonthly
                                   : package.storeProduct.title,
                           style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16),
                         ),
                         if (isAnnual)
-                          Text('2 mois offerts',
-                              style: TextStyle(fontSize: 12, color: c.accent)),
+                          Text(l.paywallAnnualBonus,
+                              style: TextStyle(
+                                  fontSize: 12, color: c.accent)),
                       ],
                     ),
                   ),
@@ -445,21 +460,22 @@ class _PackageButton extends StatelessWidget {
                           fontSize: 18, fontWeight: FontWeight.w800)),
                   if (isAnnual) ...[
                     const SizedBox(width: 4),
-                    Text('/an',
-                        style:
-                            TextStyle(fontSize: 12, color: c.textSecondary)),
+                    Text(l.paywallPerYear,
+                        style: TextStyle(
+                            fontSize: 12, color: c.textSecondary)),
                   ] else if (isMonthly) ...[
                     const SizedBox(width: 4),
-                    Text('/mois',
-                        style:
-                            TextStyle(fontSize: 12, color: c.textSecondary)),
+                    Text(l.paywallPerMonth,
+                        style: TextStyle(
+                            fontSize: 12, color: c.textSecondary)),
                   ],
                   const SizedBox(width: 12),
                   if (purchasing)
                     const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2))
                   else
                     Icon(Icons.arrow_forward_ios_rounded,
                         size: 16, color: c.textSecondary),
@@ -472,14 +488,14 @@ class _PackageButton extends StatelessWidget {
               top: -10,
               right: 16,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: c.accent,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text('POPULAIRE',
-                    style: TextStyle(
+                child: Text(l.paywallAnnualBadge,
+                    style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: Colors.black)),

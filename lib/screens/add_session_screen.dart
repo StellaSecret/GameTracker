@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/game.dart';
 import '../models/game_mode.dart';
 import '../models/game_session.dart';
@@ -23,19 +25,13 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   DateTime _playedAt = DateTime.now();
   final Set<String> _selectedPlayerIds = {};
 
-  // ── Mode sans manches (legacy) ─────────────────────────────────────────────
   final Map<String, TextEditingController> _scoreCtrl = {};
   final Map<String, DuelResult> _duelResults = {};
   final Map<String, int> _ranks = {};
 
-  // ── Mode manches ───────────────────────────────────────────────────────────
   bool _useRounds = false;
-
-  /// rounds[i] = { playerId → score (points) ou DuelResult.index (duel) }
   final List<Map<String, TextEditingController>> _roundPointsCtrl = [];
   final List<Map<String, DuelResult>> _roundDuelResults = [];
-
-  // ──────────────────────────────────────────────────────────────────────────
 
   bool get _isPoints => widget.game.mode == GameMode.points;
   bool get _isDuel => widget.game.mode == GameMode.duel;
@@ -70,14 +66,13 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         for (final round in s.rounds) {
           final results = <String, DuelResult>{};
           for (final pid in _selectedPlayerIds) {
-            results[pid] =
-                DuelResult.values[round.scores[pid] ?? DuelResult.draw.index];
+            results[pid] = DuelResult
+                .values[round.scores[pid] ?? DuelResult.draw.index];
           }
           _roundDuelResults.add(results);
         }
       }
     } else {
-      // Legacy single-score
       for (final entry in s.scores.entries) {
         if (_isPoints) {
           _scoreCtrl[entry.key] =
@@ -141,7 +136,6 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   int get _roundCount =>
       _isPoints ? _roundPointsCtrl.length : _roundDuelResults.length;
 
-  /// Running totals per player (points) or round wins (duel).
   Map<String, int> get _runningTotals {
     if (!_useRounds) {
       return {};
@@ -150,8 +144,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
       final totals = <String, int>{};
       for (final round in _roundPointsCtrl) {
         for (final pid in _selectedPlayerIds) {
-          totals[pid] =
-              (totals[pid] ?? 0) + (int.tryParse(round[pid]?.text ?? '0') ?? 0);
+          totals[pid] = (totals[pid] ?? 0) +
+              (int.tryParse(round[pid]?.text ?? '0') ?? 0);
         }
       }
       return totals;
@@ -172,21 +166,17 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     return {};
   }
 
-  // ── Toggle rounds ──────────────────────────────────────────────────────────
-
   void _toggleRounds(bool value) {
     setState(() {
       _useRounds = value;
       if (value) {
-        // Migrate existing single-score entries into round 0
         if (_isPoints && _selectedPlayerIds.isNotEmpty) {
           final ctrl = <String, TextEditingController>{};
           for (final pid in _selectedPlayerIds) {
-            final existing = _scoreCtrl[pid]?.text ?? '0';
-            ctrl[pid] = TextEditingController(text: existing);
+            ctrl[pid] = TextEditingController(
+                text: _scoreCtrl[pid]?.text ?? '0');
           }
           _roundPointsCtrl.add(ctrl);
-          // Clear legacy controllers
           for (final c in _scoreCtrl.values) {
             c.dispose();
           }
@@ -200,7 +190,6 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
           _duelResults.clear();
         }
       } else {
-        // Collapse rounds into a single aggregated score
         if (_isPoints) {
           final totals = _runningTotals;
           for (final c in _scoreCtrl.values) {
@@ -218,7 +207,6 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
           }
           _roundPointsCtrl.clear();
         } else if (_isDuel) {
-          // Keep the most-won result as the overall result
           final wins = _runningTotals;
           _duelResults.clear();
           for (final pid in _selectedPlayerIds) {
@@ -238,8 +226,6 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     });
   }
 
-  // ── Player toggle ──────────────────────────────────────────────────────────
-
   void _togglePlayer(Player p, bool selected) {
     setState(() {
       if (selected) {
@@ -254,7 +240,6 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             _ranks[p.id] = _selectedPlayerIds.length;
           }
         } else {
-          // Add player to every existing round
           if (_isPoints) {
             for (final round in _roundPointsCtrl) {
               round.putIfAbsent(
@@ -285,170 +270,163 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final players = state.players;
+
     return Scaffold(
-      appBar: AppBar(title: Text('Partie – ${widget.game.name}')),
+      appBar: AppBar(
+          title: Text(l.addSessionTitle(widget.game.name))),
       body: ListView(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: 16 + MediaQuery.of(context).padding.bottom,
-              ),
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 16 + MediaQuery.of(context).padding.bottom,
+        ),
+        children: [
+          // ── Date ───────────────────────────────────────────────────────
+          GTCard(
+            onTap: () => _pickDate(context),
+            child: Row(
               children: [
-                // ── Date ───────────────────────────────────────────────────
-                GTCard(
-                  onTap: () => _pickDate(context),
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today_rounded,
-                          color: c.primary, size: 20),
-                      const SizedBox(width: 12),
-                      Text(_formatDate(_playedAt),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600)),
-                      const Spacer(),
-                      Icon(Icons.chevron_right_rounded,
-                          color: c.textSecondary),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // ── Players ────────────────────────────────────────────────
-                const GTSectionHeader(title: 'JOUEURS'),
-                const SizedBox(height: 10),
-                if (players.isEmpty)
-                  GTCard(
-                    child: Column(
-                      children: [
-                        const Text('⚠️ Aucun joueur créé.',
-                            style:
-                                TextStyle(fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/players'),
-                          child: const Text('Créer des joueurs'),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: players.map((p) {
-                      final selected =
-                          _selectedPlayerIds.contains(p.id);
-                      final color = _hexColor(p.color);
-                      return FilterChip(
-                        label: Text(p.name),
-                        selected: selected,
-                        onSelected: (v) => _togglePlayer(p, v),
-                        selectedColor: color.withValues(alpha: 0.3),
-                        checkmarkColor: color,
-                        side: BorderSide(
-                          color: selected
-                              ? color
-                              : c.cardBorder,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                const SizedBox(height: 24),
-
-                // ── Scores ─────────────────────────────────────────────────
-                if (_selectedPlayerIds.isNotEmpty) ...[
-                  // Rounds toggle (points + duel only)
-                  if (_isPoints || _isDuel) ...[
-                    _RoundsToggle(
-                      value: _useRounds,
-                      onChanged: _toggleRounds,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  const GTSectionHeader(title: 'SCORES'),
-                  const SizedBox(height: 12),
-
-                  if (_useRounds && (_isPoints || _isDuel))
-                    _buildRoundsSection(state)
-                  else ...[
-                    ...widget.game.mode == GameMode.points
-                        ? _buildPointsInputs(state)
-                        : widget.game.mode == GameMode.duel
-                            ? _buildDuelInputs(state)
-                            : _buildRankingInputs(state),
-                  ],
-                  const SizedBox(height: 20),
-                ],
-
-                // ── Notes ──────────────────────────────────────────────────
-                const GTSectionHeader(title: 'NOTES (optionnel)'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _notesCtrl,
-                  decoration: const InputDecoration(
-                      hintText: 'Anecdotes, conditions de jeu…'),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 32),
-
-                ElevatedButton(
-                  onPressed: _canSave() ? _save : null,
-                  child: Text(widget.existing != null
-                      ? 'Mettre à jour'
-                      : 'Enregistrer la partie'),
-                ),
+                Icon(Icons.calendar_today_rounded,
+                    color: c.primary, size: 20),
+                const SizedBox(width: 12),
+                Text(_formatDate(context, _playedAt),
+                    style:
+                        const TextStyle(fontWeight: FontWeight.w600)),
+                const Spacer(),
+                Icon(Icons.chevron_right_rounded,
+                    color: c.textSecondary),
               ],
             ),
+          ),
+          const SizedBox(height: 20),
+
+          // ── Players ────────────────────────────────────────────────────
+          GTSectionHeader(title: l.sectionPlayers),
+          const SizedBox(height: 10),
+          if (players.isEmpty)
+            GTCard(
+              child: Column(
+                children: [
+                  Text(l.noPlayersWarning,
+                      style:
+                          const TextStyle(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/players'),
+                    child: Text(l.btnCreatePlayers),
+                  ),
+                ],
+              ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: players.map((p) {
+                final selected = _selectedPlayerIds.contains(p.id);
+                final color = _hexColor(p.color);
+                return FilterChip(
+                  label: Text(p.name),
+                  selected: selected,
+                  onSelected: (v) => _togglePlayer(p, v),
+                  selectedColor: color.withValues(alpha: 0.3),
+                  checkmarkColor: color,
+                  side: BorderSide(
+                    color: selected ? color : c.cardBorder,
+                  ),
+                );
+              }).toList(),
+            ),
+          const SizedBox(height: 24),
+
+          // ── Scores ─────────────────────────────────────────────────────
+          if (_selectedPlayerIds.isNotEmpty) ...[
+            if (_isPoints || _isDuel) ...[
+              _RoundsToggle(value: _useRounds, onChanged: _toggleRounds),
+              const SizedBox(height: 16),
+            ],
+            GTSectionHeader(title: l.sectionScores),
+            const SizedBox(height: 12),
+            if (_useRounds && (_isPoints || _isDuel))
+              _buildRoundsSection(state)
+            else ...[
+              ...widget.game.mode == GameMode.points
+                  ? _buildPointsInputs(state)
+                  : widget.game.mode == GameMode.duel
+                      ? _buildDuelInputs(state)
+                      : _buildRankingInputs(context, state),
+            ],
+            const SizedBox(height: 20),
+          ],
+
+          // ── Notes ──────────────────────────────────────────────────────
+          GTSectionHeader(title: l.sectionNotes),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _notesCtrl,
+            decoration: InputDecoration(hintText: l.notesHint),
+            maxLines: 2,
+          ),
+          const SizedBox(height: 32),
+
+          ElevatedButton(
+            key: const Key('btnSaveSession'),
+            onPressed: _canSave() ? _save : null,
+            child: Text(widget.existing != null
+                ? l.btnUpdateSession
+                : l.btnSaveSession),
+          ),
+        ],
+      ),
     );
   }
 
   // ── Score builders ─────────────────────────────────────────────────────────
 
   Widget _buildRoundsSection(AppState state) {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final totals = _runningTotals;
     return Column(
       children: [
-        // Running totals header
-        if (_roundCount > 0) _TotalsHeader(
-          playerIds: _selectedPlayerIds.toList(),
-          totals: totals,
-          state: state,
-          lowestScoreWins: widget.game.lowestScoreWins,
-          isDuel: _isDuel,
-        ),
+        if (_roundCount > 0)
+          _TotalsHeader(
+            playerIds: _selectedPlayerIds.toList(),
+            totals: totals,
+            state: state,
+            lowestScoreWins: widget.game.lowestScoreWins,
+            isDuel: _isDuel,
+          ),
         const SizedBox(height: 12),
-
-        // Round cards
-        ...List.generate(_roundCount, (i) => _RoundCard(
-              roundIndex: i,
-              playerIds: _selectedPlayerIds.toList(),
-              state: state,
-              isPoints: _isPoints,
-              pointsControllers: _isPoints ? _roundPointsCtrl[i] : {},
-              duelResults: _isDuel ? _roundDuelResults[i] : {},
-              onDuelChanged: _isDuel
-                  ? (pid, result) => setState(
-                      () => _roundDuelResults[i][pid] = result)
-                  : null,
-              onPointsChanged: () => setState(() {}),
-              onRemove: _roundCount > 1
-                  ? () => _removeRound(i)
-                  : null,
-            )),
-
-        // Add round button
+        ...List.generate(
+          _roundCount,
+          (i) => _RoundCard(
+            roundIndex: i,
+            playerIds: _selectedPlayerIds.toList(),
+            state: state,
+            isPoints: _isPoints,
+            pointsControllers: _isPoints ? _roundPointsCtrl[i] : {},
+            duelResults: _isDuel ? _roundDuelResults[i] : {},
+            onDuelChanged: _isDuel
+                ? (pid, result) =>
+                    setState(() => _roundDuelResults[i][pid] = result)
+                : null,
+            onPointsChanged: () => setState(() {}),
+            onRemove:
+                _roundCount > 1 ? () => _removeRound(i) : null,
+          ),
+        ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: _addRound,
           icon: const Icon(Icons.add_rounded, size: 18),
-          label: Text(_isPoints ? '+ Manche' : '+ Round'),
+          label: Text(l.btnAddRound),
           style: OutlinedButton.styleFrom(
             foregroundColor: c.primary,
             side: BorderSide(color: c.primary),
@@ -459,13 +437,13 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   }
 
   List<Widget> _buildPointsInputs(AppState state) {
+    final l = AppLocalizations.of(context)!;
     return _selectedPlayerIds.map((id) {
       final player = state.findPlayer(id);
       if (player == null) {
         return const SizedBox.shrink();
       }
-      _scoreCtrl.putIfAbsent(
-          id, () => TextEditingController(text: '0'));
+      _scoreCtrl.putIfAbsent(id, () => TextEditingController(text: '0'));
       return Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Row(
@@ -487,8 +465,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                       RegExp(r'^-?\d*')),
                 ],
                 textAlign: TextAlign.center,
-                decoration: const InputDecoration(
-                    suffixText: 'pts', isDense: true),
+                decoration: InputDecoration(
+                    suffixText: l.pointsSuffix, isDense: true),
               ),
             ),
           ],
@@ -512,7 +490,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         .toList();
   }
 
-  List<Widget> _buildRankingInputs(AppState state) {
+  List<Widget> _buildRankingInputs(
+      BuildContext context, AppState state) {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final players = _selectedPlayerIds
         .map((id) => state.findPlayer(id))
@@ -529,7 +509,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(player.name,
-                  style: const TextStyle(fontWeight: FontWeight.w500)),
+                  style:
+                      const TextStyle(fontWeight: FontWeight.w500)),
             ),
             DropdownButton<int>(
               value: rank,
@@ -541,7 +522,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                 return DropdownMenuItem(
                   value: r,
                   child: Text(
-                    _ordinal(r),
+                    r == 1 ? l.ordinal1st : l.ordinalNth(r),
                     style: TextStyle(
                       color: r == 1
                           ? const Color(0xFFFFD700)
@@ -586,16 +567,17 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
     if (_useRounds && (_isPoints || _isDuel)) {
       if (_isPoints) {
-        final rawRounds = _roundPointsCtrl.map((ctrl) => Round(
-              ctrl.map((pid, c) =>
-                  MapEntry(pid, int.tryParse(c.text) ?? 0)),
-            )).toList();
+        final rawRounds = _roundPointsCtrl
+            .map((ctrl) => Round(ctrl.map(
+                (pid, c) => MapEntry(pid, int.tryParse(c.text) ?? 0))))
+            .toList();
         scores = GameSession.aggregatePointsRounds(rawRounds);
         rounds = rawRounds;
       } else {
-        // Duel with rounds
-        final rawRounds = _roundDuelResults.map((r) =>
-            Round(r.map((pid, res) => MapEntry(pid, res.index)))).toList();
+        final rawRounds = _roundDuelResults
+            .map((r) =>
+                Round(r.map((pid, res) => MapEntry(pid, res.index))))
+            .toList();
         scores = GameSession.aggregateDuelRounds(rawRounds);
         rounds = rawRounds;
       }
@@ -625,9 +607,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
       scores: scores,
       rounds: rounds,
       playedAt: _playedAt,
-      notes: _notesCtrl.text.trim().isEmpty
-          ? null
-          : _notesCtrl.text.trim(),
+      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
     );
 
     if (isEdit) {
@@ -644,15 +624,17 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
   Future<void> _pickDate(BuildContext context) async {
     final c = AppColors.of(context);
+    // Capture the navigator and theme before the first await so the linter
+    // is satisfied and the framework has a stable reference.
+    final capturedContext = context;
     final date = await showDatePicker(
-      context: context,
+      context: capturedContext,
       initialDate: _playedAt,
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme:
-              ColorScheme.dark(primary: c.primary),
+          colorScheme: ColorScheme.dark(primary: c.primary),
         ),
         child: child!,
       ),
@@ -660,11 +642,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     if (date == null || !mounted) {
       return;
     }
-    // ignore: use_build_context_synchronously
-    // Context is safe here: mounted is checked immediately above and this
-    // is a deliberate chained-picker pattern with no intervening state change.
     final time = await showTimePicker(
-      context: context,
+      context: capturedContext,
       initialTime: TimeOfDay.fromDateTime(_playedAt),
     );
     if (!mounted) {
@@ -681,17 +660,18 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  String _formatDate(DateTime d) {
-    final months = [
-      'jan', 'fév', 'mar', 'avr', 'mai', 'juin',
-      'juil', 'août', 'sep', 'oct', 'nov', 'déc'
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year} '
-        '– ${d.hour.toString().padLeft(2, '0')}:'
-        '${d.minute.toString().padLeft(2, '0')}';
+  String _formatDate(BuildContext context, DateTime d) {
+    try {
+      final fmt = DateFormat.yMMMd(
+              Localizations.localeOf(context).toString())
+          .add_Hm();
+      return fmt.format(d);
+    } catch (_) {
+      return '${d.day}/${d.month}/${d.year} '
+          '– ${d.hour.toString().padLeft(2, '0')}:'
+          '${d.minute.toString().padLeft(2, '0')}';
+    }
   }
-
-  String _ordinal(int n) => n == 1 ? '1er' : '$nème';
 
   Color _hexColor(String hex) {
     try {
@@ -702,10 +682,6 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Sub-widgets
-// ══════════════════════════════════════════════════════════════════════════════
-
 // ── Rounds toggle ─────────────────────────────────────────────────────────────
 
 class _RoundsToggle extends StatelessWidget {
@@ -715,7 +691,8 @@ class _RoundsToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     return GTCard(
       child: Row(
         children: [
@@ -725,11 +702,11 @@ class _RoundsToggle extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Saisie par manches',
-                    style: TextStyle(
+                Text(l.roundsToggleLabel,
+                    style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 2),
-                Text('Calculer le total manche par manche',
+                Text(l.roundsToggleSub,
                     style: TextStyle(
                         fontSize: 12, color: c.textSecondary)),
               ],
@@ -765,8 +742,8 @@ class _TotalsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
-    // Find leader
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     String? leaderId;
     if (totals.isNotEmpty) {
       if (isDuel) {
@@ -795,72 +772,45 @@ class _TotalsHeader extends StatelessWidget {
 
     return GTCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text('📊',
-                  style: TextStyle(fontSize: 14)),
-              const SizedBox(width: 6),
-              Text(
-                isDuel ? 'Manches gagnées' : 'Totaux en cours',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: c.textSecondary),
-              ),
-              if (lowestScoreWins && !isDuel) ...[
-                const SizedBox(width: 6),
-                GTBadge(
-                    label: 'moins = mieux',
-                    color: c.accent,
-                    emoji: '🔻'),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
-          ...playerIds.map((pid) {
-            final player = state.findPlayer(pid);
-            final name = player?.name ?? pid;
-            final total = totals[pid] ?? 0;
-            final isLeader = pid == leaderId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  if (isLeader)
-                    const Text('👑 ',
-                        style: TextStyle(fontSize: 13))
-                  else
-                    const SizedBox(width: 20),
-                  Expanded(
-                    child: Text(name,
-                        style: TextStyle(
-                          fontWeight: isLeader
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: isLeader
-                              ? c.accent
-                              : c.textPrimary,
-                        )),
-                  ),
-                  Text(
-                    isDuel
-                        ? '$total manche${total != 1 ? 's' : ''}'
-                        : '$total pts',
+        children: playerIds.map((pid) {
+          final player = state.findPlayer(pid);
+          final name = player?.name ?? pid;
+          final total = totals[pid] ?? 0;
+          final isLeader = pid == leaderId;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                if (player != null)
+                  _PlayerAvatar(player: player)
+                else
+                  const SizedBox(width: 36),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    name,
                     style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                      color: isLeader
-                          ? c.accent
-                          : c.textPrimary,
+                      fontWeight: isLeader
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: isLeader ? c.accent : c.textPrimary,
                     ),
                   ),
-                ],
-              ),
-            );
-          }),
-        ],
+                ),
+                Text(
+                  isDuel
+                      ? l.roundTotalsLabel(total)
+                      : '$total ${l.pointsSuffix}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: isLeader ? c.accent : c.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -893,18 +843,18 @@ class _RoundCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GTCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               children: [
                 Text(
-                  'Manche ${roundIndex + 1}',
+                  l.roundLabel(roundIndex + 1),
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -921,8 +871,6 @@ class _RoundCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-
-            // Scores per player
             ...playerIds.map((pid) {
               final player = state.findPlayer(pid);
               final name = player?.name ?? pid;
@@ -954,8 +902,9 @@ class _RoundCard extends StatelessWidget {
                                 RegExp(r'^-?\d*')),
                           ],
                           textAlign: TextAlign.center,
-                          decoration: const InputDecoration(
-                              suffixText: 'pts', isDense: true),
+                          decoration: InputDecoration(
+                              suffixText: l.pointsSuffix,
+                              isDense: true),
                           onChanged: (_) {
                             if (onPointsChanged != null) {
                               onPointsChanged!();
@@ -967,13 +916,11 @@ class _RoundCard extends StatelessWidget {
                   ),
                 );
               } else {
-                // Duel round
                 final result = duelResults[pid] ?? DuelResult.draw;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: _DuelPlayerRow(
-                    player: player ??
-                        Player(id: pid, name: name),
+                    player: player ?? Player(id: pid, name: name),
                     result: result,
                     onChanged: (r) {
                       if (onDuelChanged != null) {
@@ -1009,7 +956,8 @@ class _DuelPlayerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     return GTCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1024,7 +972,7 @@ class _DuelPlayerRow extends StatelessWidget {
           SizedBox(height: compact ? 6 : 10),
           Row(children: [
             _DuelButton(
-              label: 'Victoire',
+              label: l.duelWin,
               emoji: '🏆',
               color: c.success,
               selected: result == DuelResult.win,
@@ -1032,7 +980,7 @@ class _DuelPlayerRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             _DuelButton(
-              label: 'Nul',
+              label: l.duelDraw,
               emoji: '🤝',
               color: c.warning,
               selected: result == DuelResult.draw,
@@ -1040,7 +988,7 @@ class _DuelPlayerRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             _DuelButton(
-              label: 'Défaite',
+              label: l.duelLoss,
               emoji: '💀',
               color: c.error,
               selected: result == DuelResult.loss,
@@ -1061,11 +1009,10 @@ class _PlayerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final c = AppColors.of(context);
     Color color;
     try {
-      color =
-          Color(int.parse(player.color.replaceFirst('#', '0xFF')));
+      color = Color(int.parse(player.color.replaceFirst('#', '0xFF')));
     } catch (_) {
       color = c.primary;
     }
@@ -1075,9 +1022,7 @@ class _PlayerAvatar extends StatelessWidget {
       child: Text(
         player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
         style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w700,
-            fontSize: 14),
+            color: color, fontWeight: FontWeight.w700, fontSize: 14),
       ),
     );
   }
@@ -1101,7 +1046,7 @@ class _DuelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final c = AppColors.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -1127,8 +1072,7 @@ class _DuelButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color:
-                      selected ? color : c.textSecondary,
+                  color: selected ? color : c.textSecondary,
                 ),
               ),
             ],

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/app_state.dart';
 import '../services/group_service.dart';
 import '../theme/app_theme.dart';
@@ -22,13 +23,14 @@ class _GroupScreenState extends State<GroupScreen> {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final gs = state.groupService;
 
     if (!gs.isSignedIn) {
       return Scaffold(
-        appBar: AppBar(title: const Text('👥 Groupes')),
+        appBar: AppBar(title: Text(l.groupsScreenTitle)),
         body: _SignInPrompt(
           onSignIn: () async {
             setState(() => _loading = true);
@@ -42,14 +44,14 @@ class _GroupScreenState extends State<GroupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('👥 Groupes'),
+        title: Text(l.groupsScreenTitle),
         actions: [
           if (state.isInGroup)
             TextButton.icon(
               onPressed: () => _leaveGroup(state),
               icon: Icon(Icons.exit_to_app_rounded,
                   color: c.error, size: 18),
-              label: Text('Quitter',
+              label: Text(l.groupsLeaveBtn,
                   style: TextStyle(color: c.error)),
             ),
         ],
@@ -61,12 +63,14 @@ class _GroupScreenState extends State<GroupScreen> {
             child: StreamBuilder<List<GroupInfo>>(
               stream: gs.watchMyGroups(),
               builder: (context, snap) {
-                  final c = AppColors.of(context);
+                final c = AppColors.of(context);
+                final l2 = AppLocalizations.of(context)!;
                 if (snap.hasError) {
                   return Center(
-                    child: Text('Erreur: ${snap.error}',
-                        style:
-                            TextStyle(color: c.error)),
+                    child: Text(
+                      l2.groupsError(snap.error.toString()),
+                      style: TextStyle(color: c.error),
+                    ),
                   );
                 }
                 if (!snap.hasData) {
@@ -77,13 +81,12 @@ class _GroupScreenState extends State<GroupScreen> {
                 if (groups.isEmpty) {
                   return GTEmptyState(
                     emoji: '👥',
-                    title: 'Aucun groupe',
-                    subtitle:
-                        'Créez un groupe pour jouer en temps réel avec vos amis.',
+                    title: l2.groupsEmpty,
+                    subtitle: l2.groupsEmptySub,
                     action: ElevatedButton.icon(
                       onPressed: () => _createGroup(state),
                       icon: const Icon(Icons.add_rounded),
-                      label: const Text('Créer un groupe'),
+                      label: Text(l2.groupsBtnCreate),
                     ),
                   );
                 }
@@ -96,7 +99,8 @@ class _GroupScreenState extends State<GroupScreen> {
                     info: groups[i],
                     isActive:
                         state.activeGroupId == groups[i].id,
-                    onJoin: () => _joinGroup(state, groups[i].id),
+                    onJoin: () =>
+                        _joinGroup(state, groups[i].id),
                     onInvite: () =>
                         _showInvite(state, groups[i].id),
                   )
@@ -113,12 +117,13 @@ class _GroupScreenState extends State<GroupScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _createGroup(state),
         icon: const Icon(Icons.group_add_rounded),
-        label: const Text('Nouveau groupe'),
+        label: Text(l.fabNewGroup),
       ),
     );
   }
 
   Future<void> _createGroup(AppState state) async {
+    final l = AppLocalizations.of(context)!;
     final name = await _askGroupName(context);
     if (name == null || name.isEmpty) {
       return;
@@ -127,7 +132,7 @@ class _GroupScreenState extends State<GroupScreen> {
     final id = await state.createAndJoinGroup(name);
     setState(() => _loading = false);
     if (id == null && mounted) {
-      _showError('Impossible de créer le groupe.');
+      _showError(l.groupsCreateError);
     }
   }
 
@@ -138,21 +143,21 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   Future<void> _leaveGroup(AppState state) async {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: const Text('Quitter le groupe ?'),
-        content: const Text(
-            'Vos données locales seront conservées.'),
+        title: Text(l.groupsLeaveTitle),
+        content: Text(l.groupsLeaveBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler')),
+              child: Text(l.btnCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Quitter',
+            child: Text(l.groupsLeaveBtn,
                 style: TextStyle(color: c.error)),
           ),
         ],
@@ -164,7 +169,8 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   Future<void> _showInvite(AppState state, String groupId) async {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final emailCtrl = TextEditingController();
     await showModalBottomSheet(
       context: context,
@@ -173,96 +179,100 @@ class _GroupScreenState extends State<GroupScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            24, 20, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Inviter un joueur',
-                style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            Text('ID du groupe : $groupId',
-                style: TextStyle(
-                    fontSize: 12, color: c.textSecondary)),
-            TextButton.icon(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: groupId));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('ID copié dans le presse-papier')),
-                );
-              },
-              icon: const Icon(Icons.copy_rounded, size: 14),
-              label: const Text('Copier l\'ID'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: emailCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Email du joueur',
-                hintText: 'ami@exemple.com',
-              ),
-              keyboardType: TextInputType.emailAddress,
-              autofocus: true,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  final email = emailCtrl.text.trim();
-                  if (email.isEmpty) {
-                    return;
-                  }
-                  final ok = await state.groupService
-                      .inviteMember(groupId, email);
-                  if (!ctx.mounted) {
-                    return;
-                  }
-                  Navigator.pop(ctx);
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(ok
-                            ? '✓ Invitation envoyée à $email'
-                            : '✗ Erreur lors de l\'invitation'),
-                      ),
-                    );
-                  }
+      builder: (ctx) {
+        final l2 = AppLocalizations.of(ctx)!;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+              24, 20, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l2.groupsInviteTitle,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Text(l2.groupsInviteGroupId(groupId),
+                  style: TextStyle(
+                      fontSize: 12, color: c.textSecondary)),
+              TextButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: groupId));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l.driveIdCopied)),
+                  );
                 },
-                child: const Text('Inviter'),
+                icon: const Icon(Icons.copy_rounded, size: 14),
+                label: Text(l2.groupsInviteCopyId),
               ),
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: emailCtrl,
+                decoration: InputDecoration(
+                  labelText: l2.groupsInviteEmailLabel,
+                  hintText: l2.groupsInviteEmailHint,
+                ),
+                keyboardType: TextInputType.emailAddress,
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final email = emailCtrl.text.trim();
+                    if (email.isEmpty) {
+                      return;
+                    }
+                    final ok = await state.groupService
+                        .inviteMember(groupId, email);
+                    if (!ctx.mounted) {
+                      return;
+                    }
+                    Navigator.pop(ctx);
+                    if (mounted) {
+                      final l3 = AppLocalizations.of(context)!;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(ok
+                              ? l3.groupsInviteOk(email)
+                              : l3.groupsInviteError),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(l2.btnInvite),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Future<String?> _askGroupName(BuildContext context) async {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final ctrl = TextEditingController();
     return showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: const Text('Nom du groupe'),
+        title: Text(l.groupsCreateTitle),
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration:
-              const InputDecoration(hintText: 'ex: Soirée jeux'),
+          decoration: InputDecoration(hintText: l.groupsCreateHint),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler')),
+              child: Text(l.btnCancel)),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, ctrl.text.trim()),
-            child: const Text('Créer'),
+            onPressed: () =>
+                Navigator.pop(context, ctrl.text.trim()),
+            child: Text(l.groupsCreateBtn),
           ),
         ],
       ),
@@ -270,31 +280,29 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
   }
 }
 
 class _SignInPrompt extends StatelessWidget {
   final VoidCallback onSignIn;
   final bool loading;
-
   const _SignInPrompt({required this.onSignIn, required this.loading});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return GTEmptyState(
       emoji: '🔐',
-      title: 'Connexion requise',
-      subtitle:
-          'Connectez-vous avec Google pour accéder aux groupes temps réel.',
+      title: l.groupsSignInTitle,
+      subtitle: l.groupsSignInSub,
       action: loading
           ? const CircularProgressIndicator()
           : ElevatedButton.icon(
               onPressed: onSignIn,
               icon: const Icon(Icons.login_rounded),
-              label: const Text('Se connecter avec Google'),
+              label: Text(l.groupsSignInBtn),
             ),
     );
   }
@@ -302,15 +310,16 @@ class _SignInPrompt extends StatelessWidget {
 
 class _ActiveGroupBanner extends StatelessWidget {
   final AppState state;
-
   const _ActiveGroupBanner({required this.state});
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       color: c.primary.withValues(alpha: 0.15),
       child: Row(
         children: [
@@ -319,7 +328,8 @@ class _ActiveGroupBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Sync temps réel actif · Groupe ${state.activeGroupId!.substring(0, 8)}…',
+              l.groupsActiveBanner(
+                  state.activeGroupId!.substring(0, 8)),
               style: TextStyle(
                   fontSize: 13,
                   color: c.primary,
@@ -347,7 +357,8 @@ class _GroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     return GTCard(
       borderColor: isActive ? c.primary : null,
       child: Row(
@@ -360,8 +371,7 @@ class _GroupCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
-              child:
-                  Text('👥', style: TextStyle(fontSize: 22)),
+              child: Text('👥', style: TextStyle(fontSize: 22)),
             ),
           ),
           const SizedBox(width: 12),
@@ -371,10 +381,11 @@ class _GroupCard extends StatelessWidget {
               children: [
                 Text(info.name,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 15)),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
                 const SizedBox(height: 2),
                 Text(
-                  '${info.memberEmails.length} membre${info.memberEmails.length != 1 ? 's' : ''}',
+                  l.groupsMemberCount(info.memberEmails.length),
                   style: TextStyle(
                       fontSize: 12, color: c.textSecondary),
                 ),
@@ -390,17 +401,17 @@ class _GroupCard extends StatelessWidget {
                 foregroundColor: c.primary,
                 side: BorderSide(color: c.primary),
               ),
-              child: const Text('Rejoindre', style: TextStyle(fontSize: 12)),
+              child: Text(l.groupsBtnJoin,
+                  style: const TextStyle(fontSize: 12)),
             )
           else
-            GTBadge(
-                label: 'Actif', color: c.success, emoji: '●'),
+            GTBadge(label: l.groupsActive, color: c.success, emoji: '●'),
           const SizedBox(width: 8),
           IconButton(
             icon: Icon(Icons.person_add_rounded,
                 size: 18, color: c.textSecondary),
             onPressed: onInvite,
-            tooltip: 'Inviter',
+            tooltip: l.groupsTooltipInvite,
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/game.dart';
 import '../models/game_mode.dart';
+import '../models/game_mode_l10n.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
@@ -48,14 +50,17 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final isEditing = widget.existing != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Modifier le jeu' : 'Nouveau jeu'),
+        title: Text(isEditing ? l.editGameTitle : l.addGameTitle),
         actions: [
           if (isEditing)
             IconButton(
+              key: const Key('btnDeleteGame'),
               icon: Icon(Icons.delete_rounded, color: c.error),
               onPressed: _delete,
             ),
@@ -71,8 +76,8 @@ class _AddGameScreenState extends State<AddGameScreen> {
             bottom: 16 + MediaQuery.of(context).padding.bottom,
           ),
           children: [
-            // ── Emoji picker ────────────────────────────────────────────────
-            const GTSectionHeader(title: 'ICÔNE'),
+            // ── Emoji picker ──────────────────────────────────────────────
+            GTSectionHeader(title: l.sectionIcon),
             const SizedBox(height: 8),
             SizedBox(
               height: 60,
@@ -91,15 +96,14 @@ class _AddGameScreenState extends State<AddGameScreen> {
                                 : c.surfaceElevated,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: _emoji == e
-                                  ? c.primary
-                                  : c.cardBorder,
+                              color:
+                                  _emoji == e ? c.primary : c.cardBorder,
                               width: _emoji == e ? 2 : 1,
                             ),
                           ),
                           child: Center(
-                            child: Text(e,
-                                style: const TextStyle(fontSize: 24)),
+                            child:
+                                Text(e, style: const TextStyle(fontSize: 24)),
                           ),
                         ),
                       )),
@@ -108,39 +112,37 @@ class _AddGameScreenState extends State<AddGameScreen> {
             ),
             const SizedBox(height: 24),
 
-            // ── Name ────────────────────────────────────────────────────────
-            const GTSectionHeader(title: 'NOM DU JEU'),
+            // ── Name ──────────────────────────────────────────────────────
+            GTSectionHeader(title: l.sectionGameName),
             const SizedBox(height: 8),
             TextFormField(
+              key: const Key('fieldGameName'),
               controller: _nameCtrl,
-              decoration:
-                  const InputDecoration(hintText: 'Nom du jeu'),
+              decoration: InputDecoration(hintText: l.gameNameHint),
               validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Nom requis' : null,
+                  v == null || v.trim().isEmpty ? l.gameNameRequired : null,
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 20),
 
-            // ── Description ─────────────────────────────────────────────────
-            const GTSectionHeader(title: 'DESCRIPTION (optionnel)'),
+            // ── Description ───────────────────────────────────────────────
+            GTSectionHeader(title: l.sectionDescription),
             const SizedBox(height: 8),
             TextFormField(
               controller: _descCtrl,
-              decoration: const InputDecoration(
-                  hintText: 'Quelques mots sur le jeu…'),
+              decoration: InputDecoration(hintText: l.gameDescriptionHint),
               maxLines: 2,
             ),
             const SizedBox(height: 24),
 
-            // ── Mode ────────────────────────────────────────────────────────
-            const GTSectionHeader(title: 'MODE DE JEU'),
+            // ── Mode ──────────────────────────────────────────────────────
+            GTSectionHeader(title: l.sectionGameMode),
             const SizedBox(height: 12),
             ...GameMode.values.map((m) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: GestureDetector(
                     onTap: () => setState(() {
                       _mode = m;
-                      // Reset lowestScoreWins when leaving points mode
                       if (m != GameMode.points) {
                         _lowestScoreWins = false;
                       }
@@ -156,12 +158,12 @@ class _AddGameScreenState extends State<AddGameScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(m.label,
+                                Text(m.label(l),
                                     style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 15)),
                                 const SizedBox(height: 2),
-                                Text(m.description,
+                                Text(m.description(l),
                                     style: TextStyle(
                                         fontSize: 12,
                                         color: c.textSecondary)),
@@ -180,7 +182,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                   ),
                 )),
 
-            // ── Scoring rule (points mode only) ─────────────────────────────
+            // ── Scoring rule ──────────────────────────────────────────────
             if (_mode == GameMode.points) ...[
               const SizedBox(height: 8),
               GTCard(
@@ -192,17 +194,16 @@ class _AddGameScreenState extends State<AddGameScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Le moins de points gagne',
-                            style: TextStyle(
+                          Text(
+                            l.lowestScoreWinsLabel,
+                            style: const TextStyle(
                                 fontWeight: FontWeight.w600, fontSize: 15),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Ex: 6 qui prend, Hearts, Golf…',
+                            l.lowestScoreWinsExample,
                             style: TextStyle(
-                                fontSize: 12,
-                                color: c.textSecondary),
+                                fontSize: 12, color: c.textSecondary),
                           ),
                         ],
                       ),
@@ -220,6 +221,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
             const SizedBox(height: 32),
             ElevatedButton(
+              key: const Key('btnSubmitGame'),
               onPressed: _saving ? null : _save,
               child: _saving
                   ? const SizedBox(
@@ -228,7 +230,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white),
                     )
-                  : Text(isEditing ? 'Enregistrer' : 'Créer le jeu'),
+                  : Text(isEditing ? l.btnSave : l.btnCreateGame),
             ),
           ],
         ),
@@ -240,7 +242,6 @@ class _AddGameScreenState extends State<AddGameScreen> {
     if (_saving) {
       return;
     }
-    // Games are unlimited on all plans — no gate needed.
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -274,21 +275,21 @@ class _AddGameScreenState extends State<AddGameScreen> {
   }
 
   Future<void> _delete() async {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: const Text('Supprimer ce jeu ?'),
-        content: const Text(
-            'Toutes les parties seront supprimées. Cette action est irréversible.'),
+        title: Text(l.deleteGameTitle),
+        content: Text(l.deleteGameBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler')),
+              child: Text(l.btnCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Supprimer',
+            child: Text(l.btnDelete,
                 style: TextStyle(color: c.error)),
           ),
         ],

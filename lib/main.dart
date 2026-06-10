@@ -2,9 +2,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/games_screen.dart';
 import 'screens/players_screen.dart';
 import 'services/app_state.dart';
@@ -15,9 +17,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   GoogleFonts.config.allowRuntimeFetching = false;
-  await initializeDateFormatting('fr_FR');
 
-  // Firebase — uniquement sur mobile (pas de config web)
+  // Pre-load date symbols for every supported locale so DateFormat works
+  // without a network call. Add new locales here when the ARB list grows.
+  await Future.wait([
+    initializeDateFormatting('fr_FR'),
+    initializeDateFormatting('en_US'),
+  ]);
+
+  // Firebase — mobile only (no web config)
   if (!kIsWeb) {
     try {
       await Firebase.initializeApp();
@@ -50,7 +58,6 @@ class GameTrackerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeNotifier = context.watch<ThemeNotifier>();
 
-    // Sync system UI chrome with the active brightness.
     final isDark = themeNotifier.isDark;
     if (!kIsWeb) {
       SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -74,7 +81,16 @@ class GameTrackerApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeNotifier.mode,
-      localizationsDelegates: const [],
+
+      // ── Localization ──────────────────────────────────────────────────────
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+
       routes: {
         '/': (_) => const GamesScreen(),
         '/players': (_) => const PlayersScreen(),

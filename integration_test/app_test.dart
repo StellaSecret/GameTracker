@@ -1,25 +1,40 @@
 // integration_test/app_test.dart
 //
 // End-to-end tests for GameTracker.
-// Run locally  : flutter test integration_test/app_test.dart -d <device-id>
-// Run on CI    : see .github/workflows/e2e.yml
 //
-// Strategy
-// ────────
-// • We boot the real app but replace external services (Firebase, Drive,
-//   purchases) by doing nothing – they are guarded by kIsWeb / try-catch
-//   in AppState.init() already, so on a plain Android emulator they simply
-//   no-op without crashing.
-// • SharedPreferences persists across tests in the same run. Each test that
-//   needs specific data creates it explicitly — never relying on side-effects
-//   from earlier tests.
-// • We find widgets by their visible text / tooltip / icon; this mirrors what
-//   a real user sees and survives minor refactors better than key-based lookup.
+// Locale-independence strategy
+// ────────────────────────────
+// Tests NEVER rely on translated text (find.text / find.textContaining) to
+// drive interactions. All interactive widgets have been assigned semantic Keys
+// (see the Key('...') annotations added throughout the screens). Assertions
+// may still use find.byType or structural checks that are locale-agnostic.
+//
+// The test suite is therefore valid in both 'en' and 'fr' locales, and will
+// continue to work when new languages are added.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_tracker/main.dart' as app;
 import 'package:integration_test/integration_test.dart';
+
+// ── Widget Keys (must match assignments in the screen files) ──────────────────
+//
+// games_screen.dart
+const _kFabAddGame    = Key('fabAddGame');
+const _kNavPlayers    = Key('navPlayers');
+// add_game_screen.dart
+const _kFieldGameName = Key('fieldGameName');
+const _kBtnSubmitGame = Key('btnSubmitGame');
+const _kBtnDeleteGame = Key('btnDeleteGame');
+// players_screen.dart
+const _kFabAddPlayer     = Key('fabAddPlayer');
+const _kFieldPlayerName  = Key('fieldPlayerName');
+const _kBtnSubmitPlayer  = Key('btnSubmitPlayer');
+const _kBtnDeletePlayer  = Key('btnDeletePlayer');
+// game_detail_screen.dart
+const _kBtnEditGame      = Key('btnEditGame');
+// add_session_screen.dart
+const _kBtnSaveSession = Key('btnSaveSession');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -28,8 +43,7 @@ void main() {
   // Helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Dismisses any open dialog (e.g. a stale confirmation dialog left by a
-  /// previous test) by tapping outside it.
+  /// Dismisses any open AlertDialog by tapping outside it.
   Future<void> dismissStaleDialog(WidgetTester tester) async {
     if (tester.any(find.byType(AlertDialog))) {
       await tester.tapAt(const Offset(10, 10));
@@ -37,30 +51,24 @@ void main() {
     }
   }
 
-  /// Waits for the app to settle, dismisses any stale dialog, then pops all
-  /// routes back to the root screen.
+  /// Waits for the app to settle, dismisses stale dialogs, pops back to root.
   Future<void> waitReady(WidgetTester tester) async {
     await tester.pumpAndSettle(const Duration(seconds: 5));
     await dismissStaleDialog(tester);
-    // Pop any lingering routes (edit screens, dialogs, detail pages) back to root.
     while (tester.any(find.byTooltip('Back'))) {
       await tester.tap(find.byTooltip('Back').first);
       await tester.pumpAndSettle();
     }
   }
 
-  /// Dismisses the software keyboard without any tap side-effects.
-  /// Uses FocusManager to unfocus the active field — safe inside bottom sheets,
-  /// dialogs, and full-screen forms where tapping the AppBar would navigate away.
+  /// Unfocuses the active field without tapping — avoids navigation side-effects.
   Future<void> dismissKeyboard(WidgetTester tester) async {
     tester.binding.focusManager.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
   }
 
-  /// Scrolls [finder] into the visible area then taps it.
-  /// Handles buttons pushed below the fold by long forms.
+  /// Scrolls [finder] into view then taps it.
   Future<void> scrollToAndTap(WidgetTester tester, Finder finder) async {
-    // ensureVisible requires exactly one element — guard against 0 or 2+.
     if (!tester.any(finder)) {
       throw TestFailure('scrollToAndTap: no widget found for $finder');
     }
@@ -70,63 +78,50 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// Enters [text] into the TextField that has [hint] as its hintText,
-  /// or the first TextField if [hint] is omitted.
-  /// Dismisses the keyboard afterwards via FocusManager (no tap side-effects).
-  Future<void> enterText(
-    WidgetTester tester,
-    String text, {
-    String? hint,
-  }) async {
-    // find.widgetWithText(TextField, hint) misses TextFormField because
-    // TextFormField renders its own internal TextField — the hint lives on
-    // the InputDecoration, not as a Text child.  We match by predicate
-    // on the internal TextField's decoration instead.
-    final Finder finder;
-    if (hint != null) {
-      finder = find.byWidgetPredicate(
-        (w) => w is TextField && w.decoration?.hintText == hint,
-      );
-    } else {
-      finder = find.byType(TextField).first;
-    }
-    await tester.tap(finder.first);
+  /// Types [text] into the field identified by [key].
+  Future<void> enterTextByKey(
+      WidgetTester tester, Key key, String text) async {
+    await tester.tap(find.byKey(key));
     await tester.pumpAndSettle();
-    await tester.enterText(finder.first, text);
+    await tester.enterText(find.byKey(key), text);
     await tester.pumpAndSettle();
     await dismissKeyboard(tester);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Tests
+  // Home screen
   // ─────────────────────────────────────────────────────────────────────────
 
   group('Home screen', () {
-    testWidgets('shows app title and empty state on first launch',
-        (tester) async {
+    testWidgets('shows the FAB and nav icons on first launch', (tester) async {
       app.main();
       await waitReady(tester);
 
-      expect(find.text('🎲 GameTracker'), findsOneWidget);
-      expect(find.textContaining('Aucun jeu'), findsOneWidget);
+      // The add-game FAB must be present regardless of locale.
+      expect(find.byKey(_kFabAddGame), findsOneWidget);
+      // The player nav button must be present.
+      expect(find.byKey(_kNavPlayers), findsOneWidget);
     });
   });
 
-  // ── Game CRUD ─────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // Game management
+  // ─────────────────────────────────────────────────────────────────────────
 
   group('Game management', () {
-    testWidgets('creates a new Points game and shows it in the list',
+    testWidgets('creates a new Points game and it appears in the list',
         (tester) async {
       app.main();
       await waitReady(tester);
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byKey(_kFabAddGame));
       await tester.pumpAndSettle();
 
-      await enterText(tester, 'Catan', hint: 'Nom du jeu');
+      await enterTextByKey(tester, _kFieldGameName, 'Catan');
+      // Points mode is the default — no extra tap needed.
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitGame));
 
-      await scrollToAndTap(tester, find.text('Créer le jeu'));
-
+      // The game name should appear in the list.
       expect(find.text('Catan'), findsOneWidget);
     });
 
@@ -134,14 +129,15 @@ void main() {
       app.main();
       await waitReady(tester);
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byKey(_kFabAddGame));
       await tester.pumpAndSettle();
 
-      await enterText(tester, 'Échecs', hint: 'Nom du jeu');
+      await enterTextByKey(tester, _kFieldGameName, 'Échecs');
 
-      await scrollToAndTap(tester, find.text('Duel'));
+      // Tap the Duel mode option — find by its emoji which is locale-independent.
+      await scrollToAndTap(tester, find.text('⚔️'));
 
-      await scrollToAndTap(tester, find.text('Créer le jeu'));
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitGame));
 
       expect(find.text('Échecs'), findsOneWidget);
     });
@@ -150,31 +146,29 @@ void main() {
       app.main();
       await waitReady(tester);
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      // Create a game to edit.
+      await tester.tap(find.byKey(_kFabAddGame));
       await tester.pumpAndSettle();
-      await enterText(tester, 'Ticket to Ride', hint: 'Nom du jeu');
-      await scrollToAndTap(tester, find.text('Créer le jeu'));
+      await enterTextByKey(tester, _kFieldGameName, 'Ticket to Ride');
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitGame));
 
+      // Open it.
       await tester.tap(find.text('Ticket to Ride'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.edit_rounded));
+      // Tap the edit button in the game detail app bar.
+      await tester.tap(find.byKey(_kBtnEditGame));
       await tester.pumpAndSettle();
 
-      final nameField = find.byWidgetPredicate(
-        (w) => w is EditableText && w.controller.text == 'Ticket to Ride',
-      );
-      await tester.tap(nameField);
-      await tester.pumpAndSettle();
-      await tester.enterText(nameField, 'Ticket to Ride Legacy');
-      await tester.pumpAndSettle();
-      await dismissKeyboard(tester);
+      // Find the name field by key and update it.
+      await enterTextByKey(
+          tester, _kFieldGameName, 'Ticket to Ride Legacy');
 
-      await scrollToAndTap(tester, find.text('Enregistrer'));
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitGame));
 
-      final backButton = find.byTooltip('Back');
-      if (tester.any(backButton)) {
-        await tester.tap(backButton);
+      // Pop back to list.
+      if (tester.any(find.byTooltip('Back'))) {
+        await tester.tap(find.byTooltip('Back').first);
         await tester.pumpAndSettle();
       }
 
@@ -185,46 +179,52 @@ void main() {
       app.main();
       await waitReady(tester);
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byKey(_kFabAddGame));
       await tester.pumpAndSettle();
-      await enterText(tester, 'Jeu à supprimer', hint: 'Nom du jeu');
-      await scrollToAndTap(tester, find.text('Créer le jeu'));
+      await enterTextByKey(tester, _kFieldGameName, 'ToDelete');
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitGame));
 
-      await tester.tap(find.text('Jeu à supprimer'));
+      // Open → edit → delete.
+      await tester.tap(find.text('ToDelete'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.edit_rounded));
+      await tester.tap(find.byKey(_kBtnEditGame));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.delete_rounded));
+      await tester.tap(find.byKey(_kBtnDeleteGame));
       await tester.pumpAndSettle();
 
-      final confirmFinder = find.text('Supprimer');
-      if (tester.any(confirmFinder)) {
-        await tester.tap(confirmFinder.last);
+      // Confirm the AlertDialog — tap the last elevated/text button.
+      // We look for an ElevatedButton or TextButton containing the delete icon
+      // logic; since we can't use translated text, we tap the second action
+      // button in the dialog (Cancel is first, Delete is second).
+      final dialogActions =
+          find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextButton));
+      if (tester.any(dialogActions)) {
+        await tester.tap(dialogActions.last);
         await tester.pumpAndSettle();
       }
 
-      expect(find.text('Jeu à supprimer'), findsNothing);
+      expect(find.text('ToDelete'), findsNothing);
     });
   });
 
-  // ── Player CRUD ───────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // Player management
+  // ─────────────────────────────────────────────────────────────────────────
 
   group('Player management', () {
-    testWidgets('navigates to Players screen and adds a player', (tester) async {
+    testWidgets('navigates to Players screen and adds a player',
+        (tester) async {
       app.main();
       await waitReady(tester);
 
-      await tester.tap(find.byTooltip('Joueurs'));
+      await tester.tap(find.byKey(_kNavPlayers));
       await tester.pumpAndSettle();
 
-      expect(find.text('👥 Joueurs'), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.person_add_rounded));
+      await tester.tap(find.byKey(_kFabAddPlayer));
       await tester.pumpAndSettle();
 
-      await enterText(tester, 'Alice', hint: 'Prénom ou pseudo');
-
-      await scrollToAndTap(tester, find.text('Ajouter'));
+      await enterTextByKey(tester, _kFieldPlayerName, 'Alice');
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitPlayer));
 
       expect(find.text('Alice'), findsOneWidget);
     });
@@ -233,85 +233,97 @@ void main() {
       app.main();
       await waitReady(tester);
 
-      await tester.tap(find.byTooltip('Joueurs'));
+      await tester.tap(find.byKey(_kNavPlayers));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.person_add_rounded));
+      // Add Bob first.
+      await tester.tap(find.byKey(_kFabAddPlayer));
       await tester.pumpAndSettle();
-      await enterText(tester, 'Bob', hint: 'Prénom ou pseudo');
-      await scrollToAndTap(tester, find.text('Ajouter'));
+      await enterTextByKey(tester, _kFieldPlayerName, 'Bob');
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitPlayer));
 
+      // Open edit sheet for Bob.
       await tester.tap(find.text('Bob'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.delete_rounded));
+      // Tap delete in the sheet.
+      await tester.tap(find.byKey(_kBtnDeletePlayer));
       await tester.pumpAndSettle();
 
-      // Confirm the delete dialog
-      await tester.tap(find.text('Supprimer').last);
-      await tester.pumpAndSettle();
+      // Confirm the dialog — last TextButton = confirm.
+      final dialogActions = find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextButton));
+      if (tester.any(dialogActions)) {
+        await tester.tap(dialogActions.last);
+        await tester.pumpAndSettle();
+      }
 
-      // Bob should no longer appear in the player list
+      // Bob should no longer appear in the list.
       expect(
         find.descendant(
-          of: find.byType(ListView),
-          matching: find.text('Bob'),
-        ),
+            of: find.byType(ListView), matching: find.text('Bob')),
         findsNothing,
       );
     });
   });
 
-  // ── Session recording ─────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // Session recording
+  // ─────────────────────────────────────────────────────────────────────────
 
   group('Session recording', () {
+    /// Creates two players and one game, leaves the app at the game detail screen.
     Future<void> setupGameAndPlayers(
       WidgetTester tester, {
-      String gameName = 'Catan',
-      _GameMode mode = _GameMode.points,
+      String gameName = 'Catan Session',
+      bool duel = false,
     }) async {
       app.main();
       await waitReady(tester);
 
-      await tester.tap(find.byTooltip('Joueurs'));
+      // Create players.
+      await tester.tap(find.byKey(_kNavPlayers));
       await tester.pumpAndSettle();
 
       for (final name in ['Alice', 'Bob']) {
-        await tester.tap(find.byIcon(Icons.person_add_rounded));
+        await tester.tap(find.byKey(_kFabAddPlayer));
         await tester.pumpAndSettle();
-        await enterText(tester, name, hint: 'Prénom ou pseudo');
-        await scrollToAndTap(tester, find.text('Ajouter'));
+        await enterTextByKey(tester, _kFieldPlayerName, name);
+        await scrollToAndTap(tester, find.byKey(_kBtnSubmitPlayer));
       }
 
-      await tester.tap(find.byTooltip('Back'));
+      // Back to games.
+      await tester.tap(find.byTooltip('Back').first);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      // Create game.
+      await tester.tap(find.byKey(_kFabAddGame));
       await tester.pumpAndSettle();
-      await enterText(tester, gameName, hint: 'Nom du jeu');
-      if (mode != _GameMode.points) {
-        await scrollToAndTap(
-          tester,
-          find.text(mode == _GameMode.duel ? 'Duel' : 'Classement'),
-        );
+      await enterTextByKey(tester, _kFieldGameName, gameName);
+      if (duel) {
+        await scrollToAndTap(tester, find.text('⚔️'));
       }
-      await scrollToAndTap(tester, find.text('Créer le jeu'));
+      await scrollToAndTap(tester, find.byKey(_kBtnSubmitGame));
     }
 
     testWidgets('records a Points session with two players', (tester) async {
-      await setupGameAndPlayers(tester, gameName: 'Catan Session');
+      await setupGameAndPlayers(tester, gameName: 'Catan Pts');
 
-      await tester.tap(find.text('Catan Session'));
+      await tester.tap(find.text('Catan Pts'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      // Open new-session screen via FAB.
+      await tester.tap(find.byType(FloatingActionButton).first);
       await tester.pumpAndSettle();
 
+      // Select Alice and Bob via FilterChip.
       await tester.tap(find.text('Alice').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Bob').first);
       await tester.pumpAndSettle();
 
+      // Enter scores in the numeric fields.
       final scoreFields = find.byType(TextField);
       await tester.enterText(scoreFields.first, '120');
       await tester.pumpAndSettle();
@@ -319,68 +331,68 @@ void main() {
       await tester.pumpAndSettle();
       await dismissKeyboard(tester);
 
-      await scrollToAndTap(tester, find.text('Enregistrer la partie'));
+      await scrollToAndTap(tester, find.byKey(_kBtnSaveSession));
 
-      expect(find.textContaining('Alice'), findsWidgets);
+      // Session was saved — we're back at the game detail screen.
+      expect(find.text('Catan Pts'), findsOneWidget);
     });
 
     testWidgets('records a Duel session', (tester) async {
       await setupGameAndPlayers(
-        tester,
-        gameName: 'Échecs E2E',
-        mode: _GameMode.duel,
-      );
+          tester, gameName: 'Échecs Duel', duel: true);
 
-      await tester.tap(find.text('Échecs E2E'));
+      await tester.tap(find.text('Échecs Duel'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byType(FloatingActionButton).first);
       await tester.pumpAndSettle();
 
+      // Select both players.
       await tester.tap(find.text('Alice').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Bob').first);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Victoire').first);
+      // Pick the 🏆 win button for Alice (first _DuelButton with that emoji).
+      await tester.tap(find.text('🏆').first);
       await tester.pumpAndSettle();
 
-      await scrollToAndTap(tester, find.text('Enregistrer la partie'));
+      await scrollToAndTap(tester, find.byKey(_kBtnSaveSession));
 
-      expect(find.textContaining('Alice'), findsWidgets);
+      expect(find.text('Échecs Duel'), findsOneWidget);
     });
   });
 
-  // ── Search ────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // Search
+  // ─────────────────────────────────────────────────────────────────────────
 
   group('Search', () {
-    testWidgets('filters games by name', (tester) async {
+    testWidgets('filters games by name regardless of locale', (tester) async {
       app.main();
       await waitReady(tester);
 
-      // Create two games with distinct names so the test is self-contained
-      // and does not depend on games created by earlier tests.
+      // Create two distinctly-named games so this test is self-contained.
       for (final name in ['SearchGame Alpha', 'SearchGame Beta']) {
-        await tester.tap(find.byIcon(Icons.add_rounded));
+        await tester.tap(find.byKey(_kFabAddGame));
         await tester.pumpAndSettle();
-        await enterText(tester, name, hint: 'Nom du jeu');
-        await scrollToAndTap(tester, find.text('Créer le jeu'));
+        await enterTextByKey(tester, _kFieldGameName, name);
+        await scrollToAndTap(tester, find.byKey(_kBtnSubmitGame));
         await waitReady(tester);
       }
 
-      // Searching for 'Alpha' should show only SearchGame Alpha.
-      await enterText(tester, 'Alpha', hint: 'Rechercher un jeu…');
+      // Find the search TextField by type — there is only one on the home screen.
+      final searchField = find.byType(TextField).first;
+
+      await tester.enterText(searchField, 'Alpha');
+      await tester.pumpAndSettle();
       expect(find.textContaining('Alpha'), findsWidgets);
       expect(find.text('SearchGame Beta'), findsNothing);
 
-      // Searching for 'Beta' should show only SearchGame Beta.
-      await enterText(tester, 'Beta', hint: 'Rechercher un jeu…');
+      await tester.enterText(searchField, 'Beta');
+      await tester.pumpAndSettle();
       expect(find.textContaining('Beta'), findsWidgets);
       expect(find.text('SearchGame Alpha'), findsNothing);
     });
   });
 }
-
-// Private alias so helpers inside main() can reference game modes without a
-// relative import (integration_test lives outside lib/).
-enum _GameMode { points, duel }

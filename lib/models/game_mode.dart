@@ -1,34 +1,20 @@
 // lib/models/game_mode.dart
+//
+// GameMode labels and descriptions are intentionally NOT stored here as strings
+// because they must be localised. Screens obtain them via AppLocalizations:
+//
+//   final l = AppLocalizations.of(context)!;
+//   l.gameModePoints        // "Points" / "Points"
+//   l.gameModePointsDesc    // description
 
 enum GameMode {
-  points,   // Classement par points
-  duel,     // Victoire / Nul / Défaite
-  ranking,  // Classement positionnel (1er, 2ème…)
+  points,  // Score ranking per session
+  duel,    // Win / Draw / Loss
+  ranking, // Positional ranking (1st, 2nd…)
 }
 
 extension GameModeExtension on GameMode {
-  String get label {
-    switch (this) {
-      case GameMode.points:
-        return 'Points';
-      case GameMode.duel:
-        return 'Duel';
-      case GameMode.ranking:
-        return 'Classement';
-    }
-  }
-
-  String get description {
-    switch (this) {
-      case GameMode.points:
-        return 'Classement par nombre de points par partie';
-      case GameMode.duel:
-        return 'Victoire / Match nul / Défaite entre deux joueurs';
-      case GameMode.ranking:
-        return 'Classement positionnel multi-joueurs (1er, 2ème…)';
-    }
-  }
-
+  /// Icon emoji — not translatable, intentionally hardcoded.
   String get icon {
     switch (this) {
       case GameMode.points:

@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/game.dart';
 import '../models/game_mode.dart';
+import '../models/game_mode_l10n.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
@@ -25,7 +27,8 @@ class _GamesScreenState extends State<GamesScreen> {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final games = state.games
         .where((g) => g.name.toLowerCase().contains(_search.toLowerCase()))
@@ -33,9 +36,8 @@ class _GamesScreenState extends State<GamesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎲 GameTracker'),
+        title: Text(l.appBarTitle),
         actions: [
-          // Group sync badge (premium)
           if (state.isInGroup)
             Padding(
               padding: const EdgeInsets.only(right: 4),
@@ -44,7 +46,7 @@ class _GamesScreenState extends State<GamesScreen> {
             ),
           IconButton(
             icon: const Icon(Icons.bar_chart_rounded),
-            tooltip: 'Statistiques',
+            tooltip: l.navTooltipStats,
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const StatsScreen()),
@@ -52,17 +54,18 @@ class _GamesScreenState extends State<GamesScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.group_rounded),
-            tooltip: 'Groupes',
+            tooltip: l.navTooltipGroups,
             onPressed: () => _openGroups(context, state),
           ),
           IconButton(
             icon: const Icon(Icons.sync_rounded),
-            tooltip: 'Sync Drive',
+            tooltip: l.navTooltipDrive,
             onPressed: () => _showSyncSheet(context),
           ),
           IconButton(
+            key: const Key('navPlayers'),
             icon: const Icon(Icons.people_alt_rounded),
-            tooltip: 'Joueurs',
+            tooltip: l.navTooltipPlayers,
             onPressed: () => Navigator.pushNamed(context, '/players'),
           ),
         ],
@@ -73,9 +76,8 @@ class _GamesScreenState extends State<GamesScreen> {
             child: TextField(
               onChanged: (v) => setState(() => _search = v),
               decoration: InputDecoration(
-                hintText: 'Rechercher un jeu…',
-                prefixIcon:
-                    Icon(Icons.search_rounded, color: c.textSecondary),
+                hintText: l.searchHint,
+                prefixIcon: Icon(Icons.search_rounded, color: c.textSecondary),
                 isDense: true,
               ),
             ),
@@ -86,10 +88,8 @@ class _GamesScreenState extends State<GamesScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Sync message banner
                 if (state.syncMessage != null)
                   _SyncBanner(message: state.syncMessage!),
-                // Free plan indicator
                 if (!state.entitlement.isPremium)
                   _FreeBanner(state: state),
                 Expanded(
@@ -97,26 +97,26 @@ class _GamesScreenState extends State<GamesScreen> {
                       ? GTEmptyState(
                           emoji: _search.isEmpty ? '🎲' : '🔍',
                           title: _search.isEmpty
-                              ? 'Aucun jeu encore'
-                              : 'Aucun résultat',
+                              ? l.emptyNoGame
+                              : l.emptyNoResult,
                           subtitle: _search.isEmpty
-                              ? 'Ajoutez votre premier jeu avec le bouton +'
-                              : 'Essayez un autre terme',
+                              ? l.emptyNoGameSub
+                              : l.emptyNoResultSub,
                         )
                       : _buildGamesList(games, state),
                 ),
               ],
             ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const Key('fabAddGame'),
         onPressed: () => _addGame(context, state),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Nouveau jeu'),
+        label: Text(l.fabNewGame),
       ),
     );
   }
 
   void _addGame(BuildContext context, AppState state) {
-    // Games are unlimited — go straight to creation.
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AddGameScreen()),
@@ -125,11 +125,12 @@ class _GamesScreenState extends State<GamesScreen> {
 
   void _openGroups(BuildContext context, AppState state) {
     if (!state.entitlement.canUseGroupSync) {
+      final l = AppLocalizations.of(context)!;
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const PaywallScreen.groupSync(
-            reason: 'Les groupes nécessitent l\'abonnement Sync.',
+          builder: (_) => PaywallScreen.groupSync(
+            reason: l.groupsEmptySub,
           ),
         ),
       );
@@ -150,10 +151,11 @@ class _GamesScreenState extends State<GamesScreen> {
     final letters = grouped.keys.toList()..sort();
 
     return ListView.builder(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + MediaQuery.of(context).padding.bottom),
+      padding: EdgeInsets.fromLTRB(
+          16, 8, 16, 16 + MediaQuery.of(context).padding.bottom),
       itemCount: letters.length,
       itemBuilder: (context, idx) {
-          final c = AppColors.of(context);
+        final c = AppColors.of(context);
         final letter = letters[idx];
         final letterGames = grouped[letter]!;
         return Column(
@@ -187,7 +189,7 @@ class _GamesScreenState extends State<GamesScreen> {
   }
 
   void _showSyncSheet(BuildContext context) {
-      final c = AppColors.of(context);
+    final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: c.surface,
@@ -207,8 +209,8 @@ class _FreeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
-    // Don't show anything if already premium.
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     if (state.entitlement.isPremium) {
       return const SizedBox.shrink();
     }
@@ -224,16 +226,15 @@ class _FreeBanner extends StatelessWidget {
         color: c.primary.withValues(alpha: 0.08),
         child: Row(
           children: [
-            Icon(Icons.star_border_rounded,
-                color: c.primary, size: 16),
+            Icon(Icons.star_border_rounded, color: c.primary, size: 16),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Débloquer les groupes & stats avancées',
+                l.freeBannerCta,
                 style: TextStyle(fontSize: 12, color: c.primary),
               ),
             ),
-            Text('Premium →',
+            Text(l.freeBannerPremium,
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -253,19 +254,18 @@ class _SyncBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final c = AppColors.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: c.surfaceElevated,
       child: Text(message,
-          style: TextStyle(
-              fontSize: 12, color: c.textSecondary)),
+          style: TextStyle(fontSize: 12, color: c.textSecondary)),
     );
   }
 }
 
-// ── Game card (unchanged logic) ───────────────────────────────────────────────
+// ── Game card ─────────────────────────────────────────────────────────────────
 
 class _GameCard extends StatelessWidget {
   final Game game;
@@ -273,7 +273,8 @@ class _GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final sessionCount = game.sessions.length;
     final modeColor = _modeColor(game.mode, c);
 
@@ -318,23 +319,21 @@ class _GameCard extends StatelessWidget {
                 Row(
                   children: [
                     GTBadge(
-                      label: game.mode.label,
+                      label: game.mode.label(l),
                       color: modeColor,
                       emoji: game.mode.icon,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '$sessionCount partie${sessionCount != 1 ? 's' : ''}',
-                      style: TextStyle(
-                          fontSize: 12, color: c.textSecondary),
+                      l.sessionCount(sessionCount),
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded,
-              color: c.textSecondary),
+          Icon(Icons.chevron_right_rounded, color: c.textSecondary),
         ],
       ),
     );
@@ -352,7 +351,7 @@ class _GameCard extends StatelessWidget {
   }
 }
 
-// ── Drive sync sheet (free backup) ───────────────────────────────────────────
+// ── Drive sync sheet ──────────────────────────────────────────────────────────
 
 class _SyncSheet extends StatefulWidget {
   const _SyncSheet();
@@ -367,7 +366,8 @@ class _SyncSheetState extends State<_SyncSheet> {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final isSignedIn = state.driveService.isSignedIn;
     final user = state.driveService.currentUser;
@@ -383,34 +383,29 @@ class _SyncSheetState extends State<_SyncSheet> {
             children: [
               const Text('☁️', style: TextStyle(fontSize: 24)),
               const SizedBox(width: 8),
-              const Text('Google Drive',
-                  style: TextStyle(
+              Text(l.driveSheetTitle,
+                  style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w700)),
               const Spacer(),
               if (isSignedIn)
-                GTBadge(
-                    label: 'Connecté',
-                    color: c.success,
-                    emoji: '✓'),
+                GTBadge(label: l.driveConnected, color: c.success, emoji: '✓'),
             ],
           ),
           const SizedBox(height: 6),
           Text(
-            'Sauvegarde manuelle de vos données (plan gratuit & premium).',
-            style:
-                TextStyle(fontSize: 12, color: c.textSecondary),
+            l.driveSheetSubtitle,
+            style: TextStyle(fontSize: 12, color: c.textSecondary),
           ),
           const SizedBox(height: 16),
           if (!isSignedIn)
             ElevatedButton.icon(
               onPressed: _loading ? null : () => _signIn(state),
               icon: const Icon(Icons.login_rounded),
-              label: const Text('Se connecter avec Google'),
+              label: Text(l.driveSignIn),
             )
           else ...[
             Text(user?.email ?? '',
-                style: TextStyle(
-                    color: c.textSecondary, fontSize: 13)),
+                style: TextStyle(color: c.textSecondary, fontSize: 13)),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -418,7 +413,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _upload(state),
                     icon: const Icon(Icons.cloud_upload_rounded),
-                    label: const Text('Sauvegarder'),
+                    label: Text(l.driveBackup),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: c.primary,
                       side: BorderSide(color: c.primary),
@@ -430,7 +425,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                   child: OutlinedButton.icon(
                     onPressed: _loading ? null : () => _download(state),
                     icon: const Icon(Icons.cloud_download_rounded),
-                    label: const Text('Restaurer'),
+                    label: Text(l.driveRestore),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: c.accent,
                       side: BorderSide(color: c.accent),
@@ -449,9 +444,8 @@ class _SyncSheetState extends State<_SyncSheet> {
                 }
               },
               icon: const Icon(Icons.logout_rounded),
-              label: const Text('Se déconnecter'),
-              style:
-                  TextButton.styleFrom(foregroundColor: c.error),
+              label: Text(l.driveSignOut),
+              style: TextButton.styleFrom(foregroundColor: c.error),
             ),
           ],
           if (_msg != null) ...[
@@ -471,8 +465,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    Icon(Icons.info_rounded,
-                        color: c.primary, size: 18),
+                    Icon(Icons.info_rounded, color: c.primary, size: 18),
                   const SizedBox(width: 10),
                   Expanded(
                       child: Text(_msg!,
@@ -487,13 +480,13 @@ class _SyncSheetState extends State<_SyncSheet> {
   }
 
   Future<void> _signIn(AppState state) async {
+    final l = AppLocalizations.of(context)!;
     setState(() {
       _loading = true;
-      _msg = 'Connexion…';
+      _msg = l.driveConnecting;
     });
     final ok = await state.driveService.signIn();
     if (ok) {
-      // Injecte l'email Drive dans PurchaseService → active le premium dev
       final driveEmail = state.driveService.currentUser?.email;
       if (driveEmail != null) {
         state.purchaseService.setConnectedEmail(driveEmail);
@@ -506,71 +499,98 @@ class _SyncSheetState extends State<_SyncSheet> {
         }
       }
     }
+    if (!mounted) {
+      return;
+    }
+    final l2 = AppLocalizations.of(context)!;
     setState(() {
       _loading = false;
-      _msg = ok ? null : 'Connexion annulée.';
+      _msg = ok ? null : l2.driveCancelled;
     });
   }
 
   Future<void> _upload(AppState state) async {
-    // Protection : avertir si les données locales sont vides
-    // pour éviter d'écraser un backup Drive existant par du vide
+    final l = AppLocalizations.of(context)!;
     final hasData = state.games.isNotEmpty || state.players.isNotEmpty;
     if (!hasData) {
-      setState(() => _msg = '⚠️ Aucune donnée locale à sauvegarder.');
+      setState(() => _msg = l.driveNoData);
       return;
     }
 
-    // Confirmation si premier upload (risque d'écrasement)
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Sauvegarder sur Drive ?'),
-        content: Text(
-          'Cela remplacera les données actuellement sur Drive '
-          'par vos données locales (${state.games.length} jeu${state.games.length != 1 ? 'x' : ''}, '
-          '${state.players.length} joueur${state.players.length != 1 ? 's' : ''}).',
-          style: const TextStyle(color: Color(0xFF9999BB)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sauvegarder'),
-          ),
-        ],
-      ),
+      builder: (_) => _DriveUploadDialog(
+          gamesCount: state.games.length,
+          playersCount: state.players.length),
     );
     if (confirm != true) {
       return;
     }
 
+    if (!mounted) {
+      return;
+    }
+    final l2 = AppLocalizations.of(context)!;
     setState(() {
       _loading = true;
-      _msg = 'Envoi vers Drive…';
+      _msg = l2.driveUploading;
     });
     final ok = await state.syncToDrive();
+    if (!mounted) {
+      return;
+    }
+    final l3 = AppLocalizations.of(context)!;
     setState(() {
       _loading = false;
-      _msg = ok ? '✓ Sauvegardé sur Drive.' : '✗ Erreur lors de l\'envoi.';
+      _msg = ok ? l3.driveUploadOk : l3.driveUploadError;
     });
   }
 
   Future<void> _download(AppState state) async {
+    final l = AppLocalizations.of(context)!;
     setState(() {
       _loading = true;
-      _msg = 'Téléchargement depuis Drive…';
+      _msg = l.driveDownloading;
     });
     final ok = await state.syncFromDrive();
+    if (!mounted) {
+      return;
+    }
+    final l2 = AppLocalizations.of(context)!;
     setState(() {
       _loading = false;
-      _msg = ok
-          ? '✓ Données restaurées et fusionnées.'
-          : '✗ Aucune donnée ou erreur.';
+      _msg = ok ? l2.driveDownloadOk : l2.driveDownloadError;
     });
+  }
+}
+
+// Extracted dialog so l10n context is available inside builder
+class _DriveUploadDialog extends StatelessWidget {
+  final int gamesCount;
+  final int playersCount;
+  const _DriveUploadDialog(
+      {required this.gamesCount, required this.playersCount});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1A1A2E),
+      title: Text(l.driveUploadConfirmTitle),
+      content: Text(
+        l.driveUploadConfirmBody(gamesCount, playersCount),
+        style: const TextStyle(color: Color(0xFF9999BB)),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(l.btnCancel),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(l.driveBackup),
+        ),
+      ],
+    );
   }
 }

@@ -1,7 +1,7 @@
-// lib/screens/players_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/player.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
@@ -12,24 +12,27 @@ class PlayersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final state = context.watch<AppState>();
     final players = state.players;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('👥 Joueurs')),
+      appBar: AppBar(title: Text(l.playersScreenTitle)),
       body: players.isEmpty
           ? GTEmptyState(
               emoji: '👤',
-              title: 'Aucun joueur',
-              subtitle: 'Ajoutez des joueurs pour suivre leurs scores.',
+              title: l.emptyNoPlayer,
+              subtitle: l.emptyNoPlayerSub,
               action: ElevatedButton(
                 onPressed: () => _showAddPlayer(context),
-                child: const Text('Ajouter un joueur'),
+                child: Text(l.btnAddPlayer),
               ),
             )
           : ListView.separated(
               padding: EdgeInsets.only(
-                left: 16, right: 16, top: 16,
+                left: 16,
+                right: 16,
+                top: 16,
                 bottom: 16 + MediaQuery.of(context).padding.bottom,
               ),
               itemCount: players.length,
@@ -40,15 +43,16 @@ class PlayersScreen extends StatelessWidget {
                   .slideX(begin: 0.05),
             ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const Key('fabAddPlayer'),
         onPressed: () => _showAddPlayer(context),
         icon: const Icon(Icons.person_add_rounded),
-        label: const Text('Nouveau joueur'),
+        label: Text(l.fabNewPlayer),
       ),
     );
   }
 
   void _showAddPlayer(BuildContext context, [Player? existing]) {
-      final c = AppColors.of(context);
+    final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -67,7 +71,8 @@ class _PlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final state = context.read<AppState>();
     Color color;
     try {
@@ -107,9 +112,8 @@ class _PlayerCard extends StatelessWidget {
                         fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 2),
                 Text(
-                  '$gamesPlayed jeu${gamesPlayed != 1 ? 'x' : ''} · $totalWins victoire${totalWins != 1 ? 's' : ''}',
-                  style: TextStyle(
-                      fontSize: 12, color: c.textSecondary),
+                  l.playerGamesAndWins(gamesPlayed, totalWins),
+                  style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
               ],
             ),
@@ -125,7 +129,7 @@ class _PlayerCard extends StatelessWidget {
   }
 
   void _showEdit(BuildContext context) {
-      final c = AppColors.of(context);
+    final c = AppColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -165,8 +169,10 @@ class _PlayerSheetState extends State<_PlayerSheet> {
 
   @override
   Widget build(BuildContext context) {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final isEditing = widget.existing != null;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
           24, 20, 24, MediaQuery.of(context).viewInsets.bottom + 24),
@@ -174,23 +180,24 @@ class _PlayerSheetState extends State<_PlayerSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(isEditing ? 'Modifier le joueur' : 'Nouveau joueur',
+          Text(isEditing ? l.editPlayerTitle : l.addPlayerTitle,
               style:
                   const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 20),
 
           TextField(
+            key: const Key('fieldPlayerName'),
             controller: _nameCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Nom du joueur',
-              hintText: 'Prénom ou pseudo',
+            decoration: InputDecoration(
+              labelText: l.playerNameLabel,
+              hintText: l.playerNameHint,
             ),
             textCapitalization: TextCapitalization.words,
             autofocus: true,
           ),
           const SizedBox(height: 20),
 
-          Text('COULEUR',
+          Text(l.colorSectionLabel,
               style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -201,7 +208,6 @@ class _PlayerSheetState extends State<_PlayerSheet> {
             spacing: 10,
             runSpacing: 10,
             children: AppColors.playerColors.map((c) {
-              // Use toARGB32() for explicit conversion instead of deprecated .value
               final argb = c.toARGB32();
               final hex =
                   '#${argb.toRadixString(16).substring(2).toUpperCase()}';
@@ -220,7 +226,8 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                       width: 3,
                     ),
                     boxShadow: selected
-                        ? [BoxShadow(color: c.withValues(alpha: 0.6), blurRadius: 8)]
+                        ? [BoxShadow(
+                            color: c.withValues(alpha: 0.6), blurRadius: 8)]
                         : [],
                   ),
                   child: selected
@@ -238,10 +245,11 @@ class _PlayerSheetState extends State<_PlayerSheet> {
               if (isEditing)
                 Expanded(
                   child: OutlinedButton.icon(
+                    key: const Key('btnDeletePlayer'),
                     onPressed: _delete,
                     icon: Icon(Icons.delete_rounded,
                         color: c.error, size: 18),
-                    label: Text('Supprimer',
+                    label: Text(l.btnDelete,
                         style: TextStyle(color: c.error)),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: c.error),
@@ -251,8 +259,9 @@ class _PlayerSheetState extends State<_PlayerSheet> {
               if (isEditing) const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
+                  key: const Key('btnSubmitPlayer'),
                   onPressed: _save,
-                  child: Text(isEditing ? 'Enregistrer' : 'Ajouter'),
+                  child: Text(isEditing ? l.btnSave : l.btnAdd),
                 ),
               ),
             ],
@@ -268,8 +277,8 @@ class _PlayerSheetState extends State<_PlayerSheet> {
     }
     final state = context.read<AppState>();
     if (widget.existing != null) {
-      await state.updatePlayer(
-          widget.existing!.copyWith(name: _nameCtrl.text.trim(), color: _color));
+      await state.updatePlayer(widget.existing!
+          .copyWith(name: _nameCtrl.text.trim(), color: _color));
     } else {
       await state
           .addPlayer(Player(name: _nameCtrl.text.trim(), color: _color));
@@ -280,21 +289,21 @@ class _PlayerSheetState extends State<_PlayerSheet> {
   }
 
   Future<void> _delete() async {
-      final c = AppColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    final c = AppColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
-        title: const Text('Supprimer ce joueur ?'),
-        content: const Text(
-            'Ses scores dans les parties existantes seront conservés.'),
+        title: Text(l.deletePlayerTitle),
+        content: Text(l.deletePlayerBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler')),
+              child: Text(l.btnCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Supprimer',
+            child: Text(l.btnDelete,
                 style: TextStyle(color: c.error)),
           ),
         ],
