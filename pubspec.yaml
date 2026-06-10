@@ -26,10 +26,10 @@ dependencies:
   path: ^1.9.0
 
   # Google Drive / Auth (backup gratuit)
-  google_sign_in: 6.3.0
+  google_sign_in: 7.2.0
   googleapis: ^13.2.0
   http: ^1.2.1
-  extension_google_sign_in_as_googleapis_auth: ^2.0.12
+  extension_google_sign_in_as_googleapis_auth: ^3.0.0
 
   # Firebase / Firestore (sync temps réel premium)
   firebase_core: ^4.10.0
