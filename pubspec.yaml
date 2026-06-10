@@ -32,9 +32,9 @@ dependencies:
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
 
   # Firebase / Firestore (sync temps réel premium)
-  firebase_core: ^3.3.0
-  firebase_auth: ^5.1.4
-  cloud_firestore: ^5.2.1
+  firebase_core: ^4.10.0
+  firebase_auth: ^6.5.2
+  cloud_firestore: ^6.5.0
 
   # In-app purchases (freemium)
   purchases_flutter: ^8.0.0
