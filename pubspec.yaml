@@ -37,7 +37,7 @@ dependencies:
   cloud_firestore: ^6.5.0
 
   # In-app purchases (freemium)
-  purchases_flutter: ^8.0.0
+  purchases_flutter: ^10.2.2
 
   # Utils
   uuid: ^4.4.0
