@@ -10,6 +10,9 @@ updates:
     labels: [dependencies]
     commit-message:
       prefix: "chore(deps)"
+    groups:
+      firebase:
+        patterns: ["firebase_*", "cloud_firestore", "_flutterfire_*"]
 
   # Android Gradle dependencies
   - package-ecosystem: gradle
@@ -21,6 +24,9 @@ updates:
     labels: [dependencies, android]
     commit-message:
       prefix: "chore(deps/android)"
+    groups:
+      android-build-tools:
+        patterns: ["com.android.*", "org.jetbrains.kotlin.*", "gradle-wrapper"]
 
   # GitHub Actions
   - package-ecosystem: github-actions
