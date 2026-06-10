@@ -119,7 +119,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /usr/local/lib/android/sdk/system-images
-          key: android-sdk-image-28-google_apis-x86_64
+          key: android-sdk-image-30-google_atd-x86_64
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -156,8 +156,8 @@ jobs:
       - name: Run E2E tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 28
-          target: google_apis
+          api-level: 30
+          target: google_atd
           arch: x86_64
           profile: pixel_6
           avd-name: gt_e2e
