@@ -273,14 +273,16 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
+      - uses: actions/checkout@v6
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
           name: GameTracker-release-${{ github.run_number }}
           path: dist/
       - name: Create Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: build-${{ github.run_number }}
           name: "GameTracker build #${{ github.run_number }}"
           body: "Build #${{ github.run_number }} — Qualité validée."
@@ -288,5 +290,3 @@ jobs:
             dist/*.apk
             dist/*.aab
             dist/*.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
