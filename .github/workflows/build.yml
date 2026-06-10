@@ -279,7 +279,7 @@ jobs:
           name: GameTracker-release-${{ github.run_number }}
           path: dist/
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: build-${{ github.run_number }}
           name: "GameTracker build #${{ github.run_number }}"
