@@ -139,8 +139,12 @@ class PurchaseService extends ChangeNotifier {
     }
     try {
       _lastError = null;
-      final info   = await Purchases.purchasePackage(package);
-      final active = info.entitlements.active;
+      // v10: Use PurchaseParams.package(package)
+      final purchaseParams = PurchaseParams.package(package);
+      final result = await Purchases.purchase(purchaseParams);
+
+      // v10: Access CustomerInfo via purchaseResult.customerInfo
+      final active = result.customerInfo.entitlements.active;
       _entitlement = Entitlement(
         isPremium:    active.containsKey(kPremiumId)   || _isDeveloper(),
         hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper(),
