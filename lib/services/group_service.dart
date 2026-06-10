@@ -48,18 +48,16 @@ class GroupService {
       return false;
     }
     try {
-      var account = _googleSignIn.currentUser;
+      var account = await _googleSignIn.attemptLightweightAuthentication();
       debugPrint('=== GroupService.signIn: currentUser=$account ===');
-      account ??= await _googleSignIn.signIn();
-      if (account == null) {
-        debugPrint('=== GroupService.signIn: account null après signIn ===');
-        return false;
-      }
+      account ??= await _googleSignIn.authenticate();
+
       debugPrint('=== GroupService.signIn: account=${account.email} ===');
-      final auth = await account.authentication;
-      debugPrint('=== GroupService.signIn: idToken=${auth.idToken != null} accessToken=${auth.accessToken != null} ===');
+      final auth = account.authentication;
+      final authStatus = await account.authorizationClient.authorizeScopes([]);
+      debugPrint('=== GroupService.signIn: idToken=${auth.idToken != null} accessToken=true ===');
       final credential = GoogleAuthProvider.credential(
-        accessToken: auth.accessToken,
+        accessToken: authStatus.accessToken,
         idToken: auth.idToken,
       );
       final result = await _auth.signInWithCredential(credential);
@@ -76,13 +74,14 @@ class GroupService {
       return false;
     }
     try {
-      final account = await _googleSignIn.signInSilently();
+      final account = await _googleSignIn.attemptLightweightAuthentication();
       if (account == null) {
         return _auth.currentUser != null;
       }
-      final auth = await account.authentication;
+      final auth = account.authentication;
+      final authStatus = await account.authorizationClient.authorizeScopes([]);
       final credential = GoogleAuthProvider.credential(
-        accessToken: auth.accessToken,
+        accessToken: authStatus.accessToken,
         idToken: auth.idToken,
       );
       await _auth.signInWithCredential(credential);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists and exposes the user's theme preference.
-/// Wrap MaterialApp with a ChangeNotifierProvider<ThemeNotifier> and bind
+/// Wrap MaterialApp with a ChangeNotifierProvider for ThemeNotifier and bind
 /// MaterialApp.themeMode to themeNotifier.mode.
 class ThemeNotifier extends ChangeNotifier {
   static const _key = 'theme_mode';

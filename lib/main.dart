@@ -10,11 +10,14 @@ import 'l10n/app_localizations.dart';
 import 'screens/games_screen.dart';
 import 'screens/players_screen.dart';
 import 'services/app_state.dart';
+import 'services/google_sign_in_singleton.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await GoogleSignInSingleton.initialize();
 
   GoogleFonts.config.allowRuntimeFetching = false;
 

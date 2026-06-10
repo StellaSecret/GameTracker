@@ -24,7 +24,7 @@ class GoogleDriveService {
 
   Future<bool> signIn() async {
     try {
-      _currentUser = await _googleSignIn.signIn();
+      _currentUser = await _googleSignIn.authenticate();
       return _currentUser != null;
     } on PlatformException catch (e) {
       if (e.code == 'sign_in_canceled') {
@@ -38,6 +38,7 @@ class GoogleDriveService {
       return false;
     }
   }
+
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     _currentUser = null;
@@ -45,7 +46,7 @@ class GoogleDriveService {
 
   Future<bool> signInSilently() async {
     try {
-      _currentUser = await _googleSignIn.signInSilently();
+      _currentUser = await _googleSignIn.attemptLightweightAuthentication();
       return _currentUser != null;
     } catch (_) {
       return false;
@@ -56,10 +57,13 @@ class GoogleDriveService {
     if (_currentUser == null) {
       return null;
     }
-    final authClient = await _googleSignIn.authenticatedClient();
-    if (authClient == null) {
-      return null;
-    }
+    final scopes = [
+        'email',
+        'profile',
+        drive.DriveApi.driveAppdataScope,
+    ];
+    final authStatus = await _currentUser!.authorizationClient.authorizeScopes(scopes);
+    final authClient = authStatus.authClient(scopes: scopes);
     return drive.DriveApi(authClient);
   }
 
