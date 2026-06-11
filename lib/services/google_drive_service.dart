@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'google_sign_in_singleton.dart';
@@ -25,12 +26,18 @@ class GoogleDriveService {
     try {
       _currentUser = await _googleSignIn.signIn();
       return _currentUser != null;
+    } on PlatformException catch (e) {
+      if (e.code == 'sign_in_canceled') {
+        _lastError = 'Utilisateur a annulé';
+      } else {
+        _lastError = e.message ?? e.toString();
+      }
+      return false;
     } catch (e) {
       _lastError = e.toString();
       return false;
     }
   }
-
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     _currentUser = null;
