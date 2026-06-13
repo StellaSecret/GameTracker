@@ -50,6 +50,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('=== AddGameScreen.build ===');
     final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final isEditing = widget.existing != null;
@@ -221,7 +222,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
             const SizedBox(height: 32),
             ElevatedButton(
-              key: const Key('btnSubmitGame'),
+              key: const ValueKey('btnSubmitGame'),
               onPressed: _saving ? null : _save,
               child: _saving
                   ? const SizedBox(

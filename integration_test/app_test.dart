@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_tracker/main.dart' as app;
+import 'package:game_tracker/services/storage_service.dart';
 import 'package:integration_test/integration_test.dart';
 
 // ── Widget Keys (must match assignments in the screen files) ──────────────────
@@ -24,7 +25,7 @@ const _kFabAddGame    = Key('fabAddGame');
 const _kNavPlayers    = Key('navPlayers');
 // add_game_screen.dart
 const _kFieldGameName = Key('fieldGameName');
-const _kBtnSubmitGame = Key('btnSubmitGame');
+const _kBtnSubmitGame = ValueKey('btnSubmitGame');
 const _kBtnDeleteGame = Key('btnDeleteGame');
 // players_screen.dart
 const _kFabAddPlayer     = Key('fabAddPlayer');
@@ -34,10 +35,14 @@ const _kBtnDeletePlayer  = Key('btnDeletePlayer');
 // game_detail_screen.dart
 const _kBtnEditGame      = Key('btnEditGame');
 // add_session_screen.dart
-const _kBtnSaveSession = Key('btnSaveSession');
+const _kBtnSaveSession = ValueKey('btnSaveSession');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    await StorageService().clear();
+  });
 
   // ─────────────────────────────────────────────────────────────────────────
   // Helpers
@@ -53,7 +58,12 @@ void main() {
 
   /// Waits for the app to settle, dismisses stale dialogs, pops back to root.
   Future<void> waitReady(WidgetTester tester) async {
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    // Ensure no keyboard is up.
+    tester.binding.focusManager.primaryFocus?.unfocus();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
     await dismissStaleDialog(tester);
     while (tester.any(find.byTooltip('Back'))) {
       await tester.tap(find.byTooltip('Back').first);
@@ -61,20 +71,36 @@ void main() {
     }
   }
 
-  /// Unfocuses the active field without tapping — avoids navigation side-effects.
+  /// Unfocuses the active field and ensures keyboard is dismissed.
   Future<void> dismissKeyboard(WidgetTester tester) async {
     tester.binding.focusManager.primaryFocus?.unfocus();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
   }
 
   /// Scrolls [finder] into view then taps it.
   Future<void> scrollToAndTap(WidgetTester tester, Finder finder) async {
-    if (!tester.any(finder)) {
-      throw TestFailure('scrollToAndTap: no widget found for $finder');
+    // Only scroll if the widget is not already visible.
+    if (tester.any(finder) == false) {
+      // Find the main vertical scrollable.
+      final scrollableFinder = find.byWidgetPredicate(
+        (widget) => widget is Scrollable && widget.axis == Axis.vertical,
+        skipOffstage: false,
+      );
+
+      if (tester.any(scrollableFinder)) {
+        await tester.scrollUntilVisible(
+          finder,
+          500.0,
+          scrollable: scrollableFinder.first,
+        );
+        await tester.pumpAndSettle();
+      }
     }
-    await tester.ensureVisible(finder.first);
-    await tester.pumpAndSettle();
-    await tester.tap(finder.first);
+
+    // Now ensure it is visible and tap it.
+    await tester.ensureVisible(finder);
+    await tester.tap(finder);
     await tester.pumpAndSettle();
   }
 

@@ -376,7 +376,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
           const SizedBox(height: 32),
 
           ElevatedButton(
-            key: const Key('btnSaveSession'),
+            key: const ValueKey('btnSaveSession'),
             onPressed: _canSave() ? _save : null,
             child: Text(widget.existing != null
                 ? l.btnUpdateSession
@@ -642,8 +642,11 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     if (date == null || !mounted) {
       return;
     }
+    if (!context.mounted) {
+      return;
+    }
     final time = await showTimePicker(
-      context: capturedContext,
+      context: context,
       initialTime: TimeOfDay.fromDateTime(_playedAt),
     );
     if (!mounted) {
