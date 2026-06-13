@@ -40,8 +40,10 @@ void main() async {
   final themeNotifier = ThemeNotifier();
   await themeNotifier.init();
 
+  final uri = Uri.base;
+  final isDemoMode = uri.queryParameters['demo'] == 'true';
   final state = AppState();
-  await state.init();
+  await state.init(isDemoMode: isDemoMode);
 
   runApp(
     MultiProvider(

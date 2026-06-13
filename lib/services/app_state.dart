@@ -8,6 +8,7 @@ import '../models/game_session.dart';
 import '../models/player.dart';
 import 'google_drive_service.dart';
 import 'group_service.dart';
+import 'mock_data_generator.dart';
 import 'purchase_service.dart';
 import 'storage_service.dart';
 
@@ -43,8 +44,12 @@ class AppState extends ChangeNotifier {
     return sorted;
   }
 
-  Future<void> init() async {
-    _data = await _storage.load();
+  Future<void> init({bool isDemoMode = false}) async {
+    if (isDemoMode) {
+      _data = MockDataGenerator.generate();
+    } else {
+      _data = await _storage.load();
+    }
     _isLoading = false;
     notifyListeners();
 

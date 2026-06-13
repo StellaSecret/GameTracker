@@ -46,6 +46,7 @@ dependencies:
 
   # Web only
   url_launcher: ^6.2.6
+  universal_html: ^2.3.0
 
 dev_dependencies:
   flutter_test:

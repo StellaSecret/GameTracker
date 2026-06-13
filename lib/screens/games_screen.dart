@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:universal_html/html.dart' as html;
 import '../l10n/app_localizations.dart';
 import '../models/game.dart';
 import '../models/game_mode.dart';
@@ -38,6 +39,11 @@ class _GamesScreenState extends State<GamesScreen> {
       appBar: AppBar(
         title: Text(l.appBarTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.home_rounded),
+            tooltip: 'Retour à l\'accueil',
+            onPressed: () => _goToLandingPage(),
+          ),
           if (state.isInGroup)
             Padding(
               padding: const EdgeInsets.only(right: 4),
@@ -198,6 +204,15 @@ class _GamesScreenState extends State<GamesScreen> {
       ),
       builder: (_) => const _SyncSheet(),
     );
+  }
+
+  void _goToLandingPage() {
+    if (kIsWeb) {
+      // Navigate to the root URL (landing page)
+      // Since the app is hosted at /GameTracker/app.html,
+      // the landing page is at /GameTracker/
+      html.window.location.href = '/GameTracker/';
+    }
   }
 }
 
