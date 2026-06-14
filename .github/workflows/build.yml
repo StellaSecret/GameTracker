@@ -198,10 +198,9 @@ jobs:
         run: flutter pub get
       - name: Build Web
         run: |
-          flutter build web --base-href "/GameTracker/" --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
+          flutter build web --base-href "/GameTracker/" --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           mv build/web/index.html build/web/app.html
           cp web/landing.html build/web/index.html
-          sed -i 's|%%GOOGLE_WEB_CLIENT_ID%%|${{ secrets.GOOGLE_WEB_CLIENT_ID }}|g' build/web/app.html
       - name: Setup Pages
         uses: actions/configure-pages@v6
       - name: Upload artifact
@@ -249,8 +248,8 @@ jobs:
       - name: Build Android (APK & AAB)
         if: github.event_name != 'pull_request'
         run: |
-          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
-          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }}
+          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
       - name: Build Debug APK (PR)
         if: github.event_name == 'pull_request'
         run: flutter build apk --debug
