@@ -66,6 +66,26 @@
     window.addEventListener('flutter-first-frame', function () {
       document.getElementById('loading').style.display = 'none';
     });
+
+    // Shim for Google Identity Services to force redirect mode on GitHub Pages
+    (function() {
+      const checkGis = setInterval(() => {
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          clearInterval(checkGis);
+          const originalInit = window.google.accounts.id.initialize;
+          window.google.accounts.id.initialize = function(config) {
+            console.log("GameTracker: Patching GIS configuration for GitHub Pages...");
+            const patchedConfig = Object.assign({}, config, {
+              ux_mode: 'redirect',
+              auto_select: false,          // Disable auto-sign-in to avoid background COOP checks
+              use_fedcm_for_prompt: false, // Disable FedCM to avoid browser-level COOP checks
+              login_uri: window.location.origin + window.location.pathname,
+            });
+            originalInit(patchedConfig);
+          };
+        }
+      }, 50);
+    })();
   </script>
 
   <script src="flutter_bootstrap.js" async></script>

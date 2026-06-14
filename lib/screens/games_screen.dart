@@ -9,6 +9,7 @@ import '../models/game_mode.dart';
 import '../models/game_mode_l10n.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gsi_button.dart';
 import '../widgets/gt_card.dart';
 import 'add_game_screen.dart';
 import 'game_detail_screen.dart';
@@ -413,10 +414,10 @@ class _SyncSheetState extends State<_SyncSheet> {
           ),
           const SizedBox(height: 16),
           if (!isSignedIn)
-            ElevatedButton.icon(
-              onPressed: _loading ? null : () => _signIn(state),
-              icon: const Icon(Icons.login_rounded),
-              label: Text(l.driveSignIn),
+            GSIButton(
+              onPressed: _loading ? () {} : () => _signIn(state),
+              label: l.driveSignIn,
+              isLoading: _loading,
             )
           else ...[
             Text(user?.email ?? '',

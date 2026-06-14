@@ -11,8 +11,8 @@ class GoogleSignInSingleton {
     const serverClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
 
     await instance.initialize(
-      clientId: kIsWeb ? webClientId : null,
-      serverClientId: kIsWeb ? null : serverClientId,
+      clientId: kIsWeb ? (webClientId.isEmpty ? null : webClientId) : null,
+      serverClientId: kIsWeb ? null : (serverClientId.isEmpty ? null : serverClientId),
     );
   }
 }
