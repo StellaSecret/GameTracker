@@ -28,6 +28,8 @@
   "driveBackup": "Sauvegarder",
   "driveRestore": "Restaurer",
   "driveSignOut": "Se déconnecter",
+  "driveWebWarning": "Problèmes de connexion sur le Web ?",
+  "driveAdBlockerTip": "Désactivez votre bloqueur de pub ou Brave Shields. Ils bloquent souvent les scripts Google.",
   "driveConnecting": "Connexion…",
   "driveCancelled": "Connexion annulée.",
   "driveNoData": "⚠️ Aucune donnée locale à sauvegarder.",

@@ -413,13 +413,42 @@ class _SyncSheetState extends State<_SyncSheet> {
             style: TextStyle(fontSize: 12, color: c.textSecondary),
           ),
           const SizedBox(height: 16),
-          if (!isSignedIn)
+          if (!isSignedIn) ...[
             GSIButton(
               onPressed: _loading ? () {} : () => _signIn(state),
               label: l.driveSignIn,
               isLoading: _loading,
-            )
-          else ...[
+            ),
+            if (kIsWeb) ...[
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: c.surfaceElevated,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: c.cardBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.driveWebWarning,
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l.driveAdBlockerTip,
+                      style: TextStyle(color: c.textSecondary, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ] else ...[
             Text(user?.email ?? '',
                 style: TextStyle(color: c.textSecondary, fontSize: 13)),
             const SizedBox(height: 16),

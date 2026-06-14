@@ -73,6 +73,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get driveSignOut => 'Se déconnecter';
 
   @override
+  String get driveWebWarning => 'Problèmes de connexion sur le Web ?';
+
+  @override
+  String get driveAdBlockerTip =>
+      'Désactivez votre bloqueur de pub ou Brave Shields. Ils bloquent souvent les scripts Google.';
+
+  @override
   String get driveConnecting => 'Connexion…';
 
   @override

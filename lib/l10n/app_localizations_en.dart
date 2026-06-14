@@ -73,6 +73,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get driveSignOut => 'Sign out';
 
   @override
+  String get driveWebWarning => 'Issues signing in on Web?';
+
+  @override
+  String get driveAdBlockerTip =>
+      'Try disabling your ad-blocker or Brave Shields. They often block Google\'s authentication scripts.';
+
+  @override
   String get driveConnecting => 'Connecting…';
 
   @override

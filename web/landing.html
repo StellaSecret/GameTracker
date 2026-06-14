@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GameTracker — Dominez vos jeux de société</title>
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://stellasecret.github.io/GameTracker/">
+  <meta property="og:title" content="GameTracker — Dominez vos jeux de société">
+  <meta property="og:description" content="Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais une partie.">
+  <meta property="og:image" content="https://stellasecret.github.io/GameTracker/icons/Icon-512.png">
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="GameTracker — Dominez vos jeux de société">
+  <meta property="twitter:description" content="Scores en temps réel, statistiques avancées, groupes privés.">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Lexend:wght@300;400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
@@ -82,9 +93,11 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); text-align: ce
       fr: {
         title: "GameTracker — Dominez vos jeux de société",
         navLaunch: "Lancer l'App",
+        navDemo: "Démo",
         heroTitle: "Dominez vos <em>jeux de société</em>",
         heroSub: "Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais le fil de vos parties.",
         heroBtn: "🚀 Commencer à jouer",
+        heroDemo: "Voir la Démo",
         feat1Title: "📊 Stats Avancées",
         feat1Sub: "Suivez vos performances, vos taux de victoire et progressez sur vos jeux favoris.",
         feat2Title: "👥 Groupes Privés",
@@ -99,9 +112,11 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); text-align: ce
       en: {
         title: "GameTracker — Dominate your board games",
         navLaunch: "Launch App",
+        navDemo: "Demo",
         heroTitle: "Dominate your <em>board games</em>",
         heroSub: "Real-time scores, advanced statistics, private groups. Never lose track of your gaming sessions again.",
         heroBtn: "🚀 Start playing",
+        heroDemo: "View Demo",
         feat1Title: "📊 Advanced Stats",
         feat1Sub: "Track your performance, win rates, and progress on your favorite games.",
         feat2Title: "👥 Private Groups",
@@ -122,9 +137,11 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); text-align: ce
     function applyLang() {
       document.title = t('title');
       document.getElementById('nav-launch').textContent = t('navLaunch');
+      document.getElementById('nav-demo').textContent = t('navDemo');
       document.getElementById('hero-title').innerHTML = t('heroTitle');
       document.getElementById('hero-sub').textContent = t('heroSub');
       document.getElementById('hero-btn').textContent = t('heroBtn');
+      document.getElementById('hero-demo').textContent = t('heroDemo');
       document.getElementById('feat1-title').textContent = t('feat1Title');
       document.getElementById('feat1-sub').textContent = t('feat1Sub');
       document.getElementById('feat2-title').textContent = t('feat2Title');
@@ -153,6 +170,7 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); text-align: ce
 <nav class="nav">
   <a class="nav-logo" href="#">🎲 Game<span>Tracker</span></a>
   <div class="nav-right">
+    <a href="app.html?demo=true" id="nav-demo" style="color:var(--text); text-decoration:none; font-size:0.85rem; font-weight:500;">Démo</a>
     <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">EN</button>
     <a class="btn-nav" id="nav-launch" href="app.html">Lancer l'App</a>
   </div>
@@ -161,8 +179,87 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); text-align: ce
 <section class="hero">
   <h1 class="hero-title" id="hero-title">Dominez vos <em>jeux de société</em></h1>
   <p class="hero-sub" id="hero-sub">Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais le fil de vos parties.</p>
-  <a href="app.html" class="btn-primary" id="hero-btn">🚀 Commencer à jouer</a>
+  <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+    <a href="app.html" class="btn-primary" id="hero-btn">🚀 Commencer à jouer</a>
+    <a href="app.html?demo=true" class="btn-primary" id="hero-demo" style="background: var(--surface2); color: var(--text); border: 1px solid var(--border);">Voir la Démo</a>
+  </div>
 </section>
+
+<!-- INTERACTIVE MOCKUP (Tailored for GameTracker) -->
+<style>
+.mockup-container { padding: 0 1.5rem 6rem; perspective: 2000px; }
+.mockup {
+    max-width: 860px; margin: 0 auto; background: #0F172A; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; padding: 0;
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7); transform: rotateX(5deg); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden; user-select: none; text-align: left;
+}
+.mockup:hover { transform: rotateX(0deg) translateY(-5px); }
+.m-top-bar { background: #1E293B; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.m-game { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: #fff; }
+.m-game em { color: var(--cyan); font-style: normal; margin-right: 8px; }
+.m-content { padding: 24px; min-height: 300px; }
+.m-player-row { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 16px; margin-bottom: 12px; transition: transform 0.2s ease; }
+.m-player-row:hover { transform: scale(1.02); background: rgba(255,255,255,0.07); }
+.m-avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: #fff; }
+.m-name { flex: 1; font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; color: #fff; }
+.m-score { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--cyan); }
+.m-btn-group { display: flex; gap: 8px; margin-left: 16px; }
+.m-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+.m-btn:hover { background: var(--primary); border-color: var(--primary); }
+</style>
+
+<section class="mockup-container">
+    <div class="mockup">
+        <div class="m-top-bar">
+            <div class="m-game"><em>🎲</em> 7 Wonders</div>
+            <div style="font-size: 0.7rem; opacity: 0.6; font-family: var(--font-mono)">LIVE SYNC ACTIVE</div>
+        </div>
+        <div class="m-content">
+            <div class="m-player-row">
+                <div class="m-avatar" style="background: #4E4AF2">V</div>
+                <div class="m-name">Vincent</div>
+                <div class="m-score" id="score-1">42</div>
+                <div class="m-btn-group">
+                    <div class="m-btn" onclick="updateMockScore('score-1', -1)">-</div>
+                    <div class="m-btn" onclick="updateMockScore('score-1', 1)">+</div>
+                </div>
+            </div>
+            <div class="m-player-row">
+                <div class="m-avatar" style="background: #00D4AA">L</div>
+                <div class="m-name">Léa</div>
+                <div class="m-score" id="score-2">38</div>
+                <div class="m-btn-group">
+                    <div class="m-btn" onclick="updateMockScore('score-2', -1)">-</div>
+                    <div class="m-btn" onclick="updateMockScore('score-2', 1)">+</div>
+                </div>
+            </div>
+            <div class="m-player-row" style="opacity: 0.8">
+                <div class="m-avatar" style="background: #F43F5E">T</div>
+                <div class="m-name">Thomas</div>
+                <div class="m-score" id="score-3">35</div>
+                <div class="m-btn-group">
+                    <div class="m-btn" onclick="updateMockScore('score-3', -1)">-</div>
+                    <div class="m-btn" onclick="updateMockScore('score-3', 1)">+</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function updateMockScore(id, delta) {
+    const el = document.getElementById(id);
+    let val = parseInt(el.textContent);
+    val += delta;
+    el.textContent = val;
+    el.style.color = '#fff';
+    el.style.transform = 'scale(1.2)';
+    setTimeout(() => {
+        el.style.color = 'var(--cyan)';
+        el.style.transform = 'scale(1)';
+    }, 200);
+}
+</script>
 
 <section class="features">
   <div class="card">

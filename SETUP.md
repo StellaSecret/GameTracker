@@ -14,7 +14,14 @@ pour activer les fonctionnalités premium et la sync Drive.
 3. APIs & Services → Credentials → OAuth 2.0 Client ID
    - Type : **Android**, package : `com.stellasecret.gametracker`
    - SHA-1 : `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android`
+   - Type : **Web Application** (pour GitHub Pages)
+     - Authorized Javascript Origins: `https://stellasecret.github.io`
+     - Authorized Redirect URIs: `https://stellasecret.github.io/GameTracker/`
 4. Télécharger `google-services.json` → placer dans `android/app/`
+5. Note sur le **Web** :
+   - Vous devez passer `--dart-define=GOOGLE_WEB_CLIENT_ID=votre_id.apps.googleusercontent.com` au build.
+   - Sur GitHub Pages, le flow est forcé en **Redirect Mode** via un shim JS dans `index.html` car COOP n'est pas supporté.
+   - Les **ad-blockers** peuvent bloquer le bouton. Un avertissement est affiché dans l'UI si kIsWeb.
 
 > Le scope utilisé est `driveAppdataScope` (données cachées, invisible dans le Drive de l'utilisateur).
 

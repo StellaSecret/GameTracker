@@ -224,6 +224,18 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get driveSignOut;
 
+  /// No description provided for @driveWebWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues signing in on Web?'**
+  String get driveWebWarning;
+
+  /// No description provided for @driveAdBlockerTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Try disabling your ad-blocker or Brave Shields. They often block Google\'s authentication scripts.'**
+  String get driveAdBlockerTip;
+
   /// No description provided for @driveConnecting.
   ///
   /// In en, this message translates to:
