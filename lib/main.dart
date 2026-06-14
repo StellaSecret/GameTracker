@@ -19,7 +19,7 @@ void main() async {
 
   await GoogleSignInSingleton.initialize();
 
-  GoogleFonts.config.allowRuntimeFetching = false;
+  GoogleFonts.config.allowRuntimeFetching = true;
 
   // Pre-load date symbols for every supported locale so DateFormat works
   // without a network call. Add new locales here when the ARB list grows.

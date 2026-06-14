@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GameTracker — Dominez vos jeux de société</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Lexend:wght@300;400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-/* ── DESIGN SYSTEM (Inspired by PeopleModeler) ── */
+/* ── DESIGN SYSTEM (Consistent with StellaSecret / TripMind) ── */
 :root {
   --bg: #080C14;
   --surface: #0D1525;
@@ -17,13 +17,14 @@
   --text-muted: #6B7A9A;
   --primary: #4E4AF2;
   --cyan: #00D4AA;
-  --font-display: 'Syne', sans-serif;
-  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Outfit', sans-serif;
+  --font-main: 'Lexend', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   --radius: 12px;
   --radius-lg: 20px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--font-mono); font-size: 15px; line-height: 1.6; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-main); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
 
 .noise {
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
@@ -32,56 +33,169 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-mono);
 }
 
 /* ── NAV ── */
-.nav { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 3rem; backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
-.nav-logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--text); }
-.nav-logo span { color: var(--primary); }
-.btn-nav { background: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius); text-decoration: none; font-size: 0.85rem; }
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 3rem; backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; background: rgba(8,12,20,0.8); }
+.nav-logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--text); text-decoration: none; }
+.nav-logo span { color: var(--cyan); }
+.nav-right { display: flex; align-items: center; gap: 1rem; }
+.btn-nav { background: var(--cyan); color: #080C14; padding: 0.6rem 1.2rem; border-radius: var(--radius); text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: transform 0.2s ease; }
+.btn-nav:hover { transform: translateY(-1px); }
+.lang-btn { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 0.6rem 0.8rem; border-radius: var(--radius); cursor: pointer; font-family: var(--font-mono); font-size: 0.85rem; }
 
 /* ── HERO ── */
-.hero { padding: 6rem 3rem; text-align: center; position: relative; }
-.hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-bottom: 1.5rem; line-height: 1.1; }
-.hero-title em { color: var(--primary); font-style: normal; }
-.hero-sub { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto 2.5rem; }
-.btn-primary { background: var(--primary); color: white; padding: 1rem 2.2rem; border-radius: var(--radius); text-decoration: none; font-weight: 700; font-family: var(--font-display); }
+.hero { padding: 6rem 3rem 4rem; text-align: center; position: relative; }
+.hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 800; margin-bottom: 1.5rem; line-height: 1.1; letter-spacing: -0.02em; }
+.hero-title em { color: var(--cyan); font-style: normal; }
+.hero-sub { color: var(--text-muted); font-size: 1.2rem; max-width: 700px; margin: 0 auto 2.5rem; }
+.btn-primary { background: var(--cyan); color: #080C14; padding: 1.1rem 2.5rem; border-radius: var(--radius); text-decoration: none; font-weight: 700; font-family: var(--font-display); transition: transform 0.2s ease, box-shadow 0.2s ease; display: inline-block; font-size: 1.1rem; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,212,170,0.2); }
 
 /* ── FEATURES ── */
-.features { padding: 4rem 3rem; max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
-.card h3 { font-family: var(--font-display); margin-bottom: 0.5rem; }
+.features { padding: 4rem 3rem; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem; transition: border-color 0.2s ease; text-align: left; }
+.card:hover { border-color: rgba(0,212,170,0.3); }
+.card h3 { font-family: var(--font-display); margin-bottom: 0.8rem; color: var(--cyan); font-size: 1.3rem; }
+.card p { color: var(--text-muted); font-size: 0.95rem; }
+
+/* ── FOOTER ── */
+footer { padding: 4rem 3rem; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+.footer-links { display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; }
+.footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s ease; }
+.footer-links a:hover { color: var(--cyan); }
+
+@media (max-width: 600px) {
+    .nav { padding: 1rem 1.5rem; }
+    .hero { padding: 4rem 1.5rem; }
+}
+
   </style>
+  <script>
+    var LANG = (function() {
+      try {
+        var s = localStorage.getItem('gametracker-lang');
+        if (s) return s;
+      } catch(e) {}
+      var nav = navigator.language || '';
+      return (nav.toLowerCase().indexOf('fr') >= 0) ? 'fr' : 'en';
+    })();
+
+    var TRANSLATIONS = {
+      fr: {
+        title: "GameTracker — Dominez vos jeux de société",
+        navLaunch: "Lancer l'App",
+        heroTitle: "Dominez vos <em>jeux de société</em>",
+        heroSub: "Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais le fil de vos parties.",
+        heroBtn: "🚀 Commencer à jouer",
+        feat1Title: "📊 Stats Avancées",
+        feat1Sub: "Suivez vos performances, vos taux de victoire et progressez sur vos jeux favoris.",
+        feat2Title: "👥 Groupes Privés",
+        feat2Sub: "Créez des groupes avec vos amis, gérez les membres et synchronisez les scores instantanément.",
+        feat3Title: "⚡ Temps Réel",
+        feat3Sub: "Le score se met à jour pour tous les joueurs en direct. Une expérience fluide et moderne.",
+        feat4Title: "☁️ Sauvegarde Cloud",
+        feat4Sub: "Synchronisez vos données sur tous vos appareils grâce à l'intégration Google Drive.",
+        footerLegal: "© 2026 StellaSecret · GameTracker est Open Source",
+        footerPrivacy: "Confidentialité"
+      },
+      en: {
+        title: "GameTracker — Dominate your board games",
+        navLaunch: "Launch App",
+        heroTitle: "Dominate your <em>board games</em>",
+        heroSub: "Real-time scores, advanced statistics, private groups. Never lose track of your gaming sessions again.",
+        heroBtn: "🚀 Start playing",
+        feat1Title: "📊 Advanced Stats",
+        feat1Sub: "Track your performance, win rates, and progress on your favorite games.",
+        feat2Title: "👥 Private Groups",
+        feat2Sub: "Create groups with friends, manage members, and sync scores instantly.",
+        feat3Title: "⚡ Real-Time",
+        feat3Sub: "Scores update for all players live. A smooth and modern experience.",
+        feat4Title: "☁️ Cloud Backup",
+        feat4Sub: "Sync your data across all your devices with Google Drive integration.",
+        footerLegal: "© 2026 StellaSecret · GameTracker is Open Source",
+        footerPrivacy: "Privacy Policy"
+      }
+    };
+
+    function t(key) {
+      return (TRANSLATIONS[LANG] || TRANSLATIONS.fr)[key] || '';
+    }
+
+    function applyLang() {
+      document.title = t('title');
+      document.getElementById('nav-launch').textContent = t('navLaunch');
+      document.getElementById('hero-title').innerHTML = t('heroTitle');
+      document.getElementById('hero-sub').textContent = t('heroSub');
+      document.getElementById('hero-btn').textContent = t('heroBtn');
+      document.getElementById('feat1-title').textContent = t('feat1Title');
+      document.getElementById('feat1-sub').textContent = t('feat1Sub');
+      document.getElementById('feat2-title').textContent = t('feat2Title');
+      document.getElementById('feat2-sub').textContent = t('feat2Sub');
+      document.getElementById('feat3-title').textContent = t('feat3Title');
+      document.getElementById('feat3-sub').textContent = t('feat3Sub');
+      document.getElementById('feat4-title').textContent = t('feat4Title');
+      document.getElementById('feat4-sub').textContent = t('feat4Sub');
+      document.getElementById('footer-legal').textContent = t('footerLegal');
+      document.getElementById('footer-privacy').textContent = t('footerPrivacy');
+      document.getElementById('lang-toggle').textContent = LANG === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = LANG;
+    }
+
+    function toggleLang() {
+      LANG = (LANG === 'fr') ? 'en' : 'fr';
+      try { localStorage.setItem('gametracker-lang', LANG); } catch(e) {}
+      applyLang();
+    }
+  </script>
 </head>
 <body>
 
 <div class="noise"></div>
 
 <nav class="nav">
-  <div class="nav-logo">🎲 Game<span>Tracker</span></div>
-  <div class="nav-links">
-    <a href="app.html?demo=true" style="color:var(--text); text-decoration:none; margin-right:1rem;">Démo</a>
-    <a class="btn-nav" href="app.html">Lancer l'App</a>
+  <a class="nav-logo" href="#">🎲 Game<span>Tracker</span></a>
+  <div class="nav-right">
+    <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">EN</button>
+    <a class="btn-nav" id="nav-launch" href="app.html">Lancer l'App</a>
   </div>
 </nav>
 
 <section class="hero">
-  <h1 class="hero-title">Dominez vos <em>jeux de société</em></h1>
-  <p class="hero-sub">Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais une partie.</p>
-  <a href="app.html" class="btn-primary">🚀 Commencer à jouer</a>
+  <h1 class="hero-title" id="hero-title">Dominez vos <em>jeux de société</em></h1>
+  <p class="hero-sub" id="hero-sub">Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais le fil de vos parties.</p>
+  <a href="app.html" class="btn-primary" id="hero-btn">🚀 Commencer à jouer</a>
 </section>
 
 <section class="features">
   <div class="card">
-    <h3>📊 Stats Avancées</h3>
-    <p>Suivez vos performances, vos taux de victoire et progressez sur vos jeux favoris.</p>
+    <h3 id="feat1-title">📊 Stats Avancées</h3>
+    <p id="feat1-sub">Suivez vos performances, vos taux de victoire et progressez sur vos jeux favoris.</p>
   </div>
   <div class="card">
-    <h3>👥 Groupes Privés</h3>
-    <p>Créez des groupes avec vos amis, gérez les membres et synchronisez les scores instantanément.</p>
+    <h3 id="feat2-title">👥 Groupes Privés</h3>
+    <p id="feat2-sub">Créez des groupes avec vos amis, gérez les membres et synchronisez les scores instantanément.</p>
   </div>
   <div class="card">
-    <h3>⚡ Temps Réel</h3>
-    <p>Le score se met à jour pour tous les joueurs en direct. Une expérience fluide et moderne.</p>
+    <h3 id="feat3-title">⚡ Temps Réel</h3>
+    <p id="feat3-sub">Le score se met à jour pour tous les joueurs en direct. Une expérience fluide et moderne.</p>
+  </div>
+  <div class="card">
+    <h3 id="feat4-title">☁️ Sauvegarde Cloud</h3>
+    <p id="feat4-sub">Synchronisez vos données sur tous vos appareils grâce à l'intégration Google Drive.</p>
   </div>
 </section>
+
+<footer>
+    <p id="footer-legal">© 2026 StellaSecret · GameTracker est Open Source</p>
+    <div class="footer-links">
+        <a href="https://github.com/StellaSecret/GameTracker" target="_blank">GitHub</a>
+        <a href="https://stellasecret.github.io/privacy-pages/gametracker/privacy.html" id="footer-privacy" target="_blank">Confidentialité</a>
+    </div>
+</footer>
+
+<script>
+    (function() {
+      applyLang();
+    })();
+</script>
 
 </body>
 </html>

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Palette — dark (default)
@@ -131,13 +132,15 @@ class AppTheme {
     final ts = isDark ? _Dark.textSecondary   : _Light.textSecondary;
     final er = isDark ? _Dark.error           : _Light.error;
 
-    const fontFamily = 'Outfit';
-    final base = isDark ? ThemeData.dark() : ThemeData.light();
-    final textTheme = base.textTheme.apply(
+    // TripMind Aesthetic: Lexend for body, Outfit for headers
+    final textTheme = GoogleFonts.lexendTextTheme(
+      (isDark ? ThemeData.dark() : ThemeData.light()).textTheme,
+    ).apply(
       bodyColor: tp,
       displayColor: tp,
-      fontFamily: fontFamily,
     );
+
+    const displayFont = 'Outfit';
 
     return ThemeData(
       useMaterial3: true,
@@ -161,7 +164,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontFamily: fontFamily,
+          fontFamily: displayFont,
           fontSize: 22,
           fontWeight: FontWeight.w700,
           color: tp,
@@ -209,7 +212,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: const TextStyle(
-            fontFamily: fontFamily,
+            fontFamily: displayFont,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -219,7 +222,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: p,
           textStyle: const TextStyle(
-            fontFamily: fontFamily,
+            fontFamily: displayFont,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -234,7 +237,7 @@ class AppTheme {
       dividerTheme: DividerThemeData(color: cb, thickness: 1),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: se,
-        contentTextStyle: TextStyle(fontFamily: fontFamily, color: tp),
+        contentTextStyle: TextStyle(fontFamily: displayFont, color: tp),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
