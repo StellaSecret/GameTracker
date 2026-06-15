@@ -17,8 +17,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Lexend:wght@300;400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+
   <style>
-/* ── DESIGN SYSTEM (Consistent with StellaSecret / TripMind) ── */
+/* ── DESIGN SYSTEM ── */
 :root {
   --bg: #080C14;
   --surface: #0D1525;
@@ -33,266 +34,693 @@
   --font-mono: 'JetBrains Mono', monospace;
   --radius: 12px;
   --radius-lg: 20px;
+  --win: #00D4AA;
+  --accent-bg: rgba(78,74,242,0.1);
+  --premium-bg: rgba(78,74,242,0.12);
+  --premium-border: rgba(78,74,242,0.35);
 }
+
+/* ── LIGHT MODE ── */
+html.light {
+  --bg: #f0f0ed;
+  --surface: #fafaf7;
+  --surface2: #eeecea;
+  --border: rgba(0,0,0,0.09);
+  --text: #18181a;
+  --text-muted: #76746e;
+  --primary: #4E4AF2;
+  --cyan: #0a9e7e;
+  --accent-bg: rgba(78,74,242,0.06);
+  --premium-bg: rgba(78,74,242,0.07);
+  --premium-border: rgba(78,74,242,0.25);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--font-main); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-main); font-size: 15px; line-height: 1.6; overflow-x: hidden; transition: background 0.25s, color 0.25s; }
+a { color: inherit; text-decoration: none; }
 
 .noise {
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
   opacity: 0.4;
 }
+html.light .noise { opacity: 0.15; }
+
+/* ── SECTION DIVIDER ── */
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 0 3rem; }
 
 /* ── NAV ── */
-.nav { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 3rem; backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; background: rgba(8,12,20,0.8); }
-.nav-logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--text); text-decoration: none; }
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 3rem;
+  backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(8,12,20,0.85);
+  transition: background 0.25s;
+}
+html.light .nav { background: rgba(240,240,237,0.9); }
+
+.nav-logo { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: var(--text); }
 .nav-logo span { color: var(--cyan); }
-.nav-right { display: flex; align-items: center; gap: 1rem; }
-.btn-nav { background: var(--cyan); color: #080C14; padding: 0.6rem 1.2rem; border-radius: var(--radius); text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: transform 0.2s ease; }
-.btn-nav:hover { transform: translateY(-1px); }
-.lang-btn { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 0.6rem 0.8rem; border-radius: var(--radius); cursor: pointer; font-family: var(--font-mono); font-size: 0.85rem; }
+.nav-right { display: flex; align-items: center; gap: 0.75rem; }
+
+.nav-link { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; transition: color 0.15s; }
+.nav-link:hover { color: var(--text); }
+
+.btn-nav {
+  background: var(--cyan); color: #080C14; padding: 0.55rem 1.1rem;
+  border-radius: var(--radius); font-size: 0.82rem; font-weight: 700;
+  transition: transform 0.2s ease, opacity 0.2s;
+}
+html.light .btn-nav { color: #fff; }
+.btn-nav:hover { transform: translateY(-1px); opacity: 0.88; }
+
+/* icon buttons in nav */
+.icon-btn {
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border); padding: 0.5rem 0.75rem;
+  border-radius: var(--radius); cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.8rem;
+  transition: border-color 0.15s, background 0.15s;
+  line-height: 1;
+}
+.icon-btn:hover { border-color: var(--cyan); }
 
 /* ── HERO ── */
 .hero { padding: 6rem 3rem 4rem; text-align: center; position: relative; }
-.hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 800; margin-bottom: 1.5rem; line-height: 1.1; letter-spacing: -0.02em; }
+.hero-eyebrow {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.5rem;
+}
+.hero-title {
+  font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 4.2rem);
+  font-weight: 800; margin-bottom: 1.5rem; line-height: 1.1; letter-spacing: -0.02em;
+}
 .hero-title em { color: var(--cyan); font-style: normal; }
-.hero-sub { color: var(--text-muted); font-size: 1.2rem; max-width: 700px; margin: 0 auto 2.5rem; }
-.btn-primary { background: var(--cyan); color: #080C14; padding: 1.1rem 2.5rem; border-radius: var(--radius); text-decoration: none; font-weight: 700; font-family: var(--font-display); transition: transform 0.2s ease, box-shadow 0.2s ease; display: inline-block; font-size: 1.1rem; }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,212,170,0.2); }
+.hero-sub { color: var(--text-muted); font-size: 1.1rem; max-width: 640px; margin: 0 auto 2.5rem; line-height: 1.7; }
+.hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+.btn-primary {
+  background: var(--cyan); color: #080C14; padding: 0.95rem 2rem;
+  border-radius: var(--radius); font-weight: 700; font-family: var(--font-display);
+  transition: transform 0.2s ease, box-shadow 0.2s ease; display: inline-block; font-size: 1rem;
+}
+html.light .btn-primary { color: #fff; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,212,170,0.25); }
+
+.btn-ghost {
+  background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+  padding: 0.95rem 2rem; border-radius: var(--radius);
+  font-weight: 600; font-family: var(--font-display); font-size: 1rem;
+  display: inline-block; transition: border-color 0.2s, transform 0.2s;
+}
+.btn-ghost:hover { border-color: var(--cyan); transform: translateY(-1px); }
+
+/* ── MOCKUP ── */
+.mockup-container { padding: 0 1.5rem 5rem; perspective: 2000px; }
+.mockup {
+  max-width: 860px; margin: 0 auto; background: #0F172A;
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; padding: 0;
+  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7);
+  transform: rotateX(5deg); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden; user-select: none; text-align: left;
+}
+html.light .mockup { background: #1a2035; }
+.mockup:hover { transform: rotateX(0deg) translateY(-5px); }
+.m-top-bar {
+  background: #1E293B; padding: 14px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.m-game { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: #fff; }
+.m-game em { color: var(--cyan); font-style: normal; margin-right: 8px; }
+.m-content { padding: 24px; min-height: 300px; }
+.m-player-row {
+  display: flex; align-items: center; gap: 16px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px; padding: 16px; margin-bottom: 12px; transition: transform 0.2s ease;
+}
+.m-player-row:hover { transform: scale(1.02); background: rgba(255,255,255,0.07); }
+.m-avatar {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.m-name { flex: 1; font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; color: #fff; }
+.m-score { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--cyan); min-width: 40px; text-align: right; }
+.m-btn-group { display: flex; gap: 8px; margin-left: 16px; }
+.m-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; font-size: 1.1rem; font-weight: 600;
+}
+.m-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+/* ── HOW IT WORKS ── */
+.how { max-width: 1100px; margin: 0 auto; padding: 5rem 3rem; }
+.section-label {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2rem;
+}
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+.step-num { font-family: var(--font-mono); font-size: 0.65rem; color: var(--cyan); margin-bottom: 0.6rem; opacity: 0.7; }
+.step h3 { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+.step p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.65; }
 
 /* ── FEATURES ── */
-.features { padding: 4rem 3rem; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem; transition: border-color 0.2s ease; text-align: left; }
+.features-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.features-inner { max-width: 1100px; margin: 0 auto; padding: 5rem 3rem; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 2rem;
+  transition: border-color 0.2s ease; text-align: left;
+}
 .card:hover { border-color: rgba(0,212,170,0.3); }
-.card h3 { font-family: var(--font-display); margin-bottom: 0.8rem; color: var(--cyan); font-size: 1.3rem; }
-.card p { color: var(--text-muted); font-size: 0.95rem; }
-
-/* ── FOOTER ── */
-footer { padding: 4rem 3rem; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 0.85rem; }
-.footer-links { display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; }
-.footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s ease; }
-.footer-links a:hover { color: var(--cyan); }
-
-@media (max-width: 600px) {
-    .nav { padding: 1rem 1.5rem; }
-    .hero { padding: 4rem 1.5rem; }
+.card-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+.card h3 { font-family: var(--font-display); margin-bottom: 0.6rem; color: var(--cyan); font-size: 1rem; font-weight: 700; }
+.card p { color: var(--text-muted); font-size: 0.88rem; line-height: 1.65; }
+.card.premium-card { border-color: var(--premium-border); background: var(--premium-bg); }
+.card.premium-card h3::after {
+  content: 'premium'; font-family: var(--font-mono); font-size: 0.58rem;
+  color: var(--primary); border: 1px solid var(--primary); border-radius: 4px;
+  padding: 1px 5px; margin-left: 8px; vertical-align: middle; opacity: 0.9;
 }
 
+/* ── GAME MODES ── */
+.modes { max-width: 1100px; margin: 0 auto; padding: 5rem 3rem; }
+.modes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.mode-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 2rem; transition: border-color 0.2s;
+}
+.mode-card:hover { border-color: rgba(0,212,170,0.25); }
+.mode-card h3 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.6rem; }
+.mode-card p { color: var(--text-muted); font-size: 0.87rem; line-height: 1.65; margin-bottom: 1rem; }
+.tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tag {
+  font-family: var(--font-mono); font-size: 0.65rem; padding: 3px 9px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted);
+}
+
+/* ── PLANS ── */
+.plans-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.plans-inner { max-width: 1100px; margin: 0 auto; padding: 5rem 3rem; }
+.plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.plan-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
+.plan-card.free { background: var(--bg); }
+.plan-card.premium { background: var(--premium-bg); border-color: var(--premium-border); }
+.plan-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
+.plan-name { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+.plan-price { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
+.plan-price.paid { color: var(--primary); }
+.plan-items { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+.plan-items li { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); display: flex; gap: 0.6rem; }
+.plan-items li::before { content: '✓'; color: var(--cyan); flex-shrink: 0; }
+.plan-card.premium .plan-items li::before { color: var(--primary); }
+
+/* ── PRIVACY STRIP ── */
+.privacy-strip { border-top: 1px solid var(--border); }
+.privacy-inner {
+  max-width: 1100px; margin: 0 auto; padding: 1.5rem 3rem;
+  display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+}
+.privacy-item { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
+.privacy-item span:first-child { color: var(--cyan); }
+
+/* ── CTA ── */
+.cta-section { max-width: 1100px; margin: 0 auto; padding: 6rem 3rem; text-align: center; }
+.cta-section h2 { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+.cta-section p { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+.cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+/* ── FOOTER ── */
+footer { padding: 2.5rem 3rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.footer-logo { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); transition: color 0.2s; }
+.footer-links a:hover { color: var(--cyan); }
+.footer-copy { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 800px) {
+  .nav { padding: 1rem 1.5rem; }
+  .hero { padding: 4rem 1.5rem 3rem; }
+  .how, .modes, .cta-section { padding: 4rem 1.5rem; }
+  .features-inner, .plans-inner { padding: 4rem 1.5rem; }
+  .privacy-inner { padding: 1.25rem 1.5rem; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .modes-grid { grid-template-columns: 1fr; }
+  .plans-grid { grid-template-columns: 1fr; }
+  .section-divider { margin: 0 1.5rem; }
+  footer { padding: 1.75rem 1.5rem; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+}
+@media (max-width: 480px) {
+  .steps { grid-template-columns: 1fr; }
+  .hero-cta { flex-direction: column; align-items: center; }
+  .privacy-inner { gap: 0.85rem; }
+  .nav-right { gap: 0.5rem; }
+}
   </style>
+
   <script>
-    var LANG = (function() {
-      try {
-        var s = localStorage.getItem('gametracker-lang');
-        if (s) return s;
-      } catch(e) {}
-      var nav = navigator.language || '';
-      return (nav.toLowerCase().indexOf('fr') >= 0) ? 'fr' : 'en';
-    })();
+/* ── THEME ── */
+var THEME = (function() {
+  try { var s = localStorage.getItem('gametracker-theme'); if (s) return s; } catch(e) {}
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+})();
 
-    var TRANSLATIONS = {
-      fr: {
-        title: "GameTracker — Dominez vos jeux de société",
-        navLaunch: "Lancer l'App",
-        navDemo: "Démo",
-        heroTitle: "Dominez vos <em>jeux de société</em>",
-        heroSub: "Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais le fil de vos parties.",
-        heroBtn: "🚀 Commencer à jouer",
-        heroDemo: "Voir la Démo",
-        feat1Title: "📊 Stats Avancées",
-        feat1Sub: "Suivez vos performances, vos taux de victoire et progressez sur vos jeux favoris.",
-        feat2Title: "👥 Groupes Privés",
-        feat2Sub: "Créez des groupes avec vos amis, gérez les membres et synchronisez les scores instantanément.",
-        feat3Title: "⚡ Temps Réel",
-        feat3Sub: "Le score se met à jour pour tous les joueurs en direct. Une expérience fluide et moderne.",
-        feat4Title: "☁️ Sauvegarde Cloud",
-        feat4Sub: "Synchronisez vos données sur tous vos appareils grâce à l'intégration Google Drive.",
-        footerLegal: "© 2026 StellaSecret · GameTracker est Open Source",
-        footerPrivacy: "Confidentialité"
-      },
-      en: {
-        title: "GameTracker — Dominate your board games",
-        navLaunch: "Launch App",
-        navDemo: "Demo",
-        heroTitle: "Dominate your <em>board games</em>",
-        heroSub: "Real-time scores, advanced statistics, private groups. Never lose track of your gaming sessions again.",
-        heroBtn: "🚀 Start playing",
-        heroDemo: "View Demo",
-        feat1Title: "📊 Advanced Stats",
-        feat1Sub: "Track your performance, win rates, and progress on your favorite games.",
-        feat2Title: "👥 Private Groups",
-        feat2Sub: "Create groups with friends, manage members, and sync scores instantly.",
-        feat3Title: "⚡ Real-Time",
-        feat3Sub: "Scores update for all players live. A smooth and modern experience.",
-        feat4Title: "☁️ Cloud Backup",
-        feat4Sub: "Sync your data across all your devices with Google Drive integration.",
-        footerLegal: "© 2026 StellaSecret · GameTracker is Open Source",
-        footerPrivacy: "Privacy Policy"
-      }
-    };
+function applyTheme(t) {
+  THEME = t;
+  document.documentElement.classList.toggle('light', t === 'light');
+  var btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = t === 'light' ? '🌙' : '☀️';
+  try { localStorage.setItem('gametracker-theme', t); } catch(e) {}
+}
+function toggleTheme() { applyTheme(THEME === 'dark' ? 'light' : 'dark'); }
 
-    function t(key) {
-      return (TRANSLATIONS[LANG] || TRANSLATIONS.fr)[key] || '';
-    }
+/* ── LANGUAGE ── */
+var LANG = (function() {
+  try { var s = localStorage.getItem('gametracker-lang'); if (s) return s; } catch(e) {}
+  var nav = navigator.language || '';
+  return (nav.toLowerCase().indexOf('fr') >= 0) ? 'fr' : 'en';
+})();
 
-    function applyLang() {
-      document.title = t('title');
-      document.getElementById('nav-launch').textContent = t('navLaunch');
-      document.getElementById('nav-demo').textContent = t('navDemo');
-      document.getElementById('hero-title').innerHTML = t('heroTitle');
-      document.getElementById('hero-sub').textContent = t('heroSub');
-      document.getElementById('hero-btn').textContent = t('heroBtn');
-      document.getElementById('hero-demo').textContent = t('heroDemo');
-      document.getElementById('feat1-title').textContent = t('feat1Title');
-      document.getElementById('feat1-sub').textContent = t('feat1Sub');
-      document.getElementById('feat2-title').textContent = t('feat2Title');
-      document.getElementById('feat2-sub').textContent = t('feat2Sub');
-      document.getElementById('feat3-title').textContent = t('feat3Title');
-      document.getElementById('feat3-sub').textContent = t('feat3Sub');
-      document.getElementById('feat4-title').textContent = t('feat4Title');
-      document.getElementById('feat4-sub').textContent = t('feat4Sub');
-      document.getElementById('footer-legal').textContent = t('footerLegal');
-      document.getElementById('footer-privacy').textContent = t('footerPrivacy');
-      document.getElementById('lang-toggle').textContent = LANG === 'fr' ? 'EN' : 'FR';
-      document.documentElement.lang = LANG;
-    }
+var T = {
+  fr: {
+    /* meta */
+    title: "GameTracker — Dominez vos jeux de société",
+    /* nav */
+    navDemo: "Démo", navLaunch: "Lancer l'App",
+    /* hero */
+    heroEyebrow: "Pour les soirées jeux qui comptent",
+    heroTitle: "Marquez chaque partie,<br>retenez <em>chaque victoire</em>",
+    heroSub: "Trois modes pour tous vos jeux — points, duels ou classements. Des stats qui durent : leaderboards, records, comptage des victoires. Sync Drive. Jeu en temps réel avec votre groupe.",
+    heroBtn: "📱 Télécharger l'APK", heroDemo: "Essayer la version web →",
+    /* how */
+    howTitle: "Comment ça marche",
+    s1n:"01", s1h:"Créer un jeu",        s1p:"Nommez votre jeu, choisissez un mode. Prêt en moins de 10 secondes.",
+    s2n:"02", s2h:"Ajouter des joueurs", s2p:"Chaque joueur a un nom et une couleur. Reconnaissables au premier coup d'œil.",
+    s3n:"03", s3h:"Enregistrer les sessions", s3p:"Entrez les scores après chaque partie. Le classement se met à jour instantanément.",
+    s4n:"04", s4h:"Revoir l'historique",  s4p:"Records, victoires totales, séries. Chaque soirée consignée, rien de perdu.",
+    /* features */
+    featTitle: "Ce qui le rend différent",
+    f1h:"Trois modes de jeu",      f1p:"Points pour les scores cumulés, Duel pour les face-à-face, Classement pour les jeux de position. Une seule app pour toute votre ludothèque.",
+    f2h:"Des stats qui restent",   f2p:"Comptages de victoires, records all-time, leaderboards par jeu. Sachez enfin qui gagne vraiment à Catan.",
+    f3h:"Sauvegarde Google Drive", f3p:"Sauvegardez et restaurez vos données sur Drive. Changez de téléphone sans perdre une seule session.",
+    f4h:"Groupes en temps réel",   f4p:"Chaque joueur voit le tableau de bord se mettre à jour sur son propre téléphone — plus besoin de faire passer un seul appareil.",
+    f5h:"Historique illimité",     f5p:"Le plan gratuit gère 5 jeux et 20 sessions chacun. Le Premium supprime toutes les limites.",
+    f6h:"Couleurs des joueurs",    f6p:"Des couleurs personnalisées par joueur rendent chaque tableau lisible sans lire les noms.",
+    /* modes */
+    modesTitle: "Modes de jeu",
+    m1h:"🔢 Points", m1p:"Suivez les scores cumulés sur plusieurs manches. L'app classe tout le monde et affiche l'écart avec la première place.",
+    m1t1:"Wingspan", m1t2:"Scrabble", m1t3:"Catan", m1t4:"Ticket to Ride",
+    m2h:"⚔️ Duel", m2p:"Victoire/défaite par session. Idéal pour les jeux à deux où seul le résultat compte.",
+    m2t1:"Échecs", m2t2:"Hive", m2t3:"Patchwork", m2t4:"Tout duel",
+    m3h:"🥇 Classement", m3p:"Enregistrez les positions de fin plutôt que les scores. Parfait pour les jeux où seul l'ordre compte.",
+    m3t1:"Race for the Galaxy", m3t2:"Azul", m3t3:"7 Wonders", m3t4:"Toute arrivée classée",
+    /* plans */
+    plansTitle: "Gratuit & Premium",
+    freeLabel:"Gratuit", freeSub:"Toujours gratuit · Sans compte",
+    fl1:"Jusqu'à 5 jeux suivis", fl2:"20 sessions par jeu",
+    fl3:"Modes Points, Duel et Classement", fl4:"Couleurs et stats par joueur",
+    fl5:"Sauvegarde & restauration Google Drive", fl6:"Fonctionne hors ligne",
+    premLabel:"Premium", premSub:"Achat intégré",
+    pl1:"Jeux et sessions illimités", pl2:"Mode groupe temps réel (Firebase)",
+    pl3:"Chaque joueur score sur son propre téléphone",
+    pl4:"Stats avancées — bientôt disponible", pl5:"Export CSV / PDF — bientôt disponible",
+    pl6:"Tout le plan gratuit, pour toujours",
+    /* privacy */
+    pr1:"Données sur votre appareil", pr2:"Sans compte requis",
+    pr3:"Sync Drive uniquement sur demande", pr4:"Open source · Licence MIT",
+    privacyLink:"Politique de confidentialité →",
+    /* cta */
+    ctaH:"Prêt pour votre prochaine soirée jeux ?",
+    ctaP:"Gratuit à télécharger. Sans inscription. Fonctionne hors ligne dès le premier lancement.",
+    ctaBtn:"📱 Télécharger l'APK", ctaDemo:"Essayer la version web",
+    /* footer */
+    footerLegal: "© 2026 StellaSecret · GameTracker est Open Source",
+    footerPrivacy: "Confidentialité"
+  },
+  en: {
+    title: "GameTracker — Score every game, remember every victory",
+    navDemo: "Demo", navLaunch: "Launch App",
+    heroEyebrow: "For board game nights that matter",
+    heroTitle: "Score every game,<br>remember <em>every victory</em>",
+    heroSub: "Three modes for any game — points, duels, or full rankings. Stats that survive the evening: leaderboards, records, win counts. Sync to Drive. Play in real time with your group.",
+    heroBtn: "📱 Download APK", heroDemo: "Try the web app →",
+    howTitle: "How it works",
+    s1n:"01", s1h:"Create a game",      s1p:"Name your game, pick a mode. Start tracking in under 10 seconds.",
+    s2n:"02", s2h:"Add players",        s2p:"Each player gets a name and a colour. Recognisable at a glance, session after session.",
+    s3n:"03", s3h:"Record sessions",    s3p:"Enter scores after each play. The app ranks everyone and updates the leaderboard instantly.",
+    s4n:"04", s4h:"Review the history", s4p:"Records, total wins, streaks. Every game night logged, nothing lost.",
+    featTitle: "What makes it different",
+    f1h:"Three game modes",       f1p:"Points for cumulative scoring, Duel for head-to-head wins, Ranking for position-based games. One app covers everything on your shelf.",
+    f2h:"Stats that stick",       f2p:"Win counts, all-time records, and leaderboards per game. Finally know who actually wins at Catan.",
+    f3h:"Google Drive backup",    f3p:"Manually back up and restore all your data to Drive. Switch phones without losing a single session.",
+    f4h:"Real-time groups",       f4p:"Each player sees the scoreboard update on their own phone — no passing one device around the table.",
+    f5h:"Unlimited history",      f5p:"The free plan holds 5 games and 20 sessions each. Premium removes every limit.",
+    f6h:"Player colours",         f6p:"Custom colours per player make every scoreboard readable without reading the names.",
+    modesTitle: "Game modes",
+    m1h:"🔢 Points", m1p:"Track cumulative scores across rounds. The app ranks everyone and shows the gap to first place.",
+    m1t1:"Wingspan", m1t2:"Scrabble", m1t3:"Catan", m1t4:"Ticket to Ride",
+    m2h:"⚔️ Duel", m2p:"Win/lose per session. Best for two-player games where only the outcome counts.",
+    m2t1:"Chess", m2t2:"Hive", m2t3:"Patchwork", m2t4:"Any head-to-head",
+    m3h:"🥇 Ranking", m3p:"Record finish positions rather than scores. Right for games where only the order matters.",
+    m3t1:"Race for the Galaxy", m3t2:"Azul", m3t3:"7 Wonders", m3t4:"Any ranked finish",
+    plansTitle: "Free & Premium",
+    freeLabel:"Free", freeSub:"Always free · No account needed",
+    fl1:"Up to 5 games tracked", fl2:"20 sessions per game",
+    fl3:"Points, Duel, and Ranking modes", fl4:"Player colours and stats",
+    fl5:"Google Drive backup & restore", fl6:"Works fully offline",
+    premLabel:"Premium", premSub:"In-app purchase",
+    pl1:"Unlimited games and sessions", pl2:"Real-time group mode (Firebase)",
+    pl3:"Everyone scores on their own phone",
+    pl4:"Advanced stats — coming soon", pl5:"CSV / PDF export — coming soon",
+    pl6:"Everything in Free, forever",
+    pr1:"Data stays on your device", pr2:"No account required",
+    pr3:"Drive sync only when you ask for it", pr4:"Open source · MIT licence",
+    privacyLink:"Privacy policy →",
+    ctaH:"Ready for your next game night?",
+    ctaP:"Free to download. No sign-up. Works offline from the first launch.",
+    ctaBtn:"📱 Download APK", ctaDemo:"Try the web version first",
+    footerLegal: "© 2026 StellaSecret · GameTracker is Open Source",
+    footerPrivacy: "Privacy Policy"
+  }
+};
 
-    function toggleLang() {
-      LANG = (LANG === 'fr') ? 'en' : 'fr';
-      try { localStorage.setItem('gametracker-lang', LANG); } catch(e) {}
-      applyLang();
-    }
+function t(k) { return (T[LANG] || T.en)[k] || ''; }
+
+function applyLang() {
+  document.title = t('title');
+  document.documentElement.lang = LANG;
+  var ids = [
+    ['nav-demo','navDemo'],['nav-launch','navLaunch'],
+    ['hero-eyebrow','heroEyebrow'],['hero-sub','heroSub'],
+    ['hero-btn','heroBtn'],['hero-demo','heroDemo'],
+    ['how-title','howTitle'],
+    ['s1n','s1n'],['s1h','s1h'],['s1p','s1p'],
+    ['s2n','s2n'],['s2h','s2h'],['s2p','s2p'],
+    ['s3n','s3n'],['s3h','s3h'],['s3p','s3p'],
+    ['s4n','s4n'],['s4h','s4h'],['s4p','s4p'],
+    ['feat-title','featTitle'],
+    ['f1h','f1h'],['f1p','f1p'],['f2h','f2h'],['f2p','f2p'],
+    ['f3h','f3h'],['f3p','f3p'],['f4h','f4h'],['f4p','f4p'],
+    ['f5h','f5h'],['f5p','f5p'],['f6h','f6h'],['f6p','f6p'],
+    ['modes-title','modesTitle'],
+    ['m1h','m1h'],['m1p','m1p'],['m1t1','m1t1'],['m1t2','m1t2'],['m1t3','m1t3'],['m1t4','m1t4'],
+    ['m2h','m2h'],['m2p','m2p'],['m2t1','m2t1'],['m2t2','m2t2'],['m2t3','m2t3'],['m2t4','m2t4'],
+    ['m3h','m3h'],['m3p','m3p'],['m3t1','m3t1'],['m3t2','m3t2'],['m3t3','m3t3'],['m3t4','m3t4'],
+    ['plans-title','plansTitle'],
+    ['free-label','freeLabel'],['free-sub','freeSub'],
+    ['fl1','fl1'],['fl2','fl2'],['fl3','fl3'],['fl4','fl4'],['fl5','fl5'],['fl6','fl6'],
+    ['prem-label','premLabel'],['prem-sub','premSub'],
+    ['pl1','pl1'],['pl2','pl2'],['pl3','pl3'],['pl4','pl4'],['pl5','pl5'],['pl6','pl6'],
+    ['pr1','pr1'],['pr2','pr2'],['pr3','pr3'],['pr4','pr4'],
+    ['privacy-link','privacyLink'],
+    ['cta-h','ctaH'],['cta-p','ctaP'],['cta-btn','ctaBtn'],['cta-demo','ctaDemo'],
+    ['footer-legal','footerLegal'],['footer-privacy','footerPrivacy']
+  ];
+  ids.forEach(function(pair) {
+    var el = document.getElementById(pair[0]);
+    if (el) el.innerHTML = t(pair[1]);
+  });
+  /* innerHTML for hero title (has <br> and <em>) */
+  var ht = document.getElementById('hero-title');
+  if (ht) ht.innerHTML = t('heroTitle');
+
+  document.getElementById('lang-toggle').textContent = LANG === 'fr' ? 'EN' : 'FR';
+}
+
+function toggleLang() {
+  LANG = (LANG === 'fr') ? 'en' : 'fr';
+  try { localStorage.setItem('gametracker-lang', LANG); } catch(e) {}
+  applyLang();
+}
   </script>
 </head>
 <body>
 
 <div class="noise"></div>
 
+<!-- NAV -->
 <nav class="nav">
   <a class="nav-logo" href="#">🎲 Game<span>Tracker</span></a>
   <div class="nav-right">
-    <a href="app.html?demo=true" id="nav-demo" style="color:var(--text); text-decoration:none; font-size:0.85rem; font-weight:500;">Démo</a>
-    <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">EN</button>
+    <a href="app.html?demo=true" id="nav-demo" class="nav-link">Démo</a>
+    <button class="icon-btn" id="lang-toggle" onclick="toggleLang()">EN</button>
+    <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">☀️</button>
     <a class="btn-nav" id="nav-launch" href="app.html">Lancer l'App</a>
   </div>
 </nav>
 
+<!-- HERO -->
 <section class="hero">
-  <h1 class="hero-title" id="hero-title">Dominez vos <em>jeux de société</em></h1>
-  <p class="hero-sub" id="hero-sub">Scores en temps réel, statistiques avancées, groupes privés. Ne perdez plus jamais le fil de vos parties.</p>
-  <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-    <a href="app.html" class="btn-primary" id="hero-btn">🚀 Commencer à jouer</a>
-    <a href="app.html?demo=true" class="btn-primary" id="hero-demo" style="background: var(--surface2); color: var(--text); border: 1px solid var(--border);">Voir la Démo</a>
+  <p class="hero-eyebrow" id="hero-eyebrow">Pour les soirées jeux qui comptent</p>
+  <h1 class="hero-title" id="hero-title">Marquez chaque partie,<br>retenez <em>chaque victoire</em></h1>
+  <p class="hero-sub" id="hero-sub">Trois modes pour tous vos jeux — points, duels ou classements. Des stats qui durent : leaderboards, records, comptage des victoires. Sync Drive. Jeu en temps réel avec votre groupe.</p>
+  <div class="hero-cta">
+    <a href="https://github.com/StellaSecret/GameTracker/releases" class="btn-primary" id="hero-btn">📱 Télécharger l'APK</a>
+    <a href="app.html" class="btn-ghost" id="hero-demo">Essayer la version web →</a>
   </div>
 </section>
 
-<!-- INTERACTIVE MOCKUP (Tailored for GameTracker) -->
-<style>
-.mockup-container { padding: 0 1.5rem 6rem; perspective: 2000px; }
-.mockup {
-    max-width: 860px; margin: 0 auto; background: #0F172A; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; padding: 0;
-    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7); transform: rotateX(5deg); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    overflow: hidden; user-select: none; text-align: left;
-}
-.mockup:hover { transform: rotateX(0deg) translateY(-5px); }
-.m-top-bar { background: #1E293B; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.m-game { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: #fff; }
-.m-game em { color: var(--cyan); font-style: normal; margin-right: 8px; }
-.m-content { padding: 24px; min-height: 300px; }
-.m-player-row { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 16px; margin-bottom: 12px; transition: transform 0.2s ease; }
-.m-player-row:hover { transform: scale(1.02); background: rgba(255,255,255,0.07); }
-.m-avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: #fff; }
-.m-name { flex: 1; font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; color: #fff; }
-.m-score { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--cyan); }
-.m-btn-group { display: flex; gap: 8px; margin-left: 16px; }
-.m-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-.m-btn:hover { background: var(--primary); border-color: var(--primary); }
-</style>
-
+<!-- INTERACTIVE MOCKUP -->
 <section class="mockup-container">
-    <div class="mockup">
-        <div class="m-top-bar">
-            <div class="m-game"><em>🎲</em> 7 Wonders</div>
-            <div style="font-size: 0.7rem; opacity: 0.6; font-family: var(--font-mono)">LIVE SYNC ACTIVE</div>
-        </div>
-        <div class="m-content">
-            <div class="m-player-row">
-                <div class="m-avatar" style="background: #4E4AF2">V</div>
-                <div class="m-name">Vincent</div>
-                <div class="m-score" id="score-1">42</div>
-                <div class="m-btn-group">
-                    <div class="m-btn" onclick="updateMockScore('score-1', -1)">-</div>
-                    <div class="m-btn" onclick="updateMockScore('score-1', 1)">+</div>
-                </div>
-            </div>
-            <div class="m-player-row">
-                <div class="m-avatar" style="background: #00D4AA">L</div>
-                <div class="m-name">Léa</div>
-                <div class="m-score" id="score-2">38</div>
-                <div class="m-btn-group">
-                    <div class="m-btn" onclick="updateMockScore('score-2', -1)">-</div>
-                    <div class="m-btn" onclick="updateMockScore('score-2', 1)">+</div>
-                </div>
-            </div>
-            <div class="m-player-row" style="opacity: 0.8">
-                <div class="m-avatar" style="background: #F43F5E">T</div>
-                <div class="m-name">Thomas</div>
-                <div class="m-score" id="score-3">35</div>
-                <div class="m-btn-group">
-                    <div class="m-btn" onclick="updateMockScore('score-3', -1)">-</div>
-                    <div class="m-btn" onclick="updateMockScore('score-3', 1)">+</div>
-                </div>
-            </div>
-        </div>
+  <div class="mockup">
+    <div class="m-top-bar">
+      <div class="m-game"><em>🎲</em> 7 Wonders</div>
+      <div style="font-size: 0.7rem; opacity: 0.6; font-family: var(--font-mono)">LIVE SYNC ACTIVE</div>
     </div>
-</section>
-
-<script>
-function updateMockScore(id, delta) {
-    const el = document.getElementById(id);
-    let val = parseInt(el.textContent);
-    val += delta;
-    el.textContent = val;
-    el.style.color = '#fff';
-    el.style.transform = 'scale(1.2)';
-    setTimeout(() => {
-        el.style.color = 'var(--cyan)';
-        el.style.transform = 'scale(1)';
-    }, 200);
-}
-</script>
-
-<section class="features">
-  <div class="card">
-    <h3 id="feat1-title">📊 Stats Avancées</h3>
-    <p id="feat1-sub">Suivez vos performances, vos taux de victoire et progressez sur vos jeux favoris.</p>
-  </div>
-  <div class="card">
-    <h3 id="feat2-title">👥 Groupes Privés</h3>
-    <p id="feat2-sub">Créez des groupes avec vos amis, gérez les membres et synchronisez les scores instantanément.</p>
-  </div>
-  <div class="card">
-    <h3 id="feat3-title">⚡ Temps Réel</h3>
-    <p id="feat3-sub">Le score se met à jour pour tous les joueurs en direct. Une expérience fluide et moderne.</p>
-  </div>
-  <div class="card">
-    <h3 id="feat4-title">☁️ Sauvegarde Cloud</h3>
-    <p id="feat4-sub">Synchronisez vos données sur tous vos appareils grâce à l'intégration Google Drive.</p>
+    <div class="m-content">
+      <div class="m-player-row">
+        <div class="m-avatar" style="background:#4E4AF2">V</div>
+        <div class="m-name">Vincent</div>
+        <div class="m-score" id="score-1">42</div>
+        <div class="m-btn-group">
+          <div class="m-btn" onclick="updateScore('score-1',-1)">−</div>
+          <div class="m-btn" onclick="updateScore('score-1', 1)">+</div>
+        </div>
+      </div>
+      <div class="m-player-row">
+        <div class="m-avatar" style="background:#00D4AA">L</div>
+        <div class="m-name">Léa</div>
+        <div class="m-score" id="score-2">38</div>
+        <div class="m-btn-group">
+          <div class="m-btn" onclick="updateScore('score-2',-1)">−</div>
+          <div class="m-btn" onclick="updateScore('score-2', 1)">+</div>
+        </div>
+      </div>
+      <div class="m-player-row" style="opacity:0.8">
+        <div class="m-avatar" style="background:#F43F5E">T</div>
+        <div class="m-name">Thomas</div>
+        <div class="m-score" id="score-3">35</div>
+        <div class="m-btn-group">
+          <div class="m-btn" onclick="updateScore('score-3',-1)">−</div>
+          <div class="m-btn" onclick="updateScore('score-3', 1)">+</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
+<hr class="section-divider">
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <p class="section-label" id="how-title">Comment ça marche</p>
+  <div class="steps">
+    <div class="step">
+      <p class="step-num" id="s1n">01</p>
+      <h3 id="s1h">Créer un jeu</h3>
+      <p id="s1p">Nommez votre jeu, choisissez un mode. Prêt en moins de 10 secondes.</p>
+    </div>
+    <div class="step">
+      <p class="step-num" id="s2n">02</p>
+      <h3 id="s2h">Ajouter des joueurs</h3>
+      <p id="s2p">Chaque joueur a un nom et une couleur. Reconnaissables au premier coup d'œil.</p>
+    </div>
+    <div class="step">
+      <p class="step-num" id="s3n">03</p>
+      <h3 id="s3h">Enregistrer les sessions</h3>
+      <p id="s3p">Entrez les scores après chaque partie. Le classement se met à jour instantanément.</p>
+    </div>
+    <div class="step">
+      <p class="step-num" id="s4n">04</p>
+      <h3 id="s4h">Revoir l'historique</h3>
+      <p id="s4p">Records, victoires totales, séries. Chaque soirée consignée, rien de perdu.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <div class="features-inner">
+    <p class="section-label" id="feat-title">Ce qui le rend différent</p>
+    <div class="features-grid">
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3 id="f1h">Trois modes de jeu</h3>
+        <p id="f1p">Points pour les scores cumulés, Duel pour les face-à-face, Classement pour les jeux de position. Une seule app pour toute votre ludothèque.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏆</div>
+        <h3 id="f2h">Des stats qui restent</h3>
+        <p id="f2p">Comptages de victoires, records all-time, leaderboards par jeu. Sachez enfin qui gagne vraiment à Catan.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">☁️</div>
+        <h3 id="f3h">Sauvegarde Google Drive</h3>
+        <p id="f3p">Sauvegardez et restaurez vos données sur Drive. Changez de téléphone sans perdre une seule session.</p>
+      </div>
+      <div class="card premium-card">
+        <div class="card-icon">⚡</div>
+        <h3 id="f4h">Groupes en temps réel</h3>
+        <p id="f4p">Chaque joueur voit le tableau de bord se mettre à jour sur son propre téléphone — plus besoin de faire passer un seul appareil.</p>
+      </div>
+      <div class="card premium-card">
+        <div class="card-icon">∞</div>
+        <h3 id="f5h">Historique illimité</h3>
+        <p id="f5p">Le plan gratuit gère 5 jeux et 20 sessions chacun. Le Premium supprime toutes les limites.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎨</div>
+        <h3 id="f6h">Couleurs des joueurs</h3>
+        <p id="f6p">Des couleurs personnalisées par joueur rendent chaque tableau lisible sans lire les noms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GAME MODES -->
+<section class="modes">
+  <p class="section-label" id="modes-title">Modes de jeu</p>
+  <div class="modes-grid">
+    <div class="mode-card">
+      <h3 id="m1h">🔢 Points</h3>
+      <p id="m1p">Suivez les scores cumulés sur plusieurs manches. L'app classe tout le monde et affiche l'écart avec la première place.</p>
+      <div class="tags">
+        <span class="tag" id="m1t1">Wingspan</span>
+        <span class="tag" id="m1t2">Scrabble</span>
+        <span class="tag" id="m1t3">Catan</span>
+        <span class="tag" id="m1t4">Ticket to Ride</span>
+      </div>
+    </div>
+    <div class="mode-card">
+      <h3 id="m2h">⚔️ Duel</h3>
+      <p id="m2p">Victoire/défaite par session. Idéal pour les jeux à deux où seul le résultat compte.</p>
+      <div class="tags">
+        <span class="tag" id="m2t1">Échecs</span>
+        <span class="tag" id="m2t2">Hive</span>
+        <span class="tag" id="m2t3">Patchwork</span>
+        <span class="tag" id="m2t4">Tout duel</span>
+      </div>
+    </div>
+    <div class="mode-card">
+      <h3 id="m3h">🥇 Classement</h3>
+      <p id="m3p">Enregistrez les positions de fin plutôt que les scores. Parfait pour les jeux où seul l'ordre compte.</p>
+      <div class="tags">
+        <span class="tag" id="m3t1">Race for the Galaxy</span>
+        <span class="tag" id="m3t2">Azul</span>
+        <span class="tag" id="m3t3">7 Wonders</span>
+        <span class="tag" id="m3t4">Toute arrivée classée</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="plans-section">
+  <div class="plans-inner">
+    <p class="section-label" id="plans-title">Gratuit &amp; Premium</p>
+    <div class="plans-grid">
+      <div class="plan-card free">
+        <div class="plan-header">
+          <span class="plan-name" id="free-label">Gratuit</span>
+          <span class="plan-price" id="free-sub">Toujours gratuit · Sans compte</span>
+        </div>
+        <ul class="plan-items">
+          <li id="fl1">Jusqu'à 5 jeux suivis</li>
+          <li id="fl2">20 sessions par jeu</li>
+          <li id="fl3">Modes Points, Duel et Classement</li>
+          <li id="fl4">Couleurs et stats par joueur</li>
+          <li id="fl5">Sauvegarde &amp; restauration Google Drive</li>
+          <li id="fl6">Fonctionne hors ligne</li>
+        </ul>
+      </div>
+      <div class="plan-card premium">
+        <div class="plan-header">
+          <span class="plan-name" id="prem-label">Premium</span>
+          <span class="plan-price paid" id="prem-sub">Achat intégré</span>
+        </div>
+        <ul class="plan-items">
+          <li id="pl1">Jeux et sessions illimités</li>
+          <li id="pl2">Mode groupe temps réel (Firebase)</li>
+          <li id="pl3">Chaque joueur score sur son propre téléphone</li>
+          <li id="pl4">Stats avancées — bientôt disponible</li>
+          <li id="pl5">Export CSV / PDF — bientôt disponible</li>
+          <li id="pl6">Tout le plan gratuit, pour toujours</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY STRIP -->
+<section class="privacy-strip">
+  <div class="privacy-inner">
+    <div class="privacy-item"><span>✓</span><span id="pr1">Données sur votre appareil</span></div>
+    <div class="privacy-item"><span>✓</span><span id="pr2">Sans compte requis</span></div>
+    <div class="privacy-item"><span>✓</span><span id="pr3">Sync Drive uniquement sur demande</span></div>
+    <div class="privacy-item"><span>✓</span><span id="pr4">Open source · Licence MIT</span></div>
+    <a href="https://stellasecret.github.io/privacy-pages/gametracker/privacy.html"
+       style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);margin-left:auto;"
+       id="privacy-link">Politique de confidentialité →</a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 id="cta-h">Prêt pour votre prochaine soirée jeux ?</h2>
+  <p id="cta-p">Gratuit à télécharger. Sans inscription. Fonctionne hors ligne dès le premier lancement.</p>
+  <div class="cta-buttons">
+    <a href="https://github.com/StellaSecret/GameTracker/releases" class="btn-primary" id="cta-btn">📱 Télécharger l'APK</a>
+    <a href="app.html" class="btn-ghost" id="cta-demo">Essayer la version web</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
 <footer>
-    <p id="footer-legal">© 2026 StellaSecret · GameTracker est Open Source</p>
-    <div class="footer-links">
-        <a href="https://github.com/StellaSecret/GameTracker" target="_blank">GitHub</a>
-        <a href="https://stellasecret.github.io/privacy-pages/gametracker/privacy.html" id="footer-privacy" target="_blank">Confidentialité</a>
-    </div>
+  <div class="footer-logo">🎲 GameTracker</div>
+  <div class="footer-links">
+    <a href="https://github.com/StellaSecret/GameTracker" target="_blank">GitHub</a>
+    <a href="https://github.com/StellaSecret/GameTracker/releases" target="_blank">Releases</a>
+    <a href="https://stellasecret.github.io/privacy-pages/gametracker/privacy.html" target="_blank" id="footer-privacy">Confidentialité</a>
+  </div>
+  <p class="footer-copy" id="footer-legal">© 2026 StellaSecret · GameTracker est Open Source</p>
 </footer>
 
 <script>
-    (function() {
-      applyLang();
-    })();
-</script>
+function updateScore(id, delta) {
+  var el = document.getElementById(id);
+  var val = parseInt(el.textContent) + delta;
+  el.textContent = val;
+  el.style.color = '#fff';
+  el.style.transform = 'scale(1.2)';
+  el.style.transition = 'transform 0.15s, color 0.15s';
+  setTimeout(function() {
+    el.style.color = 'var(--cyan)';
+    el.style.transform = 'scale(1)';
+  }, 180);
+}
 
+/* Init on load */
+(function() {
+  applyTheme(THEME);
+  applyLang();
+})();
+</script>
 </body>
 </html>
