@@ -12,6 +12,7 @@ import '../theme/app_theme.dart';
 import '../widgets/gsi_button.dart';
 import '../widgets/gt_card.dart';
 import 'add_game_screen.dart';
+import 'ad_unlock_sheet.dart';
 import 'game_detail_screen.dart';
 import 'group_screen.dart';
 import 'paywall_screen.dart';
@@ -52,14 +53,22 @@ class _GamesScreenState extends State<GamesScreen> {
                   color: c.primary, size: 20),
             ),
           IconButton(
+            key: const Key('navStats'),
             icon: const Icon(Icons.bar_chart_rounded),
             tooltip: l.navTooltipStats,
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const StatsScreen()),
-            ),
+            onPressed: () {
+              if (state.canUseAdvancedStats) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StatsScreen()),
+                );
+              } else {
+                AdUnlockSheet.show(context);
+              }
+            },
           ),
           IconButton(
+            key: const Key('navGroups'),
             icon: const Icon(Icons.group_rounded),
             tooltip: l.navTooltipGroups,
             onPressed: () => _openGroups(context, state),

@@ -182,6 +182,54 @@ abstract class AppLocalizations {
   /// **'Premium →'**
   String get freeBannerPremium;
 
+  /// No description provided for @adUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Advanced Stats'**
+  String get adUnlockTitle;
+
+  /// No description provided for @adUnlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch a short ad to unlock stats for 5 minutes — or go Premium for permanent access with no ads.'**
+  String get adUnlockBody;
+
+  /// No description provided for @adUnlockWatchBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch ad (5 min free)'**
+  String get adUnlockWatchBtn;
+
+  /// No description provided for @adUnlockPremiumBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Premium — no ads'**
+  String get adUnlockPremiumBtn;
+
+  /// No description provided for @adUnlockLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading ad…'**
+  String get adUnlockLoading;
+
+  /// No description provided for @adUnlockError.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad not available. Please try again later.'**
+  String get adUnlockError;
+
+  /// No description provided for @adUnlockedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats unlocked for 5 minutes! 🎉'**
+  String get adUnlockedSuccess;
+
+  /// No description provided for @adUnlockTimerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats unlocked — {minutes}m {seconds}s remaining'**
+  String adUnlockTimerLabel(int minutes, int seconds);
+
   /// No description provided for @driveSheetTitle.
   ///
   /// In en, this message translates to:
@@ -1477,6 +1525,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Separate premium'**
   String get featureSeparatePremium;
+
+  /// No description provided for @paywallLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Stats Locked'**
+  String get paywallLockedTitle;
+
+  /// No description provided for @paywallLockedSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced statistics require a Premium subscription. You can unlock them temporarily by watching a short ad.'**
+  String get paywallLockedSub;
+
+  /// No description provided for @unlockWithAd.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch ad to unlock (5 min)'**
+  String get unlockWithAd;
+
+  /// No description provided for @adError.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad not available right now.'**
+  String get adError;
 }
 
 class _AppLocalizationsDelegate

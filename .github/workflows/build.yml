@@ -100,6 +100,7 @@ jobs:
   e2e-android:
     name: E2E – Android Emulator
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - name: Free up disk space
@@ -178,7 +179,7 @@ jobs:
           disk-size: 2048M
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
-            flutter test integration_test/app_test.dart --no-pub --reporter expanded -d emulator-5554
+            flutter test integration_test/app_test.dart --no-pub --dart-define=INTEGRATION_TEST=true --reporter expanded -d emulator-5554
       - name: Upload failure artifacts
         if: failure()
         uses: actions/upload-artifact@v7

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import '../config/test_flags.dart';
 import '../models/app_data.dart';
 import '../models/entitlement.dart';
 import '../models/game.dart';
 import '../models/game_session.dart';
 import '../models/player.dart';
+import 'ad_service.dart';
 import 'google_drive_service.dart';
 import 'group_service.dart';
 import 'mock_data_generator.dart';
@@ -17,6 +19,7 @@ class AppState extends ChangeNotifier {
   final GoogleDriveService driveService = GoogleDriveService();
   final PurchaseService purchaseService = PurchaseService();
   final GroupService groupService = GroupService();
+  final AdService adService = AdService();
 
   AppData _data = AppData();
   bool _isLoading = true;
@@ -25,12 +28,39 @@ class AppState extends ChangeNotifier {
 
   String? _activeGroupId;
   StreamSubscription<AppData?>? _groupSub;
+  DateTime? _statsUnlockUntil;
 
   bool get isLoading => _isLoading;
   String? get syncMessage => _syncMessage;
   String? get activeGroupId => _activeGroupId;
   bool get isInGroup => _activeGroupId != null;
   Entitlement get entitlement => purchaseService.entitlement;
+
+  DateTime? get statsUnlockUntil => _statsUnlockUntil;
+
+  bool get canUseAdvancedStats {
+    if (entitlement.canUseAdvancedStats) {
+      return true;
+    }
+    if (_statsUnlockUntil == null) {
+      return false;
+    }
+    return DateTime.now().isBefore(_statsUnlockUntil!);
+  }
+
+  /// Shows a rewarded ad then unlocks advanced stats for 5 minutes.
+  /// Returns true if the ad was watched and unlock was granted.
+  Future<bool> unlockStatsWithAd() async {
+    final earned = await adService.showRewardedAd();
+    if (!earned) {
+      return false;
+    }
+    final expiry = DateTime.now().add(const Duration(minutes: 5));
+    _statsUnlockUntil = expiry;
+    await _storage.saveStatsUnlockUntil(expiry);
+    notifyListeners();
+    return true;
+  }
 
   List<Game> get games {
     final sorted = List<Game>.from(_data.games);
@@ -50,26 +80,34 @@ class AppState extends ChangeNotifier {
     } else {
       _data = await _storage.load();
     }
+    _statsUnlockUntil = await _storage.loadStatsUnlockUntil();
     _isLoading = false;
     notifyListeners();
 
-    await driveService.signInSilently();
+    // The calls below (Google Sign-In silent auth, RevenueCat configure)
+    // talk to Google Play Services / Play Store and can hang indefinitely
+    // on CI emulator images (e.g. google_atd) that don't fully support
+    // them — their await never resolves because the native callback never
+    // arrives, even inside a try/catch. Skip them during integration tests.
+    if (!kIsIntegrationTest) {
+      await driveService.signInSilently();
 
-    final driveEmail = driveService.currentUser?.email;
-    if (driveEmail != null) {
-      purchaseService.setConnectedEmail(driveEmail);
-    }
-
-    if (!kIsWeb) {
-      await groupService.signInSilently();
-
-      final fbEmail = groupService.userEmail;
-      if (fbEmail != null) {
-        purchaseService.setConnectedEmail(fbEmail);
+      final driveEmail = driveService.currentUser?.email;
+      if (driveEmail != null) {
+        purchaseService.setConnectedEmail(driveEmail);
       }
 
-      await purchaseService.init();
-      purchaseService.addListener(notifyListeners);
+      if (!kIsWeb) {
+        await groupService.signInSilently();
+
+        final fbEmail = groupService.userEmail;
+        if (fbEmail != null) {
+          purchaseService.setConnectedEmail(fbEmail);
+        }
+
+        await purchaseService.init();
+        purchaseService.addListener(notifyListeners);
+      }
     }
 
     notifyListeners();
@@ -142,7 +180,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     // Push to group in the background – tombstone ensures the echo
     // from our own push cannot restore the deleted game.
-    if (_activeGroupId != null && !kIsWeb) {
+    if (_activeGroupId != null && !kIsWeb && entitlement.canUseGroupSync) {
       groupService.pushGroupData(_activeGroupId!, _data);
     }
   }
@@ -198,7 +236,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     // Push to group in the background – do NOT await so that the UI
     // (e.g. Navigator.pop) is never blocked by the network call.
-    if (_activeGroupId != null && !kIsWeb) {
+    if (_activeGroupId != null && !kIsWeb && entitlement.canUseGroupSync) {
       groupService.pushGroupData(_activeGroupId!, _data);
     }
   }

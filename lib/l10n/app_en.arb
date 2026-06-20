@@ -36,6 +36,28 @@
   "freeBannerPremium": "Premium →",
   "@freeBannerPremium": {},
 
+  "adUnlockTitle": "Try Advanced Stats",
+  "@adUnlockTitle": {},
+  "adUnlockBody": "Watch a short ad to unlock stats for 5 minutes — or go Premium for permanent access with no ads.",
+  "@adUnlockBody": {},
+  "adUnlockWatchBtn": "Watch ad (5 min free)",
+  "@adUnlockWatchBtn": {},
+  "adUnlockPremiumBtn": "Go Premium — no ads",
+  "@adUnlockPremiumBtn": {},
+  "adUnlockLoading": "Loading ad…",
+  "@adUnlockLoading": {},
+  "adUnlockError": "Ad not available. Please try again later.",
+  "@adUnlockError": {},
+  "adUnlockedSuccess": "Stats unlocked for 5 minutes! 🎉",
+  "@adUnlockedSuccess": {},
+  "adUnlockTimerLabel": "Stats unlocked — {minutes}m {seconds}s remaining",
+  "@adUnlockTimerLabel": {
+    "placeholders": {
+      "minutes": { "type": "int" },
+      "seconds": { "type": "int" }
+    }
+  },
+
   "driveSheetTitle": "Google Drive",
   "@driveSheetTitle": {},
   "driveSheetSubtitle": "Manual backup of your data (free & premium plan).",
@@ -509,5 +531,13 @@
   "featureSeparateSub": "Separate subscription",
   "@featureSeparateSub": {},
   "featureSeparatePremium": "Separate premium",
-  "@featureSeparatePremium": {}
+  "@featureSeparatePremium": {},
+  "paywallLockedTitle": "Advanced Stats Locked",
+  "@paywallLockedTitle": {},
+  "paywallLockedSub": "Advanced statistics require a Premium subscription. You can unlock them temporarily by watching a short ad.",
+  "@paywallLockedSub": {},
+  "unlockWithAd": "Watch ad to unlock (5 min)",
+  "@unlockWithAd": {},
+  "adError": "Ad not available right now.",
+  "@adError": {}
 }
