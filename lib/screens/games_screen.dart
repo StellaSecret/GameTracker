@@ -52,14 +52,21 @@ class _GamesScreenState extends State<GamesScreen> {
                   color: c.primary, size: 20),
             ),
           IconButton(
+            key: const Key('navStats'),
             icon: const Icon(Icons.bar_chart_rounded),
             tooltip: l.navTooltipStats,
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const StatsScreen()),
-            ),
+            onPressed: () {
+              // Always navigate to StatsScreen — it decides for itself
+              // whether to show the real stats or its own locked/paywall
+              // view (with the "watch an ad to unlock" entry point).
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StatsScreen()),
+              );
+            },
           ),
           IconButton(
+            key: const Key('navGroups'),
             icon: const Icon(Icons.group_rounded),
             tooltip: l.navTooltipGroups,
             onPressed: () => _openGroups(context, state),

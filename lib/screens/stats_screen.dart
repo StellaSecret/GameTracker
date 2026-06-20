@@ -8,6 +8,7 @@ import '../models/stats_engine.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
+import 'ad_unlock_sheet.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -46,6 +47,37 @@ class _StatsScreenState extends State<StatsScreen>
           emoji: '📊',
           title: l.emptyNoStats,
           subtitle: l.emptyNoStatsSub,
+        ),
+      );
+    }
+
+    if (!state.canUseAdvancedStats) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l.statsScreenTitle)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('🔒', style: TextStyle(fontSize: 64)),
+                const SizedBox(height: 16),
+                Text(l.paywallLockedTitle,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Text(l.paywallLockedSub,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: c.textSecondary)),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  key: const Key('btnUnlockStatsWithAd'),
+                  onPressed: () => AdUnlockSheet.show(context),
+                  child: Text(l.unlockWithAd),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }
