@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/games_screen.dart';
 import 'screens/players_screen.dart';
+import 'services/ad_service.dart';
 import 'services/app_state.dart';
 import 'services/google_sign_in_singleton.dart';
 import 'theme/app_theme.dart';
@@ -29,12 +33,17 @@ void main() async {
   ]);
 
   // Firebase — mobile only (no web config)
-  if (!kIsWeb) {
+  if (!kIsWeb && !Platform.environment.containsKey('FLUTTER_TEST')) {
     try {
       await Firebase.initializeApp();
     } catch (e) {
       debugPrint('Firebase init error: $e');
     }
+  }
+
+  // Mobile Ads SDK — mobile only
+  if (!Platform.environment.containsKey('FLUTTER_TEST')) {
+    await AdService.init();
   }
 
   final themeNotifier = ThemeNotifier();
@@ -44,6 +53,7 @@ void main() async {
   final isDemoMode = uri.queryParameters['demo'] == 'true';
   final state = AppState();
   await state.init(isDemoMode: isDemoMode);
+  unawaited(state.adService.preload()); // warm up first ad
 
   runApp(
     MultiProvider(

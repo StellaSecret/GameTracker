@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_tracker/main.dart' as app;
+import 'package:game_tracker/screens/paywall_screen.dart';
 import 'package:game_tracker/services/storage_service.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -63,12 +64,17 @@ void main() {
     tester.binding.focusManager.primaryFocus?.unfocus();
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
+    print('waitReady: keyboard dismissed');
 
     await dismissStaleDialog(tester);
+    print('waitReady: stale dialogs dismissed');
+
     while (tester.any(find.byTooltip('Back'))) {
+      print('waitReady: tapping back');
       await tester.tap(find.byTooltip('Back').first);
       await tester.pumpAndSettle();
     }
+    print('waitReady: finished');
   }
 
   /// Unfocuses the active field and ensures keyboard is dismissed.
@@ -121,7 +127,9 @@ void main() {
   group('Home screen', () {
     testWidgets('shows the FAB and nav icons on first launch', (tester) async {
       app.main();
+      print('app.main() called'); // Added log
       await waitReady(tester);
+      print('waitReady finished'); // Added log
 
       // The add-game FAB must be present regardless of locale.
       expect(find.byKey(_kFabAddGame), findsOneWidget);
@@ -419,6 +427,48 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('Beta'), findsWidgets);
       expect(find.text('SearchGame Alpha'), findsNothing);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Paywall Gating
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('Paywall Gating', () {
+    testWidgets('shows unlock UI when clicking stats without entitlement',
+        (tester) async {
+      app.main();
+      await waitReady(tester);
+
+      // Verify we are on the games list / home screen.
+      expect(find.byKey(const Key('navStats')), findsOneWidget);
+
+      // Tap stats icon.
+      await tester.tap(find.byKey(const Key('navStats')));
+      await tester.pumpAndSettle();
+
+      // We should be on the stats screen, but locked.
+      expect(find.byKey(const Key('btnUnlockStatsWithAd')), findsOneWidget);
+    });
+
+    testWidgets('redirects to Group Sync paywall when clicking groups without entitlement',
+        (tester) async {
+      app.main();
+      await waitReady(tester);
+
+      // Verify we are on the games list / home screen.
+      expect(find.byKey(const Key('navGroups')), findsOneWidget);
+
+      // Tap groups icon.
+      await tester.tap(find.byKey(const Key('navGroups')));
+      await tester.pumpAndSettle();
+
+      // We should be on the paywall screen.
+      expect(find.byType(PaywallScreen), findsOneWidget);
+
+      // Verify it's the group sync paywall.
+      final paywall = tester.widget<PaywallScreen>(find.byType(PaywallScreen));
+      expect(paywall.target, PaywallTarget.groupSync);
     });
   });
 }
