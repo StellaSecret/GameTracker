@@ -21,6 +21,15 @@
   "freeBannerCta": "Débloquer les groupes & stats avancées",
   "freeBannerPremium": "Premium →",
 
+  "adUnlockTitle": "Essayer les stats avancées",
+  "adUnlockBody": "Regardez une courte pub pour débloquer les stats 5 minutes — ou passez Premium pour un accès permanent sans pub.",
+  "adUnlockWatchBtn": "Voir la pub (5 min gratuit)",
+  "adUnlockPremiumBtn": "Passer Premium — sans pub",
+  "adUnlockLoading": "Chargement de la pub…",
+  "adUnlockError": "Pub indisponible. Réessayez plus tard.",
+  "adUnlockedSuccess": "Stats débloquées 5 minutes ! 🎉",
+  "adUnlockTimerLabel": "Stats débloquées — {minutes}m {seconds}s restantes",
+
   "driveSheetTitle": "Google Drive",
   "driveSheetSubtitle": "Sauvegarde manuelle de vos données (plan gratuit & premium).",
   "driveConnected": "Connecté",
@@ -256,5 +265,9 @@
   "featureIncluded": "Inclus ✓",
   "featureNotIncluded": "—",
   "featureSeparateSub": "Abonnement séparé",
-  "featureSeparatePremium": "Premium séparé"
+  "featureSeparatePremium": "Premium séparé",
+  "paywallLockedTitle": "Statistiques avancées verrouillées",
+  "paywallLockedSub": "Les statistiques avancées nécessitent un abonnement Premium. Vous pouvez les débloquer temporairement en regardant une courte publicité.",
+  "unlockWithAd": "Voir une publicité pour débloquer (5 min)",
+  "adError": "Publicité indisponible pour le moment."
 }

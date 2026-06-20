@@ -10,6 +10,7 @@ import '../services/app_state.dart';
 import '../services/group_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
+import 'paywall_screen.dart';
 
 class GroupScreen extends StatefulWidget {
   const GroupScreen({super.key});
@@ -27,6 +28,25 @@ class _GroupScreenState extends State<GroupScreen> {
     final c = AppColors.of(context);
     final state = context.watch<AppState>();
     final gs = state.groupService;
+
+    if (!state.entitlement.canUseGroupSync) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l.groupsScreenTitle)),
+        body: GTEmptyState(
+          emoji: '🔒',
+          title: l.paywallGroupSyncTitle,
+          subtitle: l.paywallGroupSyncSub,
+          action: ElevatedButton.icon(
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const PaywallScreen.groupSync()),
+            ),
+            icon: const Icon(Icons.star_rounded),
+            label: Text(l.freeBannerPremium),
+          ),
+        ),
+      );
+    }
 
     if (!gs.isSignedIn) {
       return Scaffold(

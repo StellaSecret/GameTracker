@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only manifest overlay (android/app/src/debug/AndroidManifest.xml).
+
+  MobileAdsInitProvider is a ContentProvider auto-registered by the
+  google_mobile_ads plugin. It runs at process start — before any Dart code —
+  and crashes immediately if com.google.android.gms.ads.APPLICATION_ID is
+  absent or invalid. Since we skip all ad initialisation when
+  kIsIntegrationTest=true, we simply disable the provider entirely in the
+  debug build variant used by `flutter test`.
+
+  The tools:node="remove" directive tells the Gradle manifest merger to strip
+  the matching provider declaration from the final merged manifest, so the
+  AdMob SDK never tries to initialise itself on device.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+
+        <!-- Disable the AdMob auto-init provider in debug/test builds.
+             Without a real APPLICATION_ID it crashes at process start before
+             any Dart code (and therefore before kIsIntegrationTest guards) runs. -->
+        <provider
+            android:name="com.google.android.gms.ads.MobileAdsInitProvider"
+            android:authorities="${applicationId}.mobileadsinitprovider"
+            tools:node="remove" />
+
+    </application>
+
+</manifest>
