@@ -50,6 +50,44 @@ class _StatsScreenState extends State<StatsScreen>
       );
     }
 
+    if (!state.canUseAdvancedStats) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l.statsScreenTitle)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('🔒', style: TextStyle(fontSize: 64)),
+                const SizedBox(height: 16),
+                Text(l.paywallLockedTitle,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Text(l.paywallLockedSub,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: c.textSecondary)),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  key: const Key('btnUnlockStatsWithAd'),
+                  onPressed: () async {
+                    final success = await state.unlockStatsWithAd();
+                    if (!success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l.adError)),
+                      );
+                    }
+                  },
+                  child: Text(l.unlockWithAd),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l.statsScreenTitle),

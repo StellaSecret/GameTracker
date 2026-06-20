@@ -51,6 +51,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get freeBannerPremium => 'Premium →';
 
   @override
+  String get adUnlockTitle => 'Essayer les stats avancées';
+
+  @override
+  String get adUnlockBody =>
+      'Regardez une courte pub pour débloquer les stats 5 minutes — ou passez Premium pour un accès permanent sans pub.';
+
+  @override
+  String get adUnlockWatchBtn => 'Voir la pub (5 min gratuit)';
+
+  @override
+  String get adUnlockPremiumBtn => 'Passer Premium — sans pub';
+
+  @override
+  String get adUnlockLoading => 'Chargement de la pub…';
+
+  @override
+  String get adUnlockError => 'Pub indisponible. Réessayez plus tard.';
+
+  @override
+  String get adUnlockedSuccess => 'Stats débloquées 5 minutes ! 🎉';
+
+  @override
+  String adUnlockTimerLabel(int minutes, int seconds) {
+    return 'Stats débloquées — ${minutes}m ${seconds}s restantes';
+  }
+
+  @override
   String get driveSheetTitle => 'Google Drive';
 
   @override
@@ -878,4 +905,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get featureSeparatePremium => 'Premium séparé';
+
+  @override
+  String get paywallLockedTitle => 'Statistiques avancées verrouillées';
+
+  @override
+  String get paywallLockedSub =>
+      'Les statistiques avancées nécessitent un abonnement Premium. Vous pouvez les débloquer temporairement en regardant une courte publicité.';
+
+  @override
+  String get unlockWithAd => 'Voir une publicité pour débloquer (5 min)';
+
+  @override
+  String get adError => 'Publicité indisponible pour le moment.';
 }

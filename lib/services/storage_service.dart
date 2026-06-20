@@ -42,4 +42,22 @@ class StorageService {
   /// Import data from a JSON string (from Google Drive download)
   AppData import(String json) =>
       AppData.fromJson(jsonDecode(json) as Map<String, dynamic>);
+
+  Future<DateTime?> loadStatsUnlockUntil() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ms = prefs.getInt('stats_unlock_until');
+    if (ms == null) {
+      return null;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> saveStatsUnlockUntil(DateTime? dt) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (dt == null) {
+      await prefs.remove('stats_unlock_until');
+    } else {
+      await prefs.setInt('stats_unlock_until', dt.millisecondsSinceEpoch);
+    }
+  }
 }

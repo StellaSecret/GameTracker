@@ -100,6 +100,7 @@ jobs:
   e2e-android:
     name: E2E – Android Emulator
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - name: Free up disk space
@@ -129,7 +130,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: /usr/local/lib/android/sdk/system-images
-          key: android-sdk-image-30-google_atd-x86_64
+          key: android-sdk-image-30-aosp_atd-x86_64
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -163,28 +164,67 @@ jobs:
             "configuration_version": "1"
           }
           JSON
+      - name: Write E2E runner script
+        run: |
+          cat > /tmp/e2e_run.sh << 'SCRIPT'
+          #!/bin/sh
+          set -e
+          echo "Waiting for package manager..."
+          i=0
+          while [ "$i" -lt 60 ]; do
+            if adb shell pm path android 2>/dev/null | grep -q "package:"; then
+              echo "Package manager ready after ${i}s"
+              break
+            fi
+            echo "  pm not ready yet (${i}s)..."
+            sleep 1
+            i=$((i + 1))
+          done
+          sleep 2
+          adb logcat -c
+          adb logcat -s Flutter -s AndroidRuntime -s ActivityManager -s ActivityTaskManager -s art -s DEBUG > /tmp/logcat.txt 2>&1 &
+          LOGCAT_PID=$!
+          echo "logcat PID: $LOGCAT_PID"
+          set +e
+          echo "=== flutter test starting at $(date -u +%H:%M:%S) ==="
+          timeout 1200 flutter test integration_test/app_test.dart --no-pub --dart-define=INTEGRATION_TEST=true --reporter expanded --timeout 20m -d emulator-5554
+          TEST_EXIT=$?
+          echo "=== flutter test exited $TEST_EXIT at $(date -u +%H:%M:%S) ==="
+          set -e
+          kill "$LOGCAT_PID" 2>/dev/null || true
+          sleep 1
+          echo "===== LOGCAT (last 200 lines) ====="
+          tail -200 /tmp/logcat.txt || true
+          echo "===== END LOGCAT ====="
+          exit "$TEST_EXIT"
+          SCRIPT
+          chmod +x /tmp/e2e_run.sh
+          echo "Generated /tmp/e2e_run.sh:"
+          cat /tmp/e2e_run.sh
+
       - name: Run E2E tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
-          target: google_atd
+          target: aosp_atd
           arch: x86_64
           profile: pixel
           avd-name: gt_e2e
           disable-animations: true
           cores: 2
-          ram-size: 2048M
-          heap-size: 256M
+          ram-size: 3072M
+          heap-size: 512M
           disk-size: 2048M
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: |
-            flutter test integration_test/app_test.dart --no-pub --reporter expanded -d emulator-5554
+          script: /tmp/e2e_run.sh
+
       - name: Upload failure artifacts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: e2e-failure-${{ github.run_number }}
           path: |
+            /tmp/logcat.txt
             build/integration_test/
             /tmp/*.png
           retention-days: 7
