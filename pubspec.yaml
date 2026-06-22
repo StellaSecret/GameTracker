@@ -38,7 +38,7 @@ dependencies:
   cloud_firestore: ^6.5.0
 
   # In-app purchases (freemium)
-  purchases_flutter: ^10.2.2
+  purchases_flutter: ^10.3.0
 
   # Ads (rewarded — stats temporary unlock for free users)
   google_mobile_ads: ^9.0.0
