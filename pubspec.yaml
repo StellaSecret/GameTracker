@@ -34,8 +34,8 @@ dependencies:
 
   # Firebase / Firestore (sync temps réel premium)
   firebase_core: ^4.10.0
-  firebase_auth: ^6.5.2
-  cloud_firestore: ^6.5.0
+  firebase_auth: ^6.5.4
+  cloud_firestore: ^6.6.0
 
   # In-app purchases (freemium)
   purchases_flutter: ^10.2.2
