@@ -118,7 +118,7 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -127,7 +127,7 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'pubspec.lock') }}
           restore-keys: gradle-${{ runner.os }}-
       - name: Cache Android SDK system image
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: /usr/local/lib/android/sdk/system-images
           key: android-sdk-image-30-aosp_atd-x86_64
