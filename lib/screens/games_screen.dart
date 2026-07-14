@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:universal_html/html.dart' as html;
+import '../config/test_flags.dart';
 import '../l10n/app_localizations.dart';
 import '../models/game.dart';
 import '../models/game_mode.dart';
@@ -191,8 +192,8 @@ class _GamesScreenState extends State<GamesScreen> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _GameCard(game: entry.value)
-                    .animate(delay: Duration(milliseconds: entry.key * 40))
-                    .fadeIn(duration: 300.ms)
+                    .animate(delay: testAwareDuration(Duration(milliseconds: entry.key * 40)))
+                    .fadeIn(duration: testAwareDuration(300.ms))
                     .slideX(begin: 0.05, curve: Curves.easeOut),
               );
             }),

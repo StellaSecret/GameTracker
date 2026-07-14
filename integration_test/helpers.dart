@@ -264,13 +264,24 @@ Future<void> tapUntil(Finder finder, Finder until) async {
   // to the caller's findsOneWidget check. The only thing that actually
   // matters is "is there still a duplicate" — check that alone.
   final settleDeadline = DateTime.now().add(kSettle);
-  while (t.widgetList(until).length > 1) {
+  // Require a run of consecutive "no duplicate" reads, not just one.
+  // A single instantaneous check right after the tap can read count==1
+  // truthfully — simply because the async persist -> notifyListeners()
+  // -> Navigator.pop() -> transition chain hasn't started yet, so the
+  // transient duplicate (finder's own outgoing route + until's revealed
+  // widget, both matching the same text) hasn't appeared *yet* either.
+  // That let a real duplicate slip through moments later, right as the
+  // caller's own findsOneWidget check ran with no further pumping to
+  // catch it. Bridging past that requires demonstrating stability over
+  // a real span of time, not a single lucky sample.
+  var stableReads = 0;
+  while (stableReads < 4) {
+    await t.pump(const Duration(milliseconds: 100));
+    stableReads = t.widgetList(until).length <= 1 ? stableReads + 1 : 0;
     if (DateTime.now().isAfter(settleDeadline)) {
       break;
     }
-    await t.pump(const Duration(milliseconds: 100));
   }
-  await t.pump(const Duration(milliseconds: 100));
 }
 
 /// Enter text into [key] field and dismiss keyboard.

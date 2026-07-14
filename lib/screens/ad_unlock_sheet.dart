@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../config/test_flags.dart';
 import '../l10n/app_localizations.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
@@ -143,7 +144,7 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
           // Icon
           Text('📊', style: const TextStyle(fontSize: 56))
               .animate()
-              .scale(duration: 350.ms, curve: Curves.elasticOut),
+              .scale(duration: testAwareDuration(350.ms), curve: Curves.elasticOut),
           const SizedBox(height: 12),
 
           // Title
@@ -186,7 +187,7 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
                   color: c.primary,
                 ),
               ),
-            ).animate().fadeIn(),
+            ).animate().fadeIn(duration: testAwareDuration(300.ms)),
             const SizedBox(height: 16),
           ],
 

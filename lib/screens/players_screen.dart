@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../config/test_flags.dart';
 import '../l10n/app_localizations.dart';
 import '../models/player.dart';
 import '../services/app_state.dart';
@@ -38,8 +39,8 @@ class PlayersScreen extends StatelessWidget {
               itemCount: players.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) => _PlayerCard(player: players[i])
-                  .animate(delay: Duration(milliseconds: i * 40))
-                  .fadeIn(duration: 250.ms)
+                  .animate(delay: testAwareDuration(Duration(milliseconds: i * 40)))
+                  .fadeIn(duration: testAwareDuration(250.ms))
                   .slideX(begin: 0.05),
             ),
       floatingActionButton: FloatingActionButton.extended(

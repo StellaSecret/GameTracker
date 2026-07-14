@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/game_mode.dart';
 import '../models/stats_engine.dart';
+import '../config/test_flags.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
@@ -362,7 +363,7 @@ class _GamesTabState extends State<_GamesTab> {
               stats: gs,
               state: widget.state,
               totalSessions: gm.sessions.length,
-            ).animate().fadeIn(duration: 300.ms),
+            ).animate().fadeIn(duration: testAwareDuration(300.ms)),
             const SizedBox(height: 20),
           ],
 
@@ -371,7 +372,7 @@ class _GamesTabState extends State<_GamesTab> {
             const SizedBox(height: 12),
             _TightestGameCard(stats: gs, state: widget.state)
                 .animate()
-                .fadeIn(duration: 300.ms),
+                .fadeIn(duration: testAwareDuration(300.ms)),
             const SizedBox(height: 20),
           ],
 
@@ -380,7 +381,7 @@ class _GamesTabState extends State<_GamesTab> {
             const SizedBox(height: 12),
             _ScoreHistoryCard(stats: gs, state: widget.state)
                 .animate()
-                .fadeIn(duration: 300.ms),
+                .fadeIn(duration: testAwareDuration(300.ms)),
             const SizedBox(height: 20),
           ],
 
@@ -409,7 +410,7 @@ class _GamesTabState extends State<_GamesTab> {
                 ],
               ],
             ),
-          ).animate().fadeIn(duration: 300.ms),
+          ).animate().fadeIn(duration: testAwareDuration(300.ms)),
         ],
         const SizedBox(height: 40),
       ],
@@ -446,7 +447,7 @@ class _GlobalTab extends StatelessWidget {
           Expanded(
               child: _BigStatCard(
                   '👥', '${state.players.length}', l.statGlobalPlayers)),
-        ]).animate().fadeIn(duration: 300.ms),
+        ]).animate().fadeIn(duration: testAwareDuration(300.ms)),
         const SizedBox(height: 20),
 
         if (stats.globalRanking.isNotEmpty) ...[
@@ -454,8 +455,8 @@ class _GlobalTab extends StatelessWidget {
           const SizedBox(height: 12),
           _GlobalRankingCard(stats: stats, state: state)
               .animate()
-              .fadeIn(duration: 300.ms)
-              .slideY(begin: 0.05),
+              .fadeIn(duration: testAwareDuration(300.ms))
+              .slideY(begin: 0.05, duration: testAwareDuration(300.ms)),
           const SizedBox(height: 20),
         ],
 
@@ -464,7 +465,7 @@ class _GlobalTab extends StatelessWidget {
           const SizedBox(height: 12),
           _MostActiveCard(stats: stats, state: state)
               .animate()
-              .fadeIn(duration: 300.ms),
+              .fadeIn(duration: testAwareDuration(300.ms)),
           const SizedBox(height: 20),
         ],
 
@@ -473,7 +474,7 @@ class _GlobalTab extends StatelessWidget {
           const SizedBox(height: 12),
           _AbsoluteRecordCard(stats: stats, state: state)
               .animate()
-              .fadeIn(duration: 300.ms),
+              .fadeIn(duration: testAwareDuration(300.ms)),
           const SizedBox(height: 20),
         ],
 
@@ -483,13 +484,13 @@ class _GlobalTab extends StatelessWidget {
           if (stats.globalNemesisA != null)
             _GlobalNemesisCard(stats: stats, state: state)
                 .animate()
-                .fadeIn(duration: 300.ms),
+                .fadeIn(duration: testAwareDuration(300.ms)),
           if (stats.globalNemesisA != null && stats.globalRivalA != null)
             const SizedBox(height: 12),
           if (stats.globalRivalA != null)
             _GlobalRivalCard(stats: stats, state: state)
                 .animate()
-                .fadeIn(duration: 300.ms),
+                .fadeIn(duration: testAwareDuration(300.ms)),
         ],
         const SizedBox(height: 40),
       ],

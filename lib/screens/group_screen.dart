@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../config/test_flags.dart';
 import '../l10n/app_localizations.dart';
 import '../services/app_state.dart';
 import '../services/group_service.dart';
@@ -125,8 +126,8 @@ class _GroupScreenState extends State<GroupScreen> {
                         _showInvite(state, groups[i].id),
                   )
                       .animate(
-                          delay: Duration(milliseconds: i * 50))
-                      .fadeIn(duration: 250.ms)
+                          delay: testAwareDuration(Duration(milliseconds: i * 50)))
+                      .fadeIn(duration: testAwareDuration(250.ms))
                       .slideX(begin: 0.05),
                 );
               },

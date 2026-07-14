@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import '../config/test_flags.dart';
 import '../l10n/app_localizations.dart';
 import '../services/app_state.dart';
 import '../services/purchase_service.dart';
@@ -122,7 +123,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     style: const TextStyle(fontSize: 72),
                     textAlign: TextAlign.center,
                   ).animate().scale(
-                      duration: 400.ms, curve: Curves.elasticOut),
+                      duration: testAwareDuration(400.ms), curve: Curves.elasticOut),
                   const SizedBox(height: 16),
 
                   Text(
@@ -301,8 +302,8 @@ class _FeatureTable extends StatelessWidget {
         ...features.asMap().entries.map(
               (entry) => _FeatureRow(data: entry.value)
                   .animate(
-                      delay: Duration(milliseconds: entry.key * 60))
-                  .fadeIn(duration: 250.ms)
+                      delay: testAwareDuration(Duration(milliseconds: entry.key * 60)))
+                  .fadeIn(duration: testAwareDuration(250.ms))
                   .slideX(begin: 0.05),
             ),
       ],

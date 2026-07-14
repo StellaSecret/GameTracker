@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../config/test_flags.dart';
 import '../l10n/app_localizations.dart';
 import '../models/game.dart';
 import '../models/game_mode.dart';
@@ -100,8 +101,8 @@ class GameDetailScreen extends StatelessWidget {
                       session: sessions[i],
                       game: game,
                     )
-                        .animate(delay: Duration(milliseconds: i * 30))
-                        .fadeIn(duration: 250.ms),
+                        .animate(delay: testAwareDuration(Duration(milliseconds: i * 30)))
+                        .fadeIn(duration: testAwareDuration(250.ms)),
                   ),
                   childCount: sessions.length,
                 ),
