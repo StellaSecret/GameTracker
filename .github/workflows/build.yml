@@ -98,9 +98,20 @@ jobs:
           retention-days: 7
 
   e2e-android:
-    name: E2E – Android Emulator
+    name: E2E – Android Emulator (${{ matrix.shard }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Scenarios S1-S12 are split across two independent test files
+        # (integration_test/app_test_part1.dart, app_test_part2.dart —
+        # see helpers.dart for the shared boot/interaction code they both
+        # use) so they can run concurrently on two emulators instead of
+        # one, roughly halving E2E wall-clock time. Each shard still boots
+        # its own app instance exactly once, so per-scenario cost is
+        # unchanged — only the number of scenarios per job is reduced.
+        shard: [part1, part2]
     steps:
       - uses: actions/checkout@v7
       - name: Free up disk space
@@ -118,16 +129,25 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Cache Gradle
-        uses: actions/cache@v6
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
             ~/.android/build-cache
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'pubspec.lock') }}
-          restore-keys: gradle-${{ runner.os }}-
+            android/.gradle
+            build/app
+          # Dependencies (jars/AARs) rarely change and are shared across all
+          # runs via restore-keys. The project build cache (org.gradle.caching,
+          # enabled in android/gradle.properties) additionally lets Gradle skip
+          # re-running tasks whose inputs are unchanged since the last run with
+          # the same key, which is where most of assembleDebug's ~4min goes.
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'pubspec.lock') }}-${{ github.sha }}
+          restore-keys: |
+            gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'pubspec.lock') }}-
+            gradle-${{ runner.os }}-
       - name: Cache Android SDK system image
-        uses: actions/cache@v6
+        uses: actions/cache@v5
         with:
           path: /usr/local/lib/android/sdk/system-images
           key: android-sdk-image-30-aosp_atd-x86_64
@@ -166,37 +186,40 @@ jobs:
           JSON
       - name: Write E2E runner script
         run: |
-          cat > /tmp/e2e_run.sh << 'SCRIPT'
+          cat > /tmp/e2e_run.sh << SCRIPT
           #!/bin/sh
           set -e
           echo "Waiting for package manager..."
           i=0
-          while [ "$i" -lt 60 ]; do
+          while [ "\$i" -lt 60 ]; do
             if adb shell pm path android 2>/dev/null | grep -q "package:"; then
-              echo "Package manager ready after ${i}s"
+              echo "Package manager ready after \${i}s"
               break
             fi
-            echo "  pm not ready yet (${i}s)..."
+            echo "  pm not ready yet (\${i}s)..."
             sleep 1
-            i=$((i + 1))
+            i=\$((i + 1))
           done
           sleep 2
           adb logcat -c
           adb logcat -s Flutter -s AndroidRuntime -s ActivityManager -s ActivityTaskManager -s art -s DEBUG > /tmp/logcat.txt 2>&1 &
-          LOGCAT_PID=$!
-          echo "logcat PID: $LOGCAT_PID"
+          LOGCAT_PID=\$!
+          echo "logcat PID: \$LOGCAT_PID"
           set +e
-          echo "=== flutter test starting at $(date -u +%H:%M:%S) ==="
-          timeout 1200 flutter test integration_test/app_test.dart --no-pub --dart-define=INTEGRATION_TEST=true --reporter expanded --timeout 20m -d emulator-5554
-          TEST_EXIT=$?
-          echo "=== flutter test exited $TEST_EXIT at $(date -u +%H:%M:%S) ==="
+          echo "=== flutter test (${{ matrix.shard }}) starting at \$(date -u +%H:%M:%S) ==="
+          timeout 1200 flutter test integration_test/app_test_${{ matrix.shard }}.dart --no-pub --dart-define=INTEGRATION_TEST=true --reporter expanded --timeout 20m -d emulator-5554
+          TEST_EXIT=\$?
+          echo "=== flutter test (${{ matrix.shard }}) exited \$TEST_EXIT at \$(date -u +%H:%M:%S) ==="
+          # (note: \$( ) sequences above are escaped so they evaluate when
+          # e2e_run.sh actually runs on the emulator, not when this heredoc
+          # is written out during the workflow step)
           set -e
-          kill "$LOGCAT_PID" 2>/dev/null || true
+          kill "\$LOGCAT_PID" 2>/dev/null || true
           sleep 1
           echo "===== LOGCAT (last 200 lines) ====="
           tail -200 /tmp/logcat.txt || true
           echo "===== END LOGCAT ====="
-          exit "$TEST_EXIT"
+          exit "\$TEST_EXIT"
           SCRIPT
           chmod +x /tmp/e2e_run.sh
           echo "Generated /tmp/e2e_run.sh:"
@@ -209,7 +232,7 @@ jobs:
           target: aosp_atd
           arch: x86_64
           profile: pixel
-          avd-name: gt_e2e
+          avd-name: gt_e2e_${{ matrix.shard }}
           disable-animations: true
           cores: 2
           ram-size: 3072M
@@ -222,7 +245,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-failure-${{ github.run_number }}
+          name: e2e-failure-${{ matrix.shard }}-${{ github.run_number }}
           path: |
             /tmp/logcat.txt
             build/integration_test/
