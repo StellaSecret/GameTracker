@@ -303,6 +303,35 @@ jobs:
           cache: true
       - name: Get dependencies
         run: flutter pub get
+      - name: Create stub google-services.json (PR)
+        # "Build Debug APK (PR)" below runs `flutter build apk --debug` for
+        # every pull request, which triggers the Google Services Gradle
+        # plugin (:app:processDebugGoogleServices) regardless of whether
+        # real Firebase secrets are available. Non-PR runs get a real file
+        # from "Prepare Signing & Firebase" further down; PR runs need a
+        # placeholder so that task has something to read. Same stub used
+        # by the e2e-android job.
+        if: github.event_name == 'pull_request'
+        run: |
+          cat > android/app/google-services.json << 'JSON'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id":     "game-tracker-stub",
+              "storage_bucket": "game-tracker-stub.appspot.com"
+            },
+            "client": [{
+              "client_info": {
+                "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+                "android_client_info": { "package_name": "com.stellasecret.gametracker" }
+              },
+              "oauth_client":  [],
+              "api_key":       [{ "current_key": "stub" }],
+              "services":      { "appinvite_service": { "other_platform_oauth_client": [] } }
+            }],
+            "configuration_version": "1"
+          }
+          JSON
       - name: Prepare Signing & Firebase
         if: github.event_name != 'pull_request'
         env:
