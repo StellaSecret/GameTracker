@@ -350,8 +350,8 @@ jobs:
       - name: Build Android (APK & AAB)
         if: github.event_name != 'pull_request'
         run: |
-          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
-          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
+          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
       - name: Build Debug APK (PR)
         if: github.event_name == 'pull_request'
         run: flutter build apk --debug

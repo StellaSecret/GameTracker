@@ -33,5 +33,16 @@
             android:name="flutterEmbedding"
             android:value="2"/>
 
+        <!-- Google Mobile Ads SDK requires this App ID meta-data to be
+             present or MobileAds.instance.initialize() (called from
+             main.dart) throws at startup. This is Google's official public
+             test App ID — safe to ship as-is, shows test ads only. Replace
+             with your real AdMob App ID (format ca-app-pub-XXXX~YYYY, note
+             the ~) before release. See SETUP.md and lib/services/ad_service.dart
+             for the same test/production pattern used for ad unit IDs. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
+
     </application>
 </manifest>
