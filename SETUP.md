@@ -89,6 +89,7 @@ Secrets GitHub Actions :
 | `KEYSTORE_PASSWORD` | Mot de passe keystore |
 | `KEY_ALIAS` | `game-tracker` |
 | `KEY_PASSWORD` | Mot de passe clé |
+| `ADMOB_REWARDED_AD_UNIT_ANDROID` | ID d'unité pub AdMob (format `ca-app-pub-XXXX/YYYY`) — sans ce secret, le build utilise l'ID de test Google (voir `lib/services/ad_service.dart`) |
 
 ---
 
