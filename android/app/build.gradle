@@ -53,6 +53,32 @@ android {
         multiDexEnabled true
 
         resValue "string", "google_client_id", project.findProperty("GOOGLE_CLIENT_ID") ?: ""
+
+        // AdMob App ID for AndroidManifest.xml's ${admobApplicationId}
+        // placeholder (see manifestPlaceholders below). Sourced the same
+        // way as GOOGLE_CLIENT_ID above: a Gradle project property, which
+        // CI sets via an ORG_GRADLE_PROJECT_ADMOB_APPLICATION_ID_ANDROID
+        // env var backed by a GitHub secret (see .github/workflows/build.yml
+        // and SETUP.md). Falls back to Google's public test App ID when
+        // that property isn't set (e.g. local builds without the secret) —
+        // this MUST stay paired with whatever ad unit ID ad_service.dart's
+        // ADMOB_REWARDED_AD_UNIT_ANDROID resolves to for the same build,
+        // or requests fail with ERROR_CODE_INVALID_REQUEST.
+        //
+        // IMPORTANT: use .put(), not `manifestPlaceholders = [...]`. The
+        // Flutter Gradle plugin already populates this same map with its
+        // own entries (notably "applicationName", which resolves the
+        // ${applicationName} placeholder on Flutter's own <application>
+        // tag) before this build file runs. A plain `=` assignment here
+        // replaces the whole map rather than adding to it, silently wiping
+        // out "applicationName" and breaking the manifest merge with
+        // "no value for <applicationName> is provided" — .put() adds this
+        // one key without touching what's already there.
+        manifestPlaceholders.put(
+            "admobApplicationId",
+            project.findProperty("ADMOB_APPLICATION_ID_ANDROID")
+                ?: "ca-app-pub-3940256099942544~3347511713"
+        )
     }
 
     signingConfigs {

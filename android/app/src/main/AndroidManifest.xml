@@ -33,5 +33,19 @@
             android:name="flutterEmbedding"
             android:value="2"/>
 
+        <!-- Google Mobile Ads SDK requires this App ID meta-data to be
+             present or MobileAds.instance.initialize() (called from
+             main.dart) throws at startup. Value comes from Gradle's
+             manifestPlaceholders (see android/app/build.gradle), sourced
+             from the ADMOB_APPLICATION_ID_ANDROID secret in CI, falling
+             back to Google's public test App ID otherwise — same
+             secret/fallback pattern as ADMOB_REWARDED_AD_UNIT_ANDROID in
+             lib/services/ad_service.dart. These two MUST refer to the same
+             AdMob "app" entry or ad requests fail with
+             ERROR_CODE_INVALID_REQUEST. See SETUP.md. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobApplicationId}"/>
+
     </application>
 </manifest>

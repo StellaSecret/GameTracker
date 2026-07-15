@@ -349,9 +349,19 @@ jobs:
           sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/" android/app/build.gradle
       - name: Build Android (APK & AAB)
         if: github.event_name != 'pull_request'
+        env:
+          # Gradle auto-exposes ORG_GRADLE_PROJECT_<name> env vars as
+          # project.findProperty("<name>") — this is how the native-side
+          # AdMob App ID (consumed by manifestPlaceholders in
+          # android/app/build.gradle) reaches AndroidManifest.xml, since
+          # --dart-define only reaches Dart code, not the manifest. Must
+          # stay in sync with the ADMOB_REWARDED_AD_UNIT_ANDROID secret
+          # passed via --dart-define below — same AdMob "app" entry, or ad
+          # requests fail with ERROR_CODE_INVALID_REQUEST.
+          ORG_GRADLE_PROJECT_ADMOB_APPLICATION_ID_ANDROID: ${{ secrets.ADMOB_APPLICATION_ID_ANDROID }}
         run: |
-          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
-          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
+          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
       - name: Build Debug APK (PR)
         if: github.event_name == 'pull_request'
         run: flutter build apk --debug

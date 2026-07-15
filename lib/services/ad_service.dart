@@ -7,9 +7,17 @@
 //   • Web           : stubs always return false (ads unsupported).
 //
 // Ad Unit IDs:
-//   Replace the _kAdUnitAndroid / _kAdUnitIOS constants with real IDs before
-//   publishing.  The current values are Google's official test unit IDs that
-//   show test ads only and are safe to leave during development.
+//   Ad unit IDs aren't secrets — Google requires them client-side so the SDK
+//   can request ads at all, and anyone with the built APK could extract them
+//   regardless of source visibility. The real risk with an open-source repo
+//   isn't leakage, it's a fork rebuilding with the production ID still baked
+//   in, whose ad traffic then gets attributed to this project's AdMob
+//   account. So, same pattern as GOOGLE_WEB_CLIENT_ID / GOOGLE_SERVER_CLIENT_ID
+//   in SETUP.md: the production ID is injected at release-build time via
+//   --dart-define (see .github/workflows/build.yml, "Build Android (APK & AAB)"),
+//   from a GitHub Actions secret. Anyone building from source without that
+//   secret gets Google's official public test IDs below as the default —
+//   safe to commit, shows test ads only.
 
 import 'dart:async';
 
@@ -20,11 +28,16 @@ import '../config/test_flags.dart';
 
 class AdService {
   // ── Ad unit IDs ────────────────────────────────────────────────────────────
-  // Replace with production IDs before release.
-  static const String _kAdUnitAndroid =
-      'ca-app-pub-3940256099942544/5224354917'; // test rewarded
-  static const String _kAdUnitIOS =
-      'ca-app-pub-3940256099942544/1712485313'; // test rewarded
+  // Defaults are Google's official test rewarded ad units — safe to ship as
+  // committed source. Real IDs come from --dart-define at release-build time.
+  static const String _kAdUnitAndroid = String.fromEnvironment(
+    'ADMOB_REWARDED_AD_UNIT_ANDROID',
+    defaultValue: 'ca-app-pub-3940256099942544/5224354917', // test rewarded
+  );
+  static const String _kAdUnitIOS = String.fromEnvironment(
+    'ADMOB_REWARDED_AD_UNIT_IOS',
+    defaultValue: 'ca-app-pub-3940256099942544/1712485313', // test rewarded
+  );
 
   static String get _adUnitId {
     if (defaultTargetPlatform == TargetPlatform.iOS) {
