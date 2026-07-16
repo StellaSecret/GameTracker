@@ -1,4 +1,18 @@
 name: CI/CD GameTracker
+#
+# Flutter version: every job below pins flutter-version explicitly (in
+# addition to channel: stable). Without a pin, subosito/flutter-action
+# resolves to whatever the *latest* stable release is at the moment each
+# workflow run executes — which drifts release to release. Since a local
+# Flutter SDK isn't usually bumped in lockstep with every new stable
+# release, that produces exactly the kind of unrelated `pubspec.lock`
+# diff (transitive packages like `meta`/`test_api`, whose resolvable
+# version range is tied to the Dart SDK bundled with a given Flutter
+# version) showing up on every local `flutter pub get`, with no real
+# change involved. To upgrade Flutter deliberately: bump the version
+# string in every `flutter-version:` line below AND install/switch to
+# that exact version locally (e.g. via FVM: `fvm install <version> &&
+# fvm use <version>`) in the same change, so CI and local stay in sync.
 
 on:
   push:
@@ -55,6 +69,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.44.6'
           cache: true
       - name: Get Dependencies
         run: flutter pub get
@@ -75,6 +90,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.44.6'
           cache: true
       - name: Get Dependencies
         run: flutter pub get
@@ -154,6 +170,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.44.6'
           cache: true
       - name: Install dependencies
         run: flutter pub get
@@ -266,6 +283,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.44.6'
           cache: true
       - name: Get dependencies
         run: flutter pub get
@@ -287,7 +305,7 @@ jobs:
   build-android:
     name: Build Android
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-    needs: [scan-secrets, codeql-analysis, flutter-audit, unit-tests]
+    needs: [scan-secrets, codeql-analysis, flutter-audit, unit-tests, e2e-android]
     runs-on: ubuntu-latest
     outputs:
       artifact-name: GameTracker-release-${{ github.run_number }}
@@ -300,6 +318,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.44.6'
           cache: true
       - name: Get dependencies
         run: flutter pub get
@@ -383,7 +402,7 @@ jobs:
   release:
     name: Create Release
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: [e2e-android, build-android]
+    needs: build-android
     runs-on: ubuntu-latest
     environment: release
     steps:
