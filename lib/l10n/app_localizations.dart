@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Ad not available. Please try again later.'**
   String get adUnlockError;
 
+  /// No description provided for @adUnlockWebUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Ads aren\'t available on web — go Premium for unlimited stats access.'**
+  String get adUnlockWebUnavailable;
+
   /// No description provided for @adUnlockedSuccess.
   ///
   /// In en, this message translates to:

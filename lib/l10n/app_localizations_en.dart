@@ -70,6 +70,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adUnlockError => 'Ad not available. Please try again later.';
 
   @override
+  String get adUnlockWebUnavailable =>
+      'Ads aren\'t available on web — go Premium for unlimited stats access.';
+
+  @override
   String get adUnlockedSuccess => 'Stats unlocked for 5 minutes! 🎉';
 
   @override
