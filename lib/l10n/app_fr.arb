@@ -27,6 +27,7 @@
   "adUnlockPremiumBtn": "Passer Premium — sans pub",
   "adUnlockLoading": "Chargement de la pub…",
   "adUnlockError": "Pub indisponible. Réessayez plus tard.",
+  "adUnlockWebUnavailable": "Les pubs ne sont pas disponibles sur le web — passez Premium pour un accès illimité aux stats.",
   "adUnlockedSuccess": "Stats débloquées 5 minutes ! 🎉",
   "adUnlockTimerLabel": "Stats débloquées — {minutes}m {seconds}s restantes",
 

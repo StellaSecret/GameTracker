@@ -48,6 +48,8 @@
   "@adUnlockLoading": {},
   "adUnlockError": "Ad not available. Please try again later.",
   "@adUnlockError": {},
+  "adUnlockWebUnavailable": "Ads aren't available on web — go Premium for unlimited stats access.",
+  "@adUnlockWebUnavailable": {},
   "adUnlockedSuccess": "Stats unlocked for 5 minutes! 🎉",
   "@adUnlockedSuccess": {},
   "adUnlockTimerLabel": "Stats unlocked — {minutes}m {seconds}s remaining",

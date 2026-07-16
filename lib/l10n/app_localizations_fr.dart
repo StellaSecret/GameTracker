@@ -70,6 +70,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adUnlockError => 'Pub indisponible. Réessayez plus tard.';
 
   @override
+  String get adUnlockWebUnavailable =>
+      'Les pubs ne sont pas disponibles sur le web — passez Premium pour un accès illimité aux stats.';
+
+  @override
   String get adUnlockedSuccess => 'Stats débloquées 5 minutes ! 🎉';
 
   @override

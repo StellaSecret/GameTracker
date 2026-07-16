@@ -9,6 +9,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -142,7 +143,7 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
           const SizedBox(height: 24),
 
           // Icon
-          Text('📊', style: const TextStyle(fontSize: 56))
+          const Text('📊', style: TextStyle(fontSize: 56))
               .animate()
               .scale(duration: testAwareDuration(350.ms), curve: Curves.elasticOut),
           const SizedBox(height: 12),
@@ -201,33 +202,55 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
             const SizedBox(height: 12),
           ],
 
-          // Watch ad button
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              key: const Key('btnWatchAd'),
-              onPressed: _loading ? null : _watchAd,
-              icon: _loading
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: c.surface,
-                      ),
-                    )
-                  : const Icon(Icons.play_circle_outline_rounded),
-              label: Text(_loading ? l.adUnlockLoading : l.adUnlockWatchBtn),
-              style: FilledButton.styleFrom(
-                backgroundColor: c.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                textStyle: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w700),
+          // Watch ad button — hidden on web, where google_mobile_ads has no
+          // implementation at all (not a config issue, there's simply no
+          // Flutter Web SDK from Google for this). Showing the button there
+          // meant tapping it always failed instantly with a generic "ad
+          // error", giving no indication this was permanent rather than a
+          // transient failure.
+          if (!kIsWeb) ...[
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: const Key('btnWatchAd'),
+                onPressed: _loading ? null : _watchAd,
+                icon: _loading
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: c.surface,
+                        ),
+                      )
+                    : const Icon(Icons.play_circle_outline_rounded),
+                label: Text(_loading ? l.adUnlockLoading : l.adUnlockWatchBtn),
+                style: FilledButton.styleFrom(
+                  backgroundColor: c.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  textStyle: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w700),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          ] else ...[
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: c.textSecondary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                l.adUnlockWebUnavailable,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: c.textSecondary),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
 
           // Go Premium button
           SizedBox(
