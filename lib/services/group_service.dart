@@ -54,12 +54,18 @@ class GroupService {
 
       debugPrint('=== GroupService.signIn: account=${account.email} ===');
       final auth = account.authentication;
-      final authStatus = await account.authorizationClient.authorizeScopes([]);
-      debugPrint('=== GroupService.signIn: idToken=${auth.idToken != null} accessToken=true ===');
-      final credential = GoogleAuthProvider.credential(
-        accessToken: authStatus.accessToken,
-        idToken: auth.idToken,
-      );
+      // Firebase's Google sign-in credential only needs the ID token to
+      // authenticate the user's identity — it doesn't need an OAuth access
+      // token, so there's no reason to call authorizationClient here at
+      // all. (Drive access, when actually needed, is requested separately
+      // and lazily in google_drive_service.dart, with real scopes.)
+      // authorizeScopes([]) used to be called here to also grab an access
+      // token, but an empty scope list is rejected outright by the
+      // Credential Manager / Authorization API google_sign_in now uses —
+      // "requestedScopes cannot be null or empty" — it's not just unused,
+      // it's a crash.
+      debugPrint('=== GroupService.signIn: idToken=${auth.idToken != null} ===');
+      final credential = GoogleAuthProvider.credential(idToken: auth.idToken);
       final result = await _auth.signInWithCredential(credential);
       debugPrint('=== GroupService.signIn: Firebase user=${result.user?.email} ===');
       return result.user != null;
@@ -79,11 +85,9 @@ class GroupService {
         return _auth.currentUser != null;
       }
       final auth = account.authentication;
-      final authStatus = await account.authorizationClient.authorizeScopes([]);
-      final credential = GoogleAuthProvider.credential(
-        accessToken: authStatus.accessToken,
-        idToken: auth.idToken,
-      );
+      // Same reasoning as signIn() above — no scoped access token needed
+      // for Firebase authentication itself.
+      final credential = GoogleAuthProvider.credential(idToken: auth.idToken);
       await _auth.signInWithCredential(credential);
       return true;
     } catch (_) {

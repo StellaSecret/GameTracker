@@ -271,7 +271,7 @@ jobs:
         run: flutter pub get
       - name: Build Web
         run: |
-          flutter build web --base-href "/GameTracker/" --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          flutter build web --base-href "/GameTracker/" --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GROUP_SYNC_EMAILS=${{ secrets.GROUP_SYNC_EMAILS }} --dart-define=GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           mv build/web/index.html build/web/app.html
           cp web/landing.html build/web/index.html
       - name: Setup Pages
@@ -287,7 +287,7 @@ jobs:
   build-android:
     name: Build Android
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-    needs: [scan-secrets, codeql-analysis, flutter-audit, unit-tests]
+    needs: [scan-secrets, codeql-analysis, flutter-audit, unit-tests, e2e-android]
     runs-on: ubuntu-latest
     outputs:
       artifact-name: GameTracker-release-${{ github.run_number }}
@@ -360,8 +360,8 @@ jobs:
           # requests fail with ERROR_CODE_INVALID_REQUEST.
           ORG_GRADLE_PROJECT_ADMOB_APPLICATION_ID_ANDROID: ${{ secrets.ADMOB_APPLICATION_ID_ANDROID }}
         run: |
-          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
-          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
+          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GROUP_SYNC_EMAILS=${{ secrets.GROUP_SYNC_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
+          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GROUP_SYNC_EMAILS=${{ secrets.GROUP_SYNC_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
       - name: Build Debug APK (PR)
         if: github.event_name == 'pull_request'
         run: flutter build apk --debug
@@ -383,7 +383,7 @@ jobs:
   release:
     name: Create Release
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: [e2e-android, build-android]
+    needs: build-android
     runs-on: ubuntu-latest
     environment: release
     steps:
