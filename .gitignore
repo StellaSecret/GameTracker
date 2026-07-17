@@ -66,4 +66,5 @@ android/app/google-services.json
 key.properties
 google-services.json
 .premium_emails.txt
+.group_sync_emails.txt
 GoogleService-Info.plist
