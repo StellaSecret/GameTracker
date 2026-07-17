@@ -15,6 +15,13 @@ class PurchaseService extends ChangeNotifier {
   static const _premiumEmailsRaw =
       String.fromEnvironment('PREMIUM_EMAILS');
 
+  // Separate from _premiumEmailsRaw on purpose: Premium and Group Sync are
+  // deliberately independent entitlements (see entitlement.dart) — a
+  // comp'd/beta group-sync tester shouldn't automatically get Premium's
+  // advanced stats/CSV export as a side effect, and vice versa.
+  static const _groupSyncEmailsRaw =
+      String.fromEnvironment('GROUP_SYNC_EMAILS');
+
   Entitlement _entitlement = const Entitlement.free();
   bool _isLoading = true;
   String? _lastError;
@@ -40,6 +47,13 @@ class PurchaseService extends ChangeNotifier {
     }
 
     if (kIsWeb || _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') {
+      // No RevenueCat lookup possible here (web, or RC not configured yet) —
+      // still honor a group-sync-only comp if the connected email is
+      // allowlisted, so it isn't silently ignored on this path.
+      _entitlement = Entitlement(
+        isPremium: _entitlement.isPremium,
+        hasGroupSync: _isGroupSyncAllowlisted(),
+      );
       _isLoading = false;
       notifyListeners();
       return;
@@ -71,12 +85,12 @@ class PurchaseService extends ChangeNotifier {
       final active = info.entitlements.active;
       _entitlement = Entitlement(
         isPremium:    active.containsKey(kPremiumId)   || _isDeveloper(),
-        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper(),
+        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper() || _isGroupSyncAllowlisted(),
       );
     } catch (_) {
       _entitlement = Entitlement(
         isPremium:    _isDeveloper(),
-        hasGroupSync: _isDeveloper(),
+        hasGroupSync: _isDeveloper() || _isGroupSyncAllowlisted(),
       );
     }
     notifyListeners();
@@ -90,14 +104,27 @@ class PurchaseService extends ChangeNotifier {
       debugPrint('=== DEVELOPER — full entitlement activated ===');
       _entitlement = const Entitlement.full();
       notifyListeners();
+      return;
+    }
+    if (!_entitlement.hasGroupSync && _isGroupSyncAllowlisted()) {
+      debugPrint('=== GROUP SYNC allowlist — group sync activated ===');
+      _entitlement = Entitlement(
+        isPremium: _entitlement.isPremium,
+        hasGroupSync: true,
+      );
+      notifyListeners();
     }
   }
 
-  bool _isDeveloper() {
-    if (_premiumEmailsRaw.isEmpty) {
+  /// Returns true if the currently known email (set via [setConnectedEmail],
+  /// or the signed-in Firebase Auth user) appears in [rawList] — a
+  /// comma-separated string from a --dart-define, same format used by both
+  /// PREMIUM_EMAILS and GROUP_SYNC_EMAILS.
+  bool _emailInList(String rawList) {
+    if (rawList.isEmpty) {
       return false;
     }
-    final allowed = _premiumEmailsRaw
+    final allowed = rawList
         .split(',')
         .map((e) => e.trim().toLowerCase())
         .where((e) => e.isNotEmpty)
@@ -116,6 +143,17 @@ class PurchaseService extends ChangeNotifier {
     }
     return false;
   }
+
+  /// PREMIUM_EMAILS allowlist — grants full developer/reviewer access to
+  /// BOTH entitlements at once (e.g. App Store reviewers, your own dev
+  /// testing). Unchanged, pre-existing mechanism.
+  bool _isDeveloper() => _emailInList(_premiumEmailsRaw);
+
+  /// GROUP_SYNC_EMAILS allowlist — grants ONLY Group Sync, independent of
+  /// Premium. Use this for comp'ing/beta-testing the real-time group
+  /// feature for specific users without also handing them Premium's
+  /// advanced stats/CSV export.
+  bool _isGroupSyncAllowlisted() => _emailInList(_groupSyncEmailsRaw);
 
   /// Returns the current offering for [productId].
   /// Pass [kPremiumId] or [kGroupSyncId] to get the right offering.
@@ -147,7 +185,7 @@ class PurchaseService extends ChangeNotifier {
       final active = result.customerInfo.entitlements.active;
       _entitlement = Entitlement(
         isPremium:    active.containsKey(kPremiumId)   || _isDeveloper(),
-        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper(),
+        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper() || _isGroupSyncAllowlisted(),
       );
       notifyListeners();
       return _entitlement.isPremium || _entitlement.hasGroupSync;
@@ -171,7 +209,7 @@ class PurchaseService extends ChangeNotifier {
       final active = info.entitlements.active;
       _entitlement = Entitlement(
         isPremium:    active.containsKey(kPremiumId)   || _isDeveloper(),
-        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper(),
+        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper() || _isGroupSyncAllowlisted(),
       );
       notifyListeners();
       return _entitlement.isPremium || _entitlement.hasGroupSync;

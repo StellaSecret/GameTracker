@@ -91,6 +91,8 @@ Secrets GitHub Actions :
 | `KEY_PASSWORD` | Mot de passe clé |
 | `ADMOB_REWARDED_AD_UNIT_ANDROID` | ID d'unité pub AdMob (format `ca-app-pub-XXXX/YYYY`) — sans ce secret, le build utilise l'ID de test Google (voir `lib/services/ad_service.dart`) |
 | `ADMOB_APPLICATION_ID_ANDROID` | App ID AdMob (format `ca-app-pub-XXXX~YYYY`, remarquez le `~`) — **doit correspondre à la même appli AdMob** que `ADMOB_REWARDED_AD_UNIT_ANDROID` ci-dessus, sinon les requêtes pub échouent avec `ERROR_CODE_INVALID_REQUEST`. Sans ce secret, le build utilise l'App ID de test Google (voir `android/app/build.gradle` / `AndroidManifest.xml`) |
+| `PREMIUM_EMAILS` | Emails séparés par des virgules avec accès développeur/reviewer **complet** (Premium + Group Sync), sans achat réel — voir `lib/services/purchase_service.dart` |
+| `GROUP_SYNC_EMAILS` | Emails séparés par des virgules avec accès **Group Sync uniquement** (comp/beta-testeurs), indépendant de Premium — même mécanisme que `PREMIUM_EMAILS` mais volontairement séparé (voir `entitlement.dart` sur pourquoi les deux entitlements sont indépendants) |
 
 ---
 
