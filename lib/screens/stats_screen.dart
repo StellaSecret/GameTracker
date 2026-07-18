@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../config/test_flags.dart';
 import '../l10n/app_localizations.dart';
 import '../models/game_mode.dart';
 import '../models/stats_engine.dart';
-import '../config/test_flags.dart';
 import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
@@ -469,10 +469,10 @@ class _GlobalTab extends StatelessWidget {
           const SizedBox(height: 20),
         ],
 
-        if (stats.absoluteRecord != null) ...[
-          _SectionTitle(l.statSectionAbsoluteRecord),
+        if (stats.gameRecords.isNotEmpty) ...[
+          _SectionTitle(l.statSectionGameRecords),
           const SizedBox(height: 12),
-          _AbsoluteRecordCard(stats: stats, state: state)
+          _GameRecordsCard(stats: stats, state: state)
               .animate()
               .fadeIn(duration: testAwareDuration(300.ms)),
           const SizedBox(height: 20),
@@ -1277,44 +1277,55 @@ class _MostActiveCard extends StatelessWidget {
   }
 }
 
-class _AbsoluteRecordCard extends StatelessWidget {
+class _GameRecordsCard extends StatelessWidget {
   final GlobalStats stats;
   final AppState state;
-  const _AbsoluteRecordCard(
-      {required this.stats, required this.state});
+  const _GameRecordsCard({required this.stats, required this.state});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
-    final player = stats.absoluteRecordHolder != null
-        ? state.findPlayer(stats.absoluteRecordHolder!)
-        : null;
     return GTCard(
       borderColor: const Color(0xFFFFD700).withValues(alpha: 0.4),
-      child: Row(children: [
-        const Text('⭐', style: TextStyle(fontSize: 36)),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${stats.absoluteRecord} pts',
-                  style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFFFFD700))),
-              Text(player?.name ?? '—',
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600)),
-              Text(
-                '${stats.absoluteRecordGame ?? ''}${stats.absoluteRecordDate != null ? ' · ${_formatDate(context, stats.absoluteRecordDate!)}' : ''}',
-                style:
-                    TextStyle(fontSize: 12, color: c.textSecondary),
-              ),
-            ],
-          ),
-        ),
-      ]),
+      child: Column(
+        children: stats.gameRecords.map((record) {
+          final player = state.findPlayer(record.holderId);
+          final isLast = record == stats.gameRecords.last;
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('⭐', style: TextStyle(fontSize: 22)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(record.gameName,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w700)),
+                      Text(
+                        '${player?.name ?? '—'} · ${l.recordLabel(record.score)}',
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFFFD700)),
+                      ),
+                      Text(
+                        _formatDate(context, record.date),
+                        style:
+                            TextStyle(fontSize: 11, color: c.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

@@ -315,17 +315,39 @@ class _SessionCard extends StatelessWidget {
           scoreText = _ordinal(context, e.value);
           scoreColor = e.value == 1 ? const Color(0xFFFFD700) : null;
         case GameMode.duel:
-          final result = DuelResult.values[e.value];
-          scoreText = result == DuelResult.win
-              ? l.duelWin
-              : result == DuelResult.draw
-                  ? l.duelDraw
-                  : l.duelLoss;
-          scoreColor = result == DuelResult.win
-              ? c.success
-              : result == DuelResult.loss
-                  ? c.error
-                  : c.warning;
+          if (session.hasRounds) {
+            // e.value here is a ROUND-WIN COUNT (0, 1, 2...), not a
+            // DuelResult index — see game_session.dart's own doc comment
+            // on GameSession.scores. Feeding it straight into
+            // DuelResult.values[e.value] (as the non-rounds branch below
+            // does) silently produces the wrong label for any count other
+            // than exactly 0/1/2 — e.g. 2 rounds won renders as "Loss"
+            // (DuelResult.values[2]), 1 round won renders as "Draw"
+            // (DuelResult.values[1]). session.winner is unaffected (it's
+            // computed separately in GameSession.winnerFor, which does
+            // branch on hasRounds correctly), so this bug only broke the
+            // per-player result label, not the actual winner/highlight.
+            final roundsWon = e.value;
+            scoreText =
+                l.duelRoundsWonLabel(roundsWon, session.rounds.length);
+            scoreColor = isWinner
+                ? c.success
+                : session.winner == null
+                    ? c.warning // tied round-win count = draw overall
+                    : c.error;
+          } else {
+            final result = DuelResult.values[e.value];
+            scoreText = result == DuelResult.win
+                ? l.duelWin
+                : result == DuelResult.draw
+                    ? l.duelDraw
+                    : l.duelLoss;
+            scoreColor = result == DuelResult.win
+                ? c.success
+                : result == DuelResult.loss
+                    ? c.error
+                    : c.warning;
+          }
       }
 
       return Padding(

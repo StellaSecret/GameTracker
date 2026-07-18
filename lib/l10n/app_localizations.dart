@@ -221,7 +221,7 @@ abstract class AppLocalizations {
   /// No description provided for @adUnlockWebUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Ads aren\'t available on web — go Premium for unlimited stats access.'**
+  /// **'Ads aren't available on web — go Premium for unlimited stats access.'**
   String get adUnlockWebUnavailable;
 
   /// No description provided for @adUnlockedSuccess.
@@ -704,6 +704,12 @@ abstract class AppLocalizations {
   /// **'Loss'**
   String get duelLoss;
 
+  /// No description provided for @duelRoundsWonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{won}/{total} rounds won'**
+  String duelRoundsWonLabel(int won, int total);
+
   /// No description provided for @ordinal1st.
   ///
   /// In en, this message translates to:
@@ -956,11 +962,11 @@ abstract class AppLocalizations {
   /// **'MOST ACTIVE'**
   String get statSectionMostActive;
 
-  /// No description provided for @statSectionAbsoluteRecord.
+  /// No description provided for @statSectionGameRecords.
   ///
   /// In en, this message translates to:
-  /// **'ABSOLUTE RECORD'**
-  String get statSectionAbsoluteRecord;
+  /// **'RECORDS BY GAME'**
+  String get statSectionGameRecords;
 
   /// No description provided for @statSectionRivalries.
   ///

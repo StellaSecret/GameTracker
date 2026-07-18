@@ -81,14 +81,33 @@ class ScorePoint {
   const ScorePoint(this.date, this.value);
 }
 
+// A single game's best-ever points-mode score. Deliberately scoped to one
+// game — comparing raw scores *across* different games is meaningless
+// (a game with a 0-20 point scale can never "beat" one with a 0-500 scale,
+// regardless of how dominant a performance it was for its own game), so
+// GlobalStats tracks one of these per game instead of a single cross-game
+// "absolute record".
+class GameRecord {
+  final String gameId;
+  final String gameName;
+  final int score;
+  final String holderId;
+  final DateTime date;
+
+  const GameRecord({
+    required this.gameId,
+    required this.gameName,
+    required this.score,
+    required this.holderId,
+    required this.date,
+  });
+}
+
 // ── Statistiques globales ─────────────────────────────────────────────────
 
 class GlobalStats {
   final List<MapEntry<String, int>> globalRanking;
-  final int? absoluteRecord;
-  final String? absoluteRecordHolder;
-  final String? absoluteRecordGame;
-  final DateTime? absoluteRecordDate;
+  final List<GameRecord> gameRecords;
   final String? globalNemesisA;
   final String? globalNemesisB;
   final int? globalNemesisScore;
@@ -102,10 +121,7 @@ class GlobalStats {
 
   const GlobalStats({
     required this.globalRanking,
-    this.absoluteRecord,
-    this.absoluteRecordHolder,
-    this.absoluteRecordGame,
-    this.absoluteRecordDate,
+    required this.gameRecords,
     this.globalNemesisA,
     this.globalNemesisB,
     this.globalNemesisScore,
@@ -346,10 +362,7 @@ class StatsEngine {
     final Map<String, int> globalWins = {};
     final Map<String, int> globalGames = {};
     int totalSessions = 0;
-    int? absRecord;
-    String? absHolder;
-    String? absGame;
-    DateTime? absDate;
+    final Map<String, GameRecord> recordsByGame = {};
     final Map<String, int> h2h = {};
 
     for (final game in games) {
@@ -364,18 +377,24 @@ class StatsEngine {
           globalGames[pid] = (globalGames[pid] ?? 0) + 1;
         }
 
-        // Absolute record — for lowestScoreWins, lowest score = record
+        // Best score for THIS game — for lowestScoreWins, lowest score
+        // wins the record. Kept per-game (see GameRecord's doc comment)
+        // rather than compared across every game in the app.
         if (session.mode == GameMode.points) {
+          final current = recordsByGame[game.id];
           for (final e in session.scores.entries) {
-            final isBetter = absRecord == null ||
+            final isBetter = current == null ||
                 (game.lowestScoreWins
-                    ? e.value < absRecord
-                    : e.value > absRecord);
+                    ? e.value < current.score
+                    : e.value > current.score);
             if (isBetter) {
-              absRecord = e.value;
-              absHolder = e.key;
-              absGame = game.name;
-              absDate = session.playedAt;
+              recordsByGame[game.id] = GameRecord(
+                gameId: game.id,
+                gameName: game.name,
+                score: e.value,
+                holderId: e.key,
+                date: session.playedAt,
+              );
             }
           }
         }
@@ -442,12 +461,15 @@ class StatsEngine {
       }
     }
 
+    // Sorted by game name for a stable, predictable display order — the
+    // records aren't comparable to each other in magnitude, so there's no
+    // meaningful "best first" ordering to sort by instead.
+    final gameRecords = recordsByGame.values.toList()
+      ..sort((a, b) => a.gameName.compareTo(b.gameName));
+
     return GlobalStats(
       globalRanking: ranking,
-      absoluteRecord: absRecord,
-      absoluteRecordHolder: absHolder,
-      absoluteRecordGame: absGame,
-      absoluteRecordDate: absDate,
+      gameRecords: gameRecords,
       globalNemesisA: nemA,
       globalNemesisB: nemB,
       globalNemesisScore: nemScore > 0 ? nemScore : null,

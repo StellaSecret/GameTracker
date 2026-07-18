@@ -116,6 +116,7 @@
   "duelWin": "Victoire",
   "duelDraw": "Match nul",
   "duelLoss": "Défaite",
+  "duelRoundsWonLabel": "{won}/{total} manches gagnées",
 
   "ordinal1st": "1er",
   "ordinalNth": "{n}ème",
@@ -163,7 +164,7 @@
   "statSectionOverview": "VUE D'ENSEMBLE",
   "statSectionGlobalRanking": "CLASSEMENT GÉNÉRAL",
   "statSectionMostActive": "LE PLUS ACTIF",
-  "statSectionAbsoluteRecord": "RECORD ABSOLU",
+  "statSectionGameRecords": "RECORDS PAR JEU",
   "statSectionRivalries": "RIVALITÉS",
 
   "statLabelSessions": "PARTIES",

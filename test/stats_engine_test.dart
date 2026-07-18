@@ -440,7 +440,7 @@ void main() {
       expect(map['bob'], 1);
     });
 
-    test('absoluteRecord = lowest score for lowestScoreWins', () {
+    test('gameRecords: lowest score for lowestScoreWins', () {
       final g = Game(id: 'g', name: 'Golf', mode: GameMode.points,
           lowestScoreWins: true);
       g.sessions.addAll([
@@ -448,8 +448,10 @@ void main() {
         pts({'alice': 2,  'bob': 8}, day: 1),
       ]);
       final global = StatsEngine([g]).computeGlobalStats();
-      expect(global.absoluteRecord, 2);
-      expect(global.absoluteRecordHolder, 'alice');
+      expect(global.gameRecords, hasLength(1));
+      expect(global.gameRecords.single.score, 2);
+      expect(global.gameRecords.single.holderId, 'alice');
+      expect(global.gameRecords.single.gameId, 'g');
     });
 
     test('mixed games: lowestScoreWins only affects its own game', () {
@@ -584,7 +586,7 @@ void main() {
       expect(g.totalGames, 0);
       expect(g.totalSessions, 0);
       expect(g.globalRanking, isEmpty);
-      expect(g.absoluteRecord, isNull);
+      expect(g.gameRecords, isEmpty);
     });
 
     test('totalSessions sums all', () {

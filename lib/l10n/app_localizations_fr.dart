@@ -381,6 +381,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get duelLoss => 'Défaite';
 
   @override
+  String duelRoundsWonLabel(int won, int total) {
+    return '$won/$total manches gagnées';
+  }
+
+  @override
   String get ordinal1st => '1er';
 
   @override
@@ -524,7 +529,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statSectionMostActive => 'LE PLUS ACTIF';
 
   @override
-  String get statSectionAbsoluteRecord => 'RECORD ABSOLU';
+  String get statSectionGameRecords => 'RECORDS PAR JEU';
 
   @override
   String get statSectionRivalries => 'RIVALITÉS';

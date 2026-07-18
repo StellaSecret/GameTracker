@@ -235,6 +235,13 @@
   "@duelDraw": {},
   "duelLoss": "Loss",
   "@duelLoss": {},
+  "duelRoundsWonLabel": "{won}/{total} rounds won",
+  "@duelRoundsWonLabel": {
+    "placeholders": {
+      "won": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
 
   "ordinal1st": "1st",
   "@ordinal1st": {},
@@ -324,8 +331,8 @@
   "@statSectionGlobalRanking": {},
   "statSectionMostActive": "MOST ACTIVE",
   "@statSectionMostActive": {},
-  "statSectionAbsoluteRecord": "ABSOLUTE RECORD",
-  "@statSectionAbsoluteRecord": {},
+  "statSectionGameRecords": "RECORDS BY GAME",
+  "@statSectionGameRecords": {},
   "statSectionRivalries": "RIVALRIES",
   "@statSectionRivalries": {},
 
