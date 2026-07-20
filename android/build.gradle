@@ -13,6 +13,34 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// The app-level `android { lint { disable ... } }` block in
+// android/app/build.gradle only configures the :app module's OWN lint
+// task — it has no effect on other Gradle subprojects, including plugin
+// dependencies like url_launcher_android, each of which has its own
+// independent android{} block inside its own build.gradle (which lives in
+// the pub-cache, not this repo, so we can't edit it directly). AGP 9.3.0's
+// bundled Lint crashes with a NoSuchMethodError inside CommentDetector
+// (see android/app/build.gradle's comment for details) while running the
+// automatic "lint vital" pass AGP runs on every library module before a
+// release build — including third-party plugins' own modules. Since we
+// can't configure disable() from inside those modules, disable the
+// lintVital* tasks directly at the Gradle task level, project-wide, which
+// works regardless of which subproject registered them.
+//
+// No afterEvaluate here on purpose: tasks.matching(...).configureEach(...)
+// is already lazy — it applies to tasks registered later too, not just
+// ones that already exist — so wrapping it in afterEvaluate is both
+// unnecessary AND actively breaks the build here: the
+// evaluationDependsOn(":app") line above forces :app to finish evaluating
+// early, so by the time this block's closure ran for :app,
+// Project.afterEvaluate(...) was being called on an already-evaluated
+// project, which Gradle now treats as a hard error rather than a no-op.
+subprojects {
+    tasks.matching { it.name.startsWith("lintVital") }.configureEach {
+        enabled = false
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
