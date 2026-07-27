@@ -624,10 +624,10 @@ packages:
     dependency: "direct main"
     description:
       name: purchases_flutter
-      sha256: c7a1b82b5c4c40a7f825bd6e8bb8715c3cc400e28619a1e00dedb9fa97247f5a
+      sha256: "2d02f74f88a890aca44962cac31c7f55fa6b28b18f6fa73c6da71b3cc878d969"
       url: "https://pub.dev"
     source: hosted
-    version: "10.4.2"
+    version: "10.4.3"
   record_use:
     dependency: transitive
     description:
