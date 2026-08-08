@@ -5,8 +5,22 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import '../models/entitlement.dart';
 
 class PurchaseService extends ChangeNotifier {
-  static const String _kApiKeyAndroid = 'YOUR_REVENUECAT_ANDROID_KEY';
-  static const String _kApiKeyIOS     = 'YOUR_REVENUECAT_IOS_KEY';
+  // Same pattern as ADMOB_REWARDED_AD_UNIT_ANDROID in ad_service.dart:
+  // RevenueCat's public/platform API keys (goog_.../appl_...) are meant to
+  // be client-embeddable by RevenueCat's own design, not secret — but
+  // routing them through --dart-define keeps them out of the public repo
+  // regardless, consistent with the other IDs already handled this way.
+  // Placeholder defaults are unchanged from before so the existing
+  // "not configured" checks below (== 'YOUR_REVENUECAT_ANDROID_KEY') still
+  // work for local/PR builds without the secret set.
+  static const String _kApiKeyAndroid = String.fromEnvironment(
+    'REVENUECAT_API_KEY_ANDROID',
+    defaultValue: 'YOUR_REVENUECAT_ANDROID_KEY',
+  );
+  static const String _kApiKeyIOS = String.fromEnvironment(
+    'REVENUECAT_API_KEY_IOS',
+    defaultValue: 'YOUR_REVENUECAT_IOS_KEY',
+  );
 
   /// RevenueCat entitlement IDs — must match what you configure in the RC dashboard.
   static const String kPremiumId   = 'premium';    // one-time / annual

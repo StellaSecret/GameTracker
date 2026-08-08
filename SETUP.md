@@ -58,18 +58,26 @@ service cloud.firestore {
 
 ## 3. RevenueCat (achats in-app — freemium)
 
+L'app gère **deux entitlements RevenueCat indépendants**, pas un seul — voir `entitlement.dart` : Premium (stats avancées + export CSV) et Group Sync (synchronisation temps réel entre joueurs) sont volontairement séparés, car Group Sync a un coût d'infra Firestore récurrent qu'un paiement one-time Premium ne peut pas financer durablement.
+
 1. [app.revenuecat.com](https://app.revenuecat.com) → nouveau projet
 2. Ajouter les apps Android et iOS
-3. Créer un **Entitlement** nommé exactement `premium`
-4. Créer des **Products** dans Google Play Console et App Store Connect :
-   - `gametracker_premium_monthly` (mensuel)
-   - `gametracker_premium_annual` (annuel)
-5. Créer une **Offering** `default` avec ces deux packages
-6. Copier les clés API dans `lib/services/purchase_service.dart` :
-   ```dart
-   static const String _kApiKeyAndroid = 'appl_XXXXXXXX';
-   static const String _kApiKeyIOS = 'goog_XXXXXXXX';
-   ```
+3. Créer **deux Entitlements**, nommés exactement :
+   - `premium`
+   - `group_sync`
+4. Créer des **Products** dans Google Play Console et App Store Connect, selon la cadence définie par le code (`kPremiumId`/`kGroupSyncId` dans `purchase_service.dart`) :
+   - Premium — **achat unique et/ou abonnement annuel** : ex. `gametracker_premium_lifetime`, `gametracker_premium_annual`
+   - Group Sync — **abonnement mensuel uniquement** (volontairement récurrent, pour couvrir le coût Firestore en continu) : ex. `gametracker_groupsync_monthly`
+5. Dans RevenueCat, attacher chaque Product à son Entitlement correspondant (Premium → `premium`, Group Sync → `group_sync`)
+6. Créer une **Offering** avec les packages des deux entitlements — `paywall_screen.dart` a deux `PaywallTarget` distincts (`premium` et `groupSync`) qui ont chacun besoin d'un package achetable
+7. Récupérer les clés API : dashboard RevenueCat → **Project settings → API keys** (ou **Platforms** sur la nouvelle interface) → section **Public app-specific API keys**. Chaque clé est préfixée par plateforme :
+   - `goog_...` → app **Android**
+   - `appl_...` → app **iOS**
+
+   ⚠️ Ne jamais utiliser les clés **secrètes** (préfixe `sk_`) ici — elles sont réservées à un usage serveur.
+
+   Comme pour `ADMOB_REWARDED_AD_UNIT_ANDROID`, la clé Android passe par un secret GitHub Actions injecté via `--dart-define` plutôt que d'être codée en dur — voir le tableau de secrets en section 4. Sans ce secret, le build utilise le placeholder `YOUR_REVENUECAT_ANDROID_KEY` (voir `lib/services/purchase_service.dart`), ce qui désactive proprement RevenueCat plutôt que de planter.
+8. Testez avant de publier : Play Console permet d'ajouter des comptes de test (achats réels en mode sandbox, sans facturation) — vérifiez que les deux flux d'achat (Premium et Group Sync) activent bien `isPremium`/`hasGroupSync` dans l'app avant de sortir en prod.
 
 ---
 
@@ -93,6 +101,7 @@ Secrets GitHub Actions :
 | `ADMOB_APPLICATION_ID_ANDROID` | App ID AdMob (format `ca-app-pub-XXXX~YYYY`, remarquez le `~`) — **doit correspondre à la même appli AdMob** que `ADMOB_REWARDED_AD_UNIT_ANDROID` ci-dessus, sinon les requêtes pub échouent avec `ERROR_CODE_INVALID_REQUEST`. Sans ce secret, le build utilise l'App ID de test Google (voir `android/app/build.gradle` / `AndroidManifest.xml`) |
 | `PREMIUM_EMAILS` | Emails séparés par des virgules avec accès développeur/reviewer **complet** (Premium + Group Sync), sans achat réel — voir `lib/services/purchase_service.dart` |
 | `GROUP_SYNC_EMAILS` | Emails séparés par des virgules avec accès **Group Sync uniquement** (comp/beta-testeurs), indépendant de Premium — même mécanisme que `PREMIUM_EMAILS` mais volontairement séparé (voir `entitlement.dart` sur pourquoi les deux entitlements sont indépendants) |
+| `REVENUECAT_API_KEY_ANDROID` | Clé API publique RevenueCat pour l'app Android (préfixe `goog_...`, voir section 3) — sans ce secret, le build utilise le placeholder de test et RevenueCat reste désactivé proprement (voir `lib/services/purchase_service.dart`) |
 
 ---
 
