@@ -5,8 +5,32 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import '../models/entitlement.dart';
 
 class PurchaseService extends ChangeNotifier {
-  static const String _kApiKeyAndroid = 'YOUR_REVENUECAT_ANDROID_KEY';
-  static const String _kApiKeyIOS     = 'YOUR_REVENUECAT_IOS_KEY';
+  // Same pattern as ADMOB_REWARDED_AD_UNIT_ANDROID in ad_service.dart:
+  // RevenueCat's public/platform API keys (goog_.../appl_...) are meant to
+  // be client-embeddable by RevenueCat's own design, not secret — but
+  // routing them through --dart-define keeps them out of the public repo
+  // regardless, consistent with the other IDs already handled this way.
+  // Placeholder defaults are unchanged from before so the existing
+  // "not configured" checks below still work for local/PR builds without
+  // the secret set. IMPORTANT: those checks test BOTH `.isEmpty` AND
+  // `== 'YOUR_REVENUECAT_ANDROID_KEY'` — String.fromEnvironment only
+  // returns defaultValue when the --dart-define is entirely ABSENT at
+  // compile time. Since the release workflow always passes
+  // --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.X }}
+  // unconditionally, an unset/misspelled/empty GitHub secret produces an
+  // empty string here, NOT the placeholder default — checking only for
+  // the placeholder would miss that case and fall through to a real
+  // Purchases.configure(apiKey: '') call, which fails to establish the
+  // native singleton and surfaces later as a confusing
+  // "no singleton instance" error on every subsequent RevenueCat call.
+  static const String _kApiKeyAndroid = String.fromEnvironment(
+    'REVENUECAT_API_KEY_ANDROID',
+    defaultValue: 'YOUR_REVENUECAT_ANDROID_KEY',
+  );
+  static const String _kApiKeyIOS = String.fromEnvironment(
+    'REVENUECAT_API_KEY_IOS',
+    defaultValue: 'YOUR_REVENUECAT_IOS_KEY',
+  );
 
   /// RevenueCat entitlement IDs — must match what you configure in the RC dashboard.
   static const String kPremiumId   = 'premium';    // one-time / annual
@@ -26,6 +50,9 @@ class PurchaseService extends ChangeNotifier {
   bool _isLoading = true;
   String? _lastError;
   String? _connectedEmail;
+  bool _configured = false;
+
+  bool get _rcUsable => !kIsWeb && _configured;
 
   Entitlement get entitlement => _entitlement;
   bool get isLoading    => _isLoading;
@@ -46,7 +73,7 @@ class PurchaseService extends ChangeNotifier {
       return;
     }
 
-    if (kIsWeb || _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') {
+    if (kIsWeb || _kApiKeyAndroid.isEmpty || _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') {
       // No RevenueCat lookup possible here (web, or RC not configured yet) —
       // still honor a group-sync-only comp if the connected email is
       // allowlisted, so it isn't silently ignored on this path.
@@ -67,6 +94,7 @@ class PurchaseService extends ChangeNotifier {
             : _kApiKeyIOS,
       );
       await Purchases.configure(config);
+      _configured = true;
       await _refreshEntitlement();
     } catch (e) {
       _lastError = e.toString();
@@ -158,7 +186,7 @@ class PurchaseService extends ChangeNotifier {
   /// Returns the current offering for [productId].
   /// Pass [kPremiumId] or [kGroupSyncId] to get the right offering.
   Future<Offering?> getOffering({String productId = kPremiumId}) async {
-    if (kIsWeb || _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') {
+    if (!_rcUsable) {
       return null;
     }
     try {
@@ -172,7 +200,7 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<bool> purchase(Package package) async {
-    if (kIsWeb) {
+    if (!_rcUsable) {
       return false;
     }
     try {
@@ -200,7 +228,8 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<bool> restorePurchases() async {
-    if (kIsWeb) {
+    if (!_rcUsable) {
+      _lastError = 'RevenueCat not configured';
       return false;
     }
     try {

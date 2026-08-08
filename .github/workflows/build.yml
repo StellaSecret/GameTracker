@@ -360,8 +360,8 @@ jobs:
           # requests fail with ERROR_CODE_INVALID_REQUEST.
           ORG_GRADLE_PROJECT_ADMOB_APPLICATION_ID_ANDROID: ${{ secrets.ADMOB_APPLICATION_ID_ANDROID }}
         run: |
-          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GROUP_SYNC_EMAILS=${{ secrets.GROUP_SYNC_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
-          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GROUP_SYNC_EMAILS=${{ secrets.GROUP_SYNC_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }}
+          flutter build apk --release --target-platform android-arm64 --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GROUP_SYNC_EMAILS=${{ secrets.GROUP_SYNC_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }} --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}
+          flutter build appbundle --release --dart-define=PREMIUM_EMAILS=${{ secrets.PREMIUM_EMAILS }} --dart-define=GROUP_SYNC_EMAILS=${{ secrets.GROUP_SYNC_EMAILS }} --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }} --dart-define=ADMOB_REWARDED_AD_UNIT_ANDROID=${{ secrets.ADMOB_REWARDED_AD_UNIT_ANDROID }} --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}
       - name: Build Debug APK (PR)
         if: github.event_name == 'pull_request'
         run: flutter build apk --debug
