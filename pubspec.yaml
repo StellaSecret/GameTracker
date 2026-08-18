@@ -41,7 +41,7 @@ dependencies:
   purchases_flutter: ^10.9.0
 
   # Ads (rewarded — stats temporary unlock for free users)
-  google_mobile_ads: ^9.0.0
+  google_mobile_ads: ^9.1.0
 
   # Utils
   uuid: ^4.6.0
