@@ -41,8 +41,7 @@ class GameDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.edit_rounded),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => AddGameScreen(existing: game)),
+              MaterialPageRoute(builder: (_) => AddGameScreen(existing: game)),
             ),
           ),
         ],
@@ -57,8 +56,7 @@ class GameDetailScreen extends StatelessWidget {
                 children: [
                   if (game.description != null) ...[
                     Text(game.description!,
-                        style: TextStyle(
-                            color: c.textSecondary, fontSize: 14)),
+                        style: TextStyle(color: c.textSecondary, fontSize: 14)),
                     const SizedBox(height: 16),
                   ],
                   _buildStats(context, game, state),
@@ -101,7 +99,9 @@ class GameDetailScreen extends StatelessWidget {
                       session: sessions[i],
                       game: game,
                     )
-                        .animate(delay: testAwareDuration(Duration(milliseconds: i * 30)))
+                        .animate(
+                            delay: testAwareDuration(
+                                Duration(milliseconds: i * 30)))
                         .fadeIn(duration: testAwareDuration(250.ms)),
                   ),
                   childCount: sessions.length,
@@ -133,8 +133,7 @@ class GameDetailScreen extends StatelessWidget {
           GTSectionHeader(title: l.leaderboardSection),
           const SizedBox(height: 16),
           if (wins.isEmpty)
-            Text(l.noWinnerYet,
-                style: TextStyle(color: c.textSecondary))
+            Text(l.noWinnerYet, style: TextStyle(color: c.textSecondary))
           else
             ..._buildLeaderboard(context, wins, game, state),
         ],
@@ -142,8 +141,8 @@ class GameDetailScreen extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildLeaderboard(BuildContext context,
-      Map<String, int> wins, Game game, AppState state) {
+  List<Widget> _buildLeaderboard(
+      BuildContext context, Map<String, int> wins, Game game, AppState state) {
     final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final sorted = wins.entries.toList()
@@ -183,8 +182,7 @@ class GameDetailScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(name,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, color: color)),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: color)),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -196,12 +194,10 @@ class GameDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: c.textPrimary),
                 ),
-                if (game.mode == GameMode.points &&
-                    records[e.key] != null)
+                if (game.mode == GameMode.points && records[e.key] != null)
                   Text(
                     l.recordLabel(records[e.key]!),
-                    style: TextStyle(
-                        fontSize: 11, color: c.textSecondary),
+                    style: TextStyle(fontSize: 11, color: c.textSecondary),
                   ),
               ],
             ),
@@ -214,8 +210,7 @@ class GameDetailScreen extends StatelessWidget {
   void _addSession(BuildContext context, Game game) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-          builder: (_) => AddSessionScreen(game: game)),
+      MaterialPageRoute(builder: (_) => AddSessionScreen(game: game)),
     );
   }
 }
@@ -236,8 +231,8 @@ class _SessionCard extends StatelessWidget {
     String dateStr;
     try {
       // Use the device locale for date formatting so it naturally follows l10n.
-      final fmt = DateFormat.yMMMd(Localizations.localeOf(context).toString())
-          .add_Hm();
+      final fmt =
+          DateFormat.yMMMd(Localizations.localeOf(context).toString()).add_Hm();
       dateStr = fmt.format(session.playedAt);
     } catch (_) {
       dateStr =
@@ -251,12 +246,11 @@ class _SessionCard extends StatelessWidget {
           Row(
             children: [
               Text(dateStr,
-                  style:
-                      TextStyle(fontSize: 12, color: c.textSecondary)),
+                  style: TextStyle(fontSize: 12, color: c.textSecondary)),
               const Spacer(),
               IconButton(
-                icon: Icon(Icons.edit_outlined,
-                    size: 18, color: c.textSecondary),
+                icon:
+                    Icon(Icons.edit_outlined, size: 18, color: c.textSecondary),
                 onPressed: () => _editSession(context, game),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -289,8 +283,7 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildScores(
-      BuildContext context, AppColors c, AppState state) {
+  List<Widget> _buildScores(BuildContext context, AppColors c, AppState state) {
     final l = AppLocalizations.of(context)!;
     final sorted = session.scores.entries.toList();
     if (session.mode == GameMode.points) {
@@ -328,8 +321,7 @@ class _SessionCard extends StatelessWidget {
             // branch on hasRounds correctly), so this bug only broke the
             // per-player result label, not the actual winner/highlight.
             final roundsWon = e.value;
-            scoreText =
-                l.duelRoundsWonLabel(roundsWon, session.rounds.length);
+            scoreText = l.duelRoundsWonLabel(roundsWon, session.rounds.length);
             scoreColor = isWinner
                 ? c.success
                 : session.winner == null
@@ -391,8 +383,7 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmDelete(
-      BuildContext context, AppState state) async {
+  Future<void> _confirmDelete(BuildContext context, AppState state) async {
     final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final ok = await showDialog<bool>(
@@ -400,16 +391,15 @@ class _SessionCard extends StatelessWidget {
       builder: (_) => AlertDialog(
         backgroundColor: c.surface,
         title: Text(l.deleteSessionTitle),
-        content: Text(l.deleteSessionBody,
-            style: TextStyle(color: c.textSecondary)),
+        content:
+            Text(l.deleteSessionBody, style: TextStyle(color: c.textSecondary)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(l.btnCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l.btnDelete,
-                style: TextStyle(color: c.error)),
+            child: Text(l.btnDelete, style: TextStyle(color: c.error)),
           ),
         ],
       ),

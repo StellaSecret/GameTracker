@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations version="1.2">
+  <!--
+    Shared mutation-testing config for GameTracker (mutation_test 1.8.0).
+
+    THIS FILE IS A RULES DOCUMENT (loaded via -r), not an input document.
+    Its <commands>/<exclude>/<threshold> apply globally to the source files
+    passed as positional INPUT arguments; -b keeps the builtin mutation
+    rules. A positional XML argument is parsed as an INPUT document instead
+    (the tool then ignores bare source-file arguments), so do NOT place the
+    .xml on the command line itself. Example (no double-hyphens in comments):
+      dart run mutation_test -b -r mutation_test.xml -coverage coverage/lcov.info \
+        -f all -o work-0 lib/models/stats_engine.dart
+
+    Threshold is informational only (failure="0" never fails); CI enforces
+    zero missed mutants via scripts/mutants_summary.py (a missed mutant fails
+    the mutation-tests job).
+  -->
+  <commands>
+    <!-- Single command: the full fast logic test suite (~seconds, no widgets).
+         timeout guards against hang mutations (e.g. loop conditions). -->
+    <command group="test" expected-return="0" working-directory="." timeout="120">flutter test</command>
+  </commands>
+
+  <!-- Exclude loop headers / conditionals whose mutation could hang a run. -->
+  <exclude>
+    <regex pattern="[\s]for[\s]*\((.*?)\)[\s]*{" dotAll="true"/>
+    <regex pattern="[\s]while[\s]*\((.*?)\)[\s]*{" dotAll="true"/>
+    <!-- developer.log is a fire-and-forget diagnostic; removing it (the
+         removeVoidCall1 survivor anchored on the enclosing catch line in
+         storage_service.dart) is not observable by tests. Exclude the catch
+         block that only logs and returns a fresh AppData. -->
+    <regex pattern="\bcatch\s*\(.*?\)\s*\{[\s\S]*?developer\.log[\s\S]*?\);" dotAll="true"/>
+  </exclude>
+
+  <threshold failure="0">
+    <rating over="100" name="A"/>
+    <rating over="80" name="B"/>
+    <rating over="60" name="C"/>
+    <rating over="40" name="D"/>
+    <rating over="20" name="E"/>
+    <rating over="0" name="F"/>
+  </threshold>
+</mutations>

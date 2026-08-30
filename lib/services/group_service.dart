@@ -64,10 +64,12 @@ class GroupService {
       // Credential Manager / Authorization API google_sign_in now uses —
       // "requestedScopes cannot be null or empty" — it's not just unused,
       // it's a crash.
-      debugPrint('=== GroupService.signIn: idToken=${auth.idToken != null} ===');
+      debugPrint(
+          '=== GroupService.signIn: idToken=${auth.idToken != null} ===');
       final credential = GoogleAuthProvider.credential(idToken: auth.idToken);
       final result = await _auth.signInWithCredential(credential);
-      debugPrint('=== GroupService.signIn: Firebase user=${result.user?.email} ===');
+      debugPrint(
+          '=== GroupService.signIn: Firebase user=${result.user?.email} ===');
       return result.user != null;
     } catch (e) {
       debugPrint('=== GroupService.signIn ERROR: $e ===');

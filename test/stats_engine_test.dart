@@ -38,18 +38,18 @@ GameSession rank(Map<String, int> ranks, {int day = 0}) => GameSession(
   final catan = Game(id: 'catan', name: 'Catan', mode: GameMode.points);
   catan.sessions.addAll([
     pts({'alice': 10, 'bob': 8, 'carol': 6}), // alice
-    pts({'alice': 5,  'bob': 12, 'carol': 9}, day: 1), // bob
-    pts({'alice': 9,  'bob': 7,  'carol': 11}, day: 2), // carol
-    pts({'alice': 14, 'bob': 8,  'carol': 6}, day: 3), // alice
-    pts({'alice': 9,  'bob': 9,  'carol': 8}, day: 4), // tie
+    pts({'alice': 5, 'bob': 12, 'carol': 9}, day: 1), // bob
+    pts({'alice': 9, 'bob': 7, 'carol': 11}, day: 2), // carol
+    pts({'alice': 14, 'bob': 8, 'carol': 6}, day: 3), // alice
+    pts({'alice': 9, 'bob': 9, 'carol': 8}, day: 4), // tie
   ]);
   final chess = Game(id: 'chess', name: 'Chess', mode: GameMode.duel);
   chess.sessions.addAll([
     duel('alice', 'bob'),
-    duel('bob',   'alice', day: 1),
+    duel('bob', 'alice', day: 1),
     duel('alice', 'bob', day: 2),
     duel('alice', 'bob', day: 3),
-    duel('bob',   'alice', day: 4),
+    duel('bob', 'alice', day: 4),
   ]);
   return (catan: catan, chess: chess);
 }
@@ -57,7 +57,6 @@ GameSession rank(Map<String, int> ranks, {int day = 0}) => GameSession(
 // ══════════════════════════════════════════════════════════════════════════════
 
 void main() {
-
   // ── Round ─────────────────────────────────────────────────────────────────
 
   group('Round', () {
@@ -80,11 +79,11 @@ void main() {
     test('sums correctly including negatives', () {
       final totals = GameSession.aggregatePointsRounds([
         const Round({'alice': 10, 'bob': -3}),
-        const Round({'alice': 5,  'bob': 8}),
+        const Round({'alice': 5, 'bob': 8}),
         const Round({'alice': -2, 'bob': 4}),
       ]);
       expect(totals['alice'], 13);
-      expect(totals['bob'],   9);
+      expect(totals['bob'], 9);
     });
 
     test('returns empty for empty rounds', () {
@@ -96,7 +95,7 @@ void main() {
         const Round({'alice': 7, 'bob': 3}),
       ]);
       expect(totals['alice'], 7);
-      expect(totals['bob'],   3);
+      expect(totals['bob'], 3);
     });
   });
 
@@ -105,12 +104,12 @@ void main() {
   group('GameSession.aggregateDuelRounds', () {
     test('counts round wins', () {
       final totals = GameSession.aggregateDuelRounds([
-        Round({'alice': DuelResult.win.index,  'bob': DuelResult.loss.index}),
+        Round({'alice': DuelResult.win.index, 'bob': DuelResult.loss.index}),
         Round({'alice': DuelResult.loss.index, 'bob': DuelResult.win.index}),
-        Round({'alice': DuelResult.win.index,  'bob': DuelResult.loss.index}),
+        Round({'alice': DuelResult.win.index, 'bob': DuelResult.loss.index}),
       ]);
       expect(totals['alice'], 2);
-      expect(totals['bob'],   1);
+      expect(totals['bob'], 1);
     });
 
     test('draws count as 0 wins', () {
@@ -119,7 +118,7 @@ void main() {
         Round({'alice': DuelResult.draw.index, 'bob': DuelResult.draw.index}),
       ]);
       expect(totals['alice'], 0);
-      expect(totals['bob'],   0);
+      expect(totals['bob'], 0);
     });
   });
 
@@ -135,7 +134,9 @@ void main() {
       final s = GameSession(
         mode: GameMode.points,
         scores: {'alice': 10},
-        rounds: [const Round({'alice': 10})],
+        rounds: [
+          const Round({'alice': 10})
+        ],
       );
       expect(s.hasRounds, isTrue);
     });
@@ -150,7 +151,7 @@ void main() {
         scores: {'alice': 13, 'bob': 9},
         rounds: [
           const Round({'alice': 10, 'bob': -3}),
-          const Round({'alice': 3,  'bob': 12}),
+          const Round({'alice': 3, 'bob': 12}),
         ],
       );
       final s2 = GameSession.fromJson(s.toJson());
@@ -173,40 +174,40 @@ void main() {
 
   group('GameSession.winnerFor', () {
     test('highest score wins by default', () {
-      final s = GameSession(mode: GameMode.points,
-          scores: {'alice': 10, 'bob': 5, 'carol': 7});
+      final s = GameSession(
+          mode: GameMode.points, scores: {'alice': 10, 'bob': 5, 'carol': 7});
       expect(s.winnerFor(), 'alice');
     });
 
     test('lowest score wins when flag set', () {
-      final s = GameSession(mode: GameMode.points,
-          scores: {'alice': 10, 'bob': 5, 'carol': 7});
+      final s = GameSession(
+          mode: GameMode.points, scores: {'alice': 10, 'bob': 5, 'carol': 7});
       expect(s.winnerFor(lowestScoreWins: true), 'bob');
     });
 
     test('tie returns null (highest)', () {
-      final s = GameSession(mode: GameMode.points,
-          scores: {'alice': 10, 'bob': 10});
+      final s =
+          GameSession(mode: GameMode.points, scores: {'alice': 10, 'bob': 10});
       expect(s.winnerFor(), isNull);
     });
 
     test('tie returns null (lowest)', () {
-      final s = GameSession(mode: GameMode.points,
-          scores: {'alice': 5, 'bob': 5});
+      final s =
+          GameSession(mode: GameMode.points, scores: {'alice': 5, 'bob': 5});
       expect(s.winnerFor(lowestScoreWins: true), isNull);
     });
 
     test('negative scores work with lowestScoreWins', () {
-      final s = GameSession(mode: GameMode.points,
-          scores: {'alice': -2, 'bob': -8, 'carol': -5});
+      final s = GameSession(
+          mode: GameMode.points, scores: {'alice': -2, 'bob': -8, 'carol': -5});
       expect(s.winnerFor(lowestScoreWins: true), 'bob');
       expect(s.winnerFor(), 'alice');
     });
 
     test('duel with rounds: winner has most rounds won', () {
       final rounds = [
-        Round({'alice': DuelResult.win.index,  'bob': DuelResult.loss.index}),
-        Round({'alice': DuelResult.win.index,  'bob': DuelResult.loss.index}),
+        Round({'alice': DuelResult.win.index, 'bob': DuelResult.loss.index}),
+        Round({'alice': DuelResult.win.index, 'bob': DuelResult.loss.index}),
         Round({'alice': DuelResult.loss.index, 'bob': DuelResult.win.index}),
       ];
       final s = GameSession(
@@ -219,7 +220,7 @@ void main() {
 
     test('duel with rounds tie returns null', () {
       final rounds = [
-        Round({'alice': DuelResult.win.index,  'bob': DuelResult.loss.index}),
+        Round({'alice': DuelResult.win.index, 'bob': DuelResult.loss.index}),
         Round({'alice': DuelResult.loss.index, 'bob': DuelResult.win.index}),
       ];
       final s = GameSession(
@@ -231,8 +232,8 @@ void main() {
     });
 
     test('ranking: rank 1 wins', () {
-      final s = GameSession(mode: GameMode.ranking,
-          scores: {'alice': 2, 'bob': 1, 'carol': 3});
+      final s = GameSession(
+          mode: GameMode.ranking, scores: {'alice': 2, 'bob': 1, 'carol': 3});
       expect(s.winnerFor(), 'bob');
     });
   });
@@ -246,14 +247,16 @@ void main() {
     });
 
     test('serializes and deserializes', () {
-      final g = Game(id: 'g', name: 'G', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'G', mode: GameMode.points, lowestScoreWins: true);
       expect(Game.fromJson(g.toJson()).lowestScoreWins, isTrue);
     });
 
     test('backward compatible: absent field defaults to false', () {
       final g = Game.fromJson({
-        'id': 'g', 'name': 'G', 'mode': 'points',
+        'id': 'g',
+        'name': 'G',
+        'mode': 'points',
         'createdAt': DateTime.now().toIso8601String(),
         'sessions': <dynamic>[],
       });
@@ -261,14 +264,14 @@ void main() {
     });
 
     test('copyWith preserves lowestScoreWins', () {
-      final g = Game(id: 'g', name: 'G', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'G', mode: GameMode.points, lowestScoreWins: true);
       expect(g.copyWith(name: 'G2').lowestScoreWins, isTrue);
     });
 
     test('copyWith can override lowestScoreWins', () {
-      final g = Game(id: 'g', name: 'G', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'G', mode: GameMode.points, lowestScoreWins: true);
       expect(g.copyWith(lowestScoreWins: false).lowestScoreWins, isFalse);
     });
   });
@@ -277,15 +280,15 @@ void main() {
 
   group('Game.winsByPlayer', () {
     test('lowest wins when flag set', () {
-      final g = Game(id: 'g', name: 'G', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'G', mode: GameMode.points, lowestScoreWins: true);
       g.sessions.addAll([
         pts({'alice': 3, 'bob': 7}), // alice
         pts({'alice': 8, 'bob': 2}, day: 1), // bob
         pts({'alice': 1, 'bob': 5}, day: 2), // alice
       ]);
       expect(g.winsByPlayer['alice'], 2);
-      expect(g.winsByPlayer['bob'],   1);
+      expect(g.winsByPlayer['bob'], 1);
     });
 
     test('highest wins normally', () {
@@ -295,7 +298,7 @@ void main() {
         pts({'alice': 8, 'bob': 2}, day: 1), // alice
       ]);
       expect(g.winsByPlayer['alice'], 1);
-      expect(g.winsByPlayer['bob'],   1);
+      expect(g.winsByPlayer['bob'], 1);
     });
   });
 
@@ -303,8 +306,8 @@ void main() {
 
   group('Game.recordsByPlayer', () {
     test('record = lowest for lowestScoreWins', () {
-      final g = Game(id: 'g', name: 'G', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'G', mode: GameMode.points, lowestScoreWins: true);
       g.sessions.addAll([
         pts({'alice': 10}),
         pts({'alice': 3}),
@@ -315,7 +318,10 @@ void main() {
 
     test('record = highest normally', () {
       final g = Game(id: 'g', name: 'G', mode: GameMode.points);
-      g.sessions.addAll([pts({'alice': 10}), pts({'alice': 3})]);
+      g.sessions.addAll([
+        pts({'alice': 10}),
+        pts({'alice': 3})
+      ]);
       expect(g.recordsByPlayer['alice'], 10);
     });
   });
@@ -369,7 +375,7 @@ void main() {
       final g = Game(id: 'g', name: 'G', mode: GameMode.points);
       g.sessions.addAll([
         pts({'alice': 10, 'bob': 5}),
-        pts({'alice': 3,  'bob': 15}, day: 1),
+        pts({'alice': 3, 'bob': 15}, day: 1),
       ]);
       expect(StatsEngine([g]).computePlayerStats('alice').currentStreak, 0);
     });
@@ -377,7 +383,7 @@ void main() {
     test('currentStreak counts trailing wins', () {
       final g = Game(id: 'g', name: 'G', mode: GameMode.points);
       g.sessions.addAll([
-        pts({'alice': 3,  'bob': 15}),
+        pts({'alice': 3, 'bob': 15}),
         pts({'alice': 10, 'bob': 5}, day: 1),
         pts({'alice': 11, 'bob': 5}, day: 2),
         pts({'alice': 12, 'bob': 5}, day: 3),
@@ -413,8 +419,8 @@ void main() {
 
   group('StatsEngine lowestScoreWins', () {
     test('wins correctly attributed', () {
-      final g = Game(id: 'g', name: 'Golf', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'Golf', mode: GameMode.points, lowestScoreWins: true);
       g.sessions.addAll([
         pts({'alice': 3, 'bob': 7}), // alice
         pts({'alice': 8, 'bob': 2}, day: 1), // bob
@@ -427,25 +433,25 @@ void main() {
     });
 
     test('globalRanking respects lowestScoreWins', () {
-      final g = Game(id: 'g', name: 'Golf', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'Golf', mode: GameMode.points, lowestScoreWins: true);
       g.sessions.addAll([
         pts({'alice': 2, 'bob': 9}), // alice
         pts({'alice': 3, 'bob': 8}, day: 1), // alice
         pts({'alice': 7, 'bob': 1}, day: 2), // bob
       ]);
-      final map = Map.fromEntries(
-          StatsEngine([g]).computeGlobalStats().globalRanking);
+      final map =
+          Map.fromEntries(StatsEngine([g]).computeGlobalStats().globalRanking);
       expect(map['alice'], 2);
       expect(map['bob'], 1);
     });
 
     test('gameRecords: lowest score for lowestScoreWins', () {
-      final g = Game(id: 'g', name: 'Golf', mode: GameMode.points,
-          lowestScoreWins: true);
+      final g = Game(
+          id: 'g', name: 'Golf', mode: GameMode.points, lowestScoreWins: true);
       g.sessions.addAll([
         pts({'alice': 10, 'bob': 5}),
-        pts({'alice': 2,  'bob': 8}, day: 1),
+        pts({'alice': 2, 'bob': 8}, day: 1),
       ]);
       final global = StatsEngine([g]).computeGlobalStats();
       expect(global.gameRecords, hasLength(1));
@@ -455,17 +461,20 @@ void main() {
     });
 
     test('mixed games: lowestScoreWins only affects its own game', () {
-      final low  = Game(id: 'low',  name: 'Golf',  mode: GameMode.points,
+      final low = Game(
+          id: 'low',
+          name: 'Golf',
+          mode: GameMode.points,
           lowestScoreWins: true);
       final high = Game(id: 'high', name: 'Catan', mode: GameMode.points);
-      low.sessions.add(pts({'alice': 3, 'bob': 8}));  // alice wins (low)
+      low.sessions.add(pts({'alice': 3, 'bob': 8})); // alice wins (low)
       high.sessions.add(pts({'alice': 3, 'bob': 8})); // bob wins (high)
       final engine = StatsEngine([low, high]);
 
-      expect(engine.computePlayerStats('alice').winsByGame['low'],  1);
+      expect(engine.computePlayerStats('alice').winsByGame['low'], 1);
       expect(engine.computePlayerStats('alice').winsByGame['high'], isNull);
-      expect(engine.computePlayerStats('bob').winsByGame['high'],   1);
-      expect(engine.computePlayerStats('bob').winsByGame['low'],    isNull);
+      expect(engine.computePlayerStats('bob').winsByGame['high'], 1);
+      expect(engine.computePlayerStats('bob').winsByGame['low'], isNull);
     });
   });
 
@@ -476,8 +485,8 @@ void main() {
       final g = Game(id: 'g', name: 'G', mode: GameMode.points);
       final rounds = [
         const Round({'alice': 10, 'bob': 5}),
-        const Round({'alice': 3,  'bob': 8}),
-        const Round({'alice': 7,  'bob': 2}),
+        const Round({'alice': 3, 'bob': 8}),
+        const Round({'alice': 7, 'bob': 2}),
       ];
       g.sessions.add(GameSession(
         mode: GameMode.points,
@@ -493,8 +502,8 @@ void main() {
     test('duel session with rounds: winner has most rounds won', () {
       final g = Game(id: 'g', name: 'G', mode: GameMode.duel);
       final rounds = [
-        Round({'alice': DuelResult.win.index,  'bob': DuelResult.loss.index}),
-        Round({'alice': DuelResult.win.index,  'bob': DuelResult.loss.index}),
+        Round({'alice': DuelResult.win.index, 'bob': DuelResult.loss.index}),
+        Round({'alice': DuelResult.win.index, 'bob': DuelResult.loss.index}),
         Round({'alice': DuelResult.loss.index, 'bob': DuelResult.win.index}),
       ];
       g.sessions.add(GameSession(
@@ -509,7 +518,10 @@ void main() {
     });
 
     test('negative rounds with lowestScoreWins: correct winner', () {
-      final g = Game(id: 'g', name: '6 qui prend', mode: GameMode.points,
+      final g = Game(
+          id: 'g',
+          name: '6 qui prend',
+          mode: GameMode.points,
           lowestScoreWins: true);
       final rounds = [
         const Round({'alice': -5, 'bob': -2}),
@@ -518,7 +530,9 @@ void main() {
       // alice: -8, bob: -10 → bob is lowest → bob wins
       final scores = GameSession.aggregatePointsRounds(rounds);
       g.sessions.add(GameSession(
-          mode: GameMode.points, scores: scores, rounds: rounds,
+          mode: GameMode.points,
+          scores: scores,
+          rounds: rounds,
           playedAt: DateTime(2024)));
       expect(StatsEngine([g]).computePlayerStats('bob').totalWins, 1);
       expect(StatsEngine([g]).computePlayerStats('alice').totalWins, 0);
@@ -560,7 +574,8 @@ void main() {
 
     test('scoreHistory is chronological', () {
       final s = buildScenario();
-      final history = StatsEngine([s.catan]).computeGameStats('catan')
+      final history = StatsEngine([s.catan])
+          .computeGameStats('catan')
           .scoreHistory['alice']!;
       for (int i = 1; i < history.length; i++) {
         expect(
@@ -629,8 +644,8 @@ void main() {
     test('session insertion order does not affect results', () {
       final sessions = [
         pts({'alice': 10, 'bob': 5}),
-        pts({'alice': 3,  'bob': 9}, day: 1),
-        pts({'alice': 7,  'bob': 2}, day: 2),
+        pts({'alice': 3, 'bob': 9}, day: 1),
+        pts({'alice': 7, 'bob': 2}, day: 2),
       ];
       final g1 = Game(id: 'g', name: 'G', mode: GameMode.points);
       final g2 = Game(id: 'g', name: 'G', mode: GameMode.points);
@@ -638,9 +653,9 @@ void main() {
       g2.sessions.addAll(sessions.reversed.toList());
       final s1 = StatsEngine([g1]).computePlayerStats('alice');
       final s2 = StatsEngine([g2]).computePlayerStats('alice');
-      expect(s1.totalWins,     s2.totalWins);
+      expect(s1.totalWins, s2.totalWins);
       expect(s1.currentStreak, s2.currentStreak);
-      expect(s1.bestScore,     s2.bestScore);
+      expect(s1.bestScore, s2.bestScore);
     });
 
     test('game histories do not bleed into each other', () {
@@ -649,8 +664,10 @@ void main() {
       g1.sessions.add(pts({'alice': 10}));
       g2.sessions.add(pts({'alice': 20}));
       final engine = StatsEngine([g1, g2]);
-      expect(engine.computeGameStats('g1').scoreHistory['alice']!.first.value, 10);
-      expect(engine.computeGameStats('g2').scoreHistory['alice']!.first.value, 20);
+      expect(
+          engine.computeGameStats('g1').scoreHistory['alice']!.first.value, 10);
+      expect(
+          engine.computeGameStats('g2').scoreHistory['alice']!.first.value, 20);
     });
 
     test('single-player session: no tightest, wins correctly', () {

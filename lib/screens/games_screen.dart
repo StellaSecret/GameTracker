@@ -105,15 +105,13 @@ class _GamesScreenState extends State<GamesScreen> {
               children: [
                 if (state.syncMessage != null)
                   _SyncBanner(message: state.syncMessage!),
-                if (!state.entitlement.isPremium)
-                  _FreeBanner(state: state),
+                if (!state.entitlement.isPremium) _FreeBanner(state: state),
                 Expanded(
                   child: games.isEmpty
                       ? GTEmptyState(
                           emoji: _search.isEmpty ? '🎲' : '🔍',
-                          title: _search.isEmpty
-                              ? l.emptyNoGame
-                              : l.emptyNoResult,
+                          title:
+                              _search.isEmpty ? l.emptyNoGame : l.emptyNoResult,
                           subtitle: _search.isEmpty
                               ? l.emptyNoGameSub
                               : l.emptyNoResultSub,
@@ -192,7 +190,9 @@ class _GamesScreenState extends State<GamesScreen> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _GameCard(game: entry.value)
-                    .animate(delay: testAwareDuration(Duration(milliseconds: entry.key * 40)))
+                    .animate(
+                        delay: testAwareDuration(
+                            Duration(milliseconds: entry.key * 40)))
                     .fadeIn(duration: testAwareDuration(300.ms))
                     .slideX(begin: 0.05, curve: Curves.easeOut),
               );
@@ -283,8 +283,8 @@ class _SyncBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: c.surfaceElevated,
-      child: Text(message,
-          style: TextStyle(fontSize: 12, color: c.textSecondary)),
+      child:
+          Text(message, style: TextStyle(fontSize: 12, color: c.textSecondary)),
     );
   }
 }
@@ -305,8 +305,7 @@ class _GameCard extends StatelessWidget {
     return GTCard(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (_) => GameDetailScreen(gameId: game.id)),
+        MaterialPageRoute(builder: (_) => GameDetailScreen(gameId: game.id)),
       ),
       child: Row(
         children: [
@@ -521,8 +520,7 @@ class _SyncSheetState extends State<_SyncSheet> {
                     Icon(Icons.info_rounded, color: c.primary, size: 18),
                   const SizedBox(width: 10),
                   Expanded(
-                      child: Text(_msg!,
-                          style: const TextStyle(fontSize: 13))),
+                      child: Text(_msg!, style: const TextStyle(fontSize: 13))),
                 ],
               ),
             ),
@@ -573,8 +571,7 @@ class _SyncSheetState extends State<_SyncSheet> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => _DriveUploadDialog(
-          gamesCount: state.games.length,
-          playersCount: state.players.length),
+          gamesCount: state.games.length, playersCount: state.players.length),
     );
     if (confirm != true) {
       return;

@@ -115,7 +115,7 @@ void main() {
     test('winsByPlayer counts correctly', () {
       final wins = game.winsByPlayer;
       expect(wins['alice'], 2); // sessions 1 & 3
-      expect(wins['bob'], 1);   // session 2
+      expect(wins['bob'], 1); // session 2
     });
 
     test('totalPointsByPlayer sums correctly', () {
@@ -191,18 +191,24 @@ void main() {
 
     test('duplicate game id: local copy is kept', () {
       final gLocal = Game(
-        id: 'g1', name: 'Local name', mode: GameMode.points,
+        id: 'g1',
+        name: 'Local name',
+        mode: GameMode.points,
         createdAt: DateTime(2024, 9, 20),
       );
       final gRemote = Game(
-        id: 'g1', name: 'Remote name', mode: GameMode.points,
+        id: 'g1',
+        name: 'Remote name',
+        mode: GameMode.points,
         createdAt: DateTime(2024, 3, 15),
       );
-      final merged = AppData(games: [gLocal]).mergeWith(AppData(games: [gRemote]));
+      final merged =
+          AppData(games: [gLocal]).mergeWith(AppData(games: [gRemote]));
       expect(merged.games.first.name, 'Local name');
     });
 
-    test('deletedGameIds survive a subsequent _persist-style reconstruction', () {
+    test('deletedGameIds survive a subsequent _persist-style reconstruction',
+        () {
       // Regression test for the bug where _persist() dropped deletedGameIds.
       final original = AppData(deletedGameIds: ['g1', 'g2']);
       // Simulate what _persist() now does (including deletedGameIds).

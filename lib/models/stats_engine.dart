@@ -153,7 +153,6 @@ class StatsEngine {
     int bestStreak = 0;
     int streakCursor = 0;
 
-    final Map<String, int> winsAgainst = {};
     final Map<String, int> lossesAgainst = {};
     final Map<String, int> gamesAgainst = {};
 
@@ -165,8 +164,8 @@ class StatsEngine {
         }
       }
     }
-    allSessions.sort(
-        (a, b) => a.session.playedAt.compareTo(b.session.playedAt));
+    allSessions
+        .sort((a, b) => a.session.playedAt.compareTo(b.session.playedAt));
 
     for (final ref in allSessions) {
       final game = ref.game;
@@ -175,8 +174,7 @@ class StatsEngine {
       gamesByGame[game.id] = (gamesByGame[game.id] ?? 0) + 1;
 
       final isWinner =
-          session.winnerFor(lowestScoreWins: game.lowestScoreWins) ==
-              playerId;
+          session.winnerFor(lowestScoreWins: game.lowestScoreWins) == playerId;
       if (isWinner) {
         totalWins++;
         winsByGame[game.id] = (winsByGame[game.id] ?? 0) + 1;
@@ -201,11 +199,7 @@ class StatsEngine {
         }
         gamesAgainst[otherId] = (gamesAgainst[otherId] ?? 0) + 1;
         final otherWon =
-            session.winnerFor(lowestScoreWins: game.lowestScoreWins) ==
-                otherId;
-        if (isWinner) {
-          winsAgainst[otherId] = (winsAgainst[otherId] ?? 0) + 1;
-        }
+            session.winnerFor(lowestScoreWins: game.lowestScoreWins) == otherId;
         if (otherWon) {
           lossesAgainst[otherId] = (lossesAgainst[otherId] ?? 0) + 1;
         }
@@ -215,8 +209,8 @@ class StatsEngine {
     // Current streak from the end
     int currentStreak = 0;
     for (final ref in allSessions.reversed) {
-      final winner = ref.session
-          .winnerFor(lowestScoreWins: ref.game.lowestScoreWins);
+      final winner =
+          ref.session.winnerFor(lowestScoreWins: ref.game.lowestScoreWins);
       if (winner == playerId) {
         currentStreak++;
       } else {
@@ -249,8 +243,7 @@ class StatsEngine {
     String? nemesisId;
     int nemesisLosses = 0;
     for (final entry in lossesAgainst.entries) {
-      if ((gamesAgainst[entry.key] ?? 0) >= 2 &&
-          entry.value > nemesisLosses) {
+      if ((gamesAgainst[entry.key] ?? 0) >= 2 && entry.value > nemesisLosses) {
         nemesisLosses = entry.value;
         nemesisId = entry.key;
       }
@@ -271,12 +264,9 @@ class StatsEngine {
       totalGames: totalGames,
       totalWins: totalWins,
       winRate: totalGames > 0 ? totalWins / totalGames : 0,
-      bestScore: scores.isEmpty
-          ? null
-          : scores.reduce((a, b) => a > b ? a : b),
-      worstScore: scores.isEmpty
-          ? null
-          : scores.reduce((a, b) => a < b ? a : b),
+      bestScore: scores.isEmpty ? null : scores.reduce((a, b) => a > b ? a : b),
+      worstScore:
+          scores.isEmpty ? null : scores.reduce((a, b) => a < b ? a : b),
       avgScore: scores.isEmpty
           ? null
           : scores.reduce((a, b) => a + b) / scores.length,
@@ -322,8 +312,7 @@ class StatsEngine {
         if (session.scores.length < 2) {
           continue;
         }
-        final sorted = session.scores.values.toList()
-          ..sort((a, b) => b - a);
+        final sorted = session.scores.values.toList()..sort((a, b) => b - a);
         final gap = (sorted[0] - sorted[1]).abs();
         if (gap < tightestGap) {
           tightestGap = gap;
@@ -368,8 +357,7 @@ class StatsEngine {
     for (final game in games) {
       totalSessions += game.sessions.length;
       for (final session in game.sessions) {
-        final w =
-            session.winnerFor(lowestScoreWins: game.lowestScoreWins);
+        final w = session.winnerFor(lowestScoreWins: game.lowestScoreWins);
         if (w != null) {
           globalWins[w] = (globalWins[w] ?? 0) + 1;
         }
@@ -401,8 +389,7 @@ class StatsEngine {
 
         // H2H
         final players = session.scores.keys.toList();
-        final winner =
-            session.winnerFor(lowestScoreWins: game.lowestScoreWins);
+        final winner = session.winnerFor(lowestScoreWins: game.lowestScoreWins);
         if (winner != null) {
           for (final loser in players) {
             if (loser == winner) {
@@ -479,8 +466,7 @@ class StatsEngine {
       totalSessions: totalSessions,
       totalGames: games.length,
       mostActivePlayerId: mostActive,
-      mostActiveSessions:
-          mostActiveSessions > 0 ? mostActiveSessions : null,
+      mostActiveSessions: mostActiveSessions > 0 ? mostActiveSessions : null,
     );
   }
 }

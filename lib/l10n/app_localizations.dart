@@ -221,7 +221,7 @@ abstract class AppLocalizations {
   /// No description provided for @adUnlockWebUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Ads aren't available on web — go Premium for unlimited stats access.'**
+  /// **'Ads aren\'t available on web — go Premium for unlimited stats access.'**
   String get adUnlockWebUnavailable;
 
   /// No description provided for @adUnlockedSuccess.

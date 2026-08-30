@@ -185,8 +185,7 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Game? findGame(String id) =>
-      _data.games.firstWhereOrNull((g) => g.id == id);
+  Game? findGame(String id) => _data.games.firstWhereOrNull((g) => g.id == id);
 
   // ── Sessions ──────────────────────────────────────────────────────────────
 
@@ -251,7 +250,8 @@ class AppState extends ChangeNotifier {
     _setSyncMessage('Synchronisation en cours…');
     final json = _storage.export(_data);
     final ok = await driveService.upload(json);
-    _setSyncMessage(ok ? '✓ Synchronisé' : '✗ Erreur: ${driveService.lastError}');
+    _setSyncMessage(
+        ok ? '✓ Synchronisé' : '✗ Erreur: ${driveService.lastError}');
     return ok;
   }
 

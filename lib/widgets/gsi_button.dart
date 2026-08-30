@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'gsi_button_stub.dart'
-    if (dart.library.js_interop) 'gsi_button_web.dart' as impl;
+import 'gsi_button_stub.dart' if (dart.library.js_interop) 'gsi_button_web.dart'
+    as impl;
 
 class GSIButton extends StatelessWidget {
   final VoidCallback onPressed;

@@ -20,7 +20,8 @@ import 'theme/theme_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  debugPrint('[boot] WidgetsFlutterBinding ready (integrationTest=$kIsIntegrationTest)');
+  debugPrint(
+      '[boot] WidgetsFlutterBinding ready (integrationTest=$kIsIntegrationTest)');
 
   // Skipped during integration tests: GoogleSignIn.instance.initialize()
   // talks to Google Play Services / Credential Manager on Android, which
@@ -109,8 +110,7 @@ class GameTrackerApp extends StatelessWidget {
     if (!kIsWeb) {
       SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness:
-            isDark ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         systemNavigationBarColor:
             isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF5F4FB),
         systemNavigationBarIconBrightness:

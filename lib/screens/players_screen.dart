@@ -39,7 +39,8 @@ class PlayersScreen extends StatelessWidget {
               itemCount: players.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) => _PlayerCard(player: players[i])
-                  .animate(delay: testAwareDuration(Duration(milliseconds: i * 40)))
+                  .animate(
+                      delay: testAwareDuration(Duration(milliseconds: i * 40)))
                   .fadeIn(duration: testAwareDuration(250.ms))
                   .slideX(begin: 0.05),
             ),
@@ -98,9 +99,7 @@ class _PlayerCard extends StatelessWidget {
             child: Text(
               player.name[0].toUpperCase(),
               style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18),
+                  color: color, fontWeight: FontWeight.w700, fontSize: 18),
             ),
           ),
           const SizedBox(width: 14),
@@ -120,8 +119,7 @@ class _PlayerCard extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.edit_rounded,
-                size: 18, color: c.textSecondary),
+            icon: Icon(Icons.edit_rounded, size: 18, color: c.textSecondary),
             onPressed: () => _showEdit(context),
           ),
         ],
@@ -185,7 +183,6 @@ class _PlayerSheetState extends State<_PlayerSheet> {
               style:
                   const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 20),
-
           TextField(
             key: const Key('fieldPlayerName'),
             controller: _nameCtrl,
@@ -197,7 +194,6 @@ class _PlayerSheetState extends State<_PlayerSheet> {
             autofocus: true,
           ),
           const SizedBox(height: 20),
-
           Text(l.colorSectionLabel,
               style: TextStyle(
                   fontSize: 11,
@@ -227,8 +223,10 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                       width: 3,
                     ),
                     boxShadow: selected
-                        ? [BoxShadow(
-                            color: c.withValues(alpha: 0.6), blurRadius: 8)]
+                        ? [
+                            BoxShadow(
+                                color: c.withValues(alpha: 0.6), blurRadius: 8)
+                          ]
                         : [],
                   ),
                   child: selected
@@ -240,7 +238,6 @@ class _PlayerSheetState extends State<_PlayerSheet> {
             }).toList(),
           ),
           const SizedBox(height: 24),
-
           Row(
             children: [
               if (isEditing)
@@ -248,10 +245,8 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                   child: OutlinedButton.icon(
                     key: const Key('btnDeletePlayer'),
                     onPressed: _delete,
-                    icon: Icon(Icons.delete_rounded,
-                        color: c.error, size: 18),
-                    label: Text(l.btnDelete,
-                        style: TextStyle(color: c.error)),
+                    icon: Icon(Icons.delete_rounded, color: c.error, size: 18),
+                    label: Text(l.btnDelete, style: TextStyle(color: c.error)),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: c.error),
                     ),
@@ -281,8 +276,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
       await state.updatePlayer(widget.existing!
           .copyWith(name: _nameCtrl.text.trim(), color: _color));
     } else {
-      await state
-          .addPlayer(Player(name: _nameCtrl.text.trim(), color: _color));
+      await state.addPlayer(Player(name: _nameCtrl.text.trim(), color: _color));
     }
     if (mounted) {
       Navigator.pop(context);
@@ -304,8 +298,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
               child: Text(l.btnCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l.btnDelete,
-                style: TextStyle(color: c.error)),
+            child: Text(l.btnDelete, style: TextStyle(color: c.error)),
           ),
         ],
       ),

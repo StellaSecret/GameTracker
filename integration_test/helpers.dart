@@ -38,23 +38,23 @@ import 'package:game_tracker/services/storage_service.dart';
 import 'package:provider/provider.dart';
 
 // ── Widget Keys ───────────────────────────────────────────────────────────────
-const kFabAddGame     = Key('fabAddGame');
-const kNavPlayers     = Key('navPlayers');
-const kNavStats       = Key('navStats');
-const kNavGroups      = Key('navGroups');
-const kFieldGameName  = Key('fieldGameName');
-const kBtnSubmitGame  = ValueKey('btnSubmitGame');
-const kBtnDeleteGame  = Key('btnDeleteGame');
-const kFabAddPlayer   = Key('fabAddPlayer');
+const kFabAddGame = Key('fabAddGame');
+const kNavPlayers = Key('navPlayers');
+const kNavStats = Key('navStats');
+const kNavGroups = Key('navGroups');
+const kFieldGameName = Key('fieldGameName');
+const kBtnSubmitGame = ValueKey('btnSubmitGame');
+const kBtnDeleteGame = Key('btnDeleteGame');
+const kFabAddPlayer = Key('fabAddPlayer');
 const kFieldPlayerName = Key('fieldPlayerName');
 const kBtnSubmitPlayer = Key('btnSubmitPlayer');
 const kBtnDeletePlayer = Key('btnDeletePlayer');
-const kBtnEditGame    = Key('btnEditGame');
+const kBtnEditGame = Key('btnEditGame');
 const kBtnSaveSession = ValueKey('btnSaveSession');
 
 // ── Timeouts ──────────────────────────────────────────────────────────────────
 const kSettle = Duration(seconds: 15);
-const kBoot   = Duration(seconds: 30);
+const kBoot = Duration(seconds: 30);
 
 // ── Globals ───────────────────────────────────────────────────────────────────
 late WidgetTester t;
@@ -99,7 +99,8 @@ Future<void> bootApp(WidgetTester tester) async {
 /// the only selection criterion that means what we want ("the thing that
 /// needs scrolling to reveal an off-screen control").
 Element? mainVerticalScrollableElement() {
-  final sv = find.byWidgetPredicate((w) => w is Scrollable && w.axis == Axis.vertical);
+  final sv =
+      find.byWidgetPredicate((w) => w is Scrollable && w.axis == Axis.vertical);
   Element? best;
   double bestExtent = 0;
   for (final e in sv.evaluate()) {

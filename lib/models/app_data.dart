@@ -6,6 +6,7 @@ class AppData {
   final List<Game> games;
   final List<Player> players;
   final DateTime lastModified;
+
   /// IDs of games that have been deleted. Used to prevent Firestore echoes
   /// from restoring a deleted game during group sync.
   final List<String> deletedGameIds;
@@ -66,7 +67,7 @@ class AppData {
       (g) => g.id,
       (a, b) => a.createdAt.isAfter(b.createdAt) ? a : b,
     )
-    // Remove any game whose ID appears in the tombstone set.
+      // Remove any game whose ID appears in the tombstone set.
       ..removeWhere((g) => allDeletedIds.contains(g.id));
 
     return AppData(

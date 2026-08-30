@@ -252,6 +252,161 @@ jobs:
             /tmp/*.png
           retention-days: 7
 
+  # ── PARALLEL MUTATION TEST JOBS ──────────────────────
+  # Runs mutation_test (mutation_test.xml) on the pure-logic model files only
+  # (lib/models/) — widgets/services/Firebase are excluded until unit tests
+  # cover them. Each shard mutates its files in parallel; coverage-guided
+  # (--coverage lcov.info) so only test-exercised lines are mutated.
+  # Blocking: the job fails on any missed mutant OR infrastructure failure
+  # (unparseable/empty report). mutants_summary exits 0, 1 (missed) or
+  # 2 (infra); both 1 and 2 gate the build below.
+  mutation-tests:
+    name: Mutation Tests (${{ matrix.name }})
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: stats
+            files: lib/models/stats_engine.dart
+            timeout: 900
+          - name: game
+            files: lib/models/game.dart lib/models/game_session.dart
+            timeout: 1500
+          - name: appdata
+            files: lib/models/app_data.dart lib/models/player.dart lib/models/game_mode.dart lib/models/game_mode_l10n.dart lib/models/entitlement.dart
+            timeout: 1500
+          - name: services
+            files: lib/services/storage_service.dart lib/services/mock_data_generator.dart lib/services/google_sign_in_singleton.dart lib/config/test_flags.dart
+            timeout: 900
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Collect coverage for routing
+        # --coverage only mutates lines actually exercised by the suite,
+        # skipping untouched code (e.g. entitlement.dart) and cutting mutant
+        # count. Also acts as a baseline sanity check of the unit tests.
+        run: flutter test --no-pub --coverage
+      - name: "Run mutation tests (${{ matrix.name }})"
+        id: mutants
+        run: |
+          set -o pipefail
+          i=0
+          fatal=0
+          missed=0
+          TIMEOUT="${{ matrix.timeout }}"
+          if [ -z "$TIMEOUT" ]; then
+            TIMEOUT=1500
+          fi
+          for f in ${{ matrix.files }}; do
+            echo "::group::$f"
+            out="work-$i"
+            # -r loads mutation_test.xml as the global RULES document (its
+            # <commands>/<exclude>/<threshold> apply to every input); -b keeps
+            # the builtin mutation rules. Source file is a positional INPUT,
+            # which the tool ignores whenever an XML positional is present.
+            timeout "$TIMEOUT" dart run mutation_test -b -r mutation_test.xml \
+              --coverage coverage/lcov.info -f all -o "$out" "$f" && ec=0 || ec=$?
+            if [ "$ec" -ne 0 ]; then
+              echo "WARN: mutation_test exited $ec on $f (report may still be valid)"
+            fi
+            python3 scripts/mutants_summary.py \
+              "$out/mutation-test.junit.xml" "$out" && p=0 || p=$?
+            echo "::endgroup::"
+            if [ "$p" -eq 2 ]; then
+              echo "FATAL: mutants_summary exited 2 (infrastructure failure)"
+              fatal=2
+            elif [ "$p" -eq 1 ]; then
+              echo "BLOCKING: missed mutants detected on $f"
+              missed=1
+            fi
+            i=$((i + 1))
+          done
+          mkdir -p mutants.out
+          for d in work-*/mutants.out; do
+            for k in caught missed unviable notcovered; do
+              [ -f "$d/$k.txt" ] && cat "$d/$k.txt" >> "mutants.out/$k.txt" || true
+            done
+          done
+          cnt() { [ -f "mutants.out/$1.txt" ] && wc -l < "mutants.out/$1.txt" || echo 0; }
+          echo "Merged $(cnt caught) caught, $(cnt missed) missed, $(cnt unviable) unviable, $(cnt notcovered) notcovered"
+          # A null tag file marks infrastructure failures (unparseable/missing
+          # report); the gate below is the single arbiter and reads files only.
+          if [ "$fatal" -ne 0 ]; then
+            touch mutants.out/infra.tag
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mutants-${{ matrix.name }}
+          path: mutants.out
+          retention-days: 30
+      - name: Fail on missed mutants or mutation infrastructure errors
+        if: always()
+        run: |
+          missed=$(wc -l < mutants.out/missed.txt 2>/dev/null || echo 0)
+          if [ -f mutants.out/infra.tag ]; then
+            echo "mutation testing infra error (unparseable report / no mutants)"
+            exit 1
+          fi
+          echo "mutation testing: missed=$missed"
+          if [ "$missed" -gt 0 ]; then
+            echo "missed mutants detected — see the mutants-${{ matrix.name }} artifact"
+            exit 1
+          fi
+
+  mutation-summary:
+    name: Mutation Tests Summary
+    if: always()
+    needs: [mutation-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all mutant artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: mutants-*
+          path: mutants/
+          merge-multiple: false
+      - name: Report results
+        run: |
+          echo "## Mutation Testing Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Shard | Caught | Missed | Timeouts | Not covered |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|---|---|---|" >> $GITHUB_STEP_SUMMARY
+          total_caught=0
+          total_missed=0
+          total_timeout=0
+          total_notcovered=0
+          while IFS= read -r caught_file; do
+            dir=$(dirname "$caught_file")
+            name=$(basename "$dir")
+            if [[ "$name" == mutants-* ]]; then
+              name="${name#mutants-}"
+            fi
+            caught=$(wc -l < "$caught_file")
+            missed=0; timeout=0; notcovered=0
+            [ -f "$dir/missed.txt" ] && missed=$(wc -l < "$dir/missed.txt")
+            [ -f "$dir/unviable.txt" ] && timeout=$(wc -l < "$dir/unviable.txt")
+            [ -f "$dir/notcovered.txt" ] && notcovered=$(wc -l < "$dir/notcovered.txt")
+            total_caught=$((total_caught + caught))
+            total_missed=$((total_missed + missed))
+            total_timeout=$((total_timeout + timeout))
+            total_notcovered=$((total_notcovered + notcovered))
+            if [ "$missed" -gt 0 ]; then
+              echo "| $name | $caught | **$missed** | $timeout | $notcovered |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $name | $caught | $missed | $timeout | $notcovered |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done < <(find mutants -name caught.txt 2>/dev/null | sort) || true
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total: $total_caught caught / $total_missed missed / $total_timeout timeouts / $total_notcovered not covered**" >> $GITHUB_STEP_SUMMARY
+
   # ── SEQUENTIAL DEPLOYMENT JOBS ───────────────────────
   deploy-web:
     name: Deploy to GitHub Pages
@@ -287,7 +442,7 @@ jobs:
   build-android:
     name: Build Android
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-    needs: [scan-secrets, codeql-analysis, flutter-audit, unit-tests]
+    needs: [scan-secrets, codeql-analysis, flutter-audit, unit-tests, mutation-tests]
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.event_name == 'pull_request' && 'build-review' || 'build' }}

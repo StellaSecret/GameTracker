@@ -40,7 +40,8 @@ class _GroupScreenState extends State<GroupScreen> {
           action: ElevatedButton.icon(
             onPressed: () => Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const PaywallScreen.groupSync()),
+              MaterialPageRoute(
+                  builder: (_) => const PaywallScreen.groupSync()),
             ),
             icon: const Icon(Icons.star_rounded),
             label: Text(l.freeBannerPremium),
@@ -70,10 +71,8 @@ class _GroupScreenState extends State<GroupScreen> {
           if (state.isInGroup)
             TextButton.icon(
               onPressed: () => _leaveGroup(state),
-              icon: Icon(Icons.exit_to_app_rounded,
-                  color: c.error, size: 18),
-              label: Text(l.groupsLeaveBtn,
-                  style: TextStyle(color: c.error)),
+              icon: Icon(Icons.exit_to_app_rounded, color: c.error, size: 18),
+              label: Text(l.groupsLeaveBtn, style: TextStyle(color: c.error)),
             ),
         ],
       ),
@@ -95,8 +94,7 @@ class _GroupScreenState extends State<GroupScreen> {
                   );
                 }
                 if (!snap.hasData) {
-                  return const Center(
-                      child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
                 final groups = snap.data!;
                 if (groups.isEmpty) {
@@ -114,19 +112,16 @@ class _GroupScreenState extends State<GroupScreen> {
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: groups.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: 8),
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (ctx, i) => _GroupCard(
                     info: groups[i],
-                    isActive:
-                        state.activeGroupId == groups[i].id,
-                    onJoin: () =>
-                        _joinGroup(state, groups[i].id),
-                    onInvite: () =>
-                        _showInvite(state, groups[i].id),
+                    isActive: state.activeGroupId == groups[i].id,
+                    onJoin: () => _joinGroup(state, groups[i].id),
+                    onInvite: () => _showInvite(state, groups[i].id),
                   )
                       .animate(
-                          delay: testAwareDuration(Duration(milliseconds: i * 50)))
+                          delay:
+                              testAwareDuration(Duration(milliseconds: i * 50)))
                       .fadeIn(duration: testAwareDuration(250.ms))
                       .slideX(begin: 0.05),
                 );
@@ -178,8 +173,7 @@ class _GroupScreenState extends State<GroupScreen> {
               child: Text(l.btnCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l.groupsLeaveBtn,
-                style: TextStyle(color: c.error)),
+            child: Text(l.groupsLeaveBtn, style: TextStyle(color: c.error)),
           ),
         ],
       ),
@@ -214,8 +208,7 @@ class _GroupScreenState extends State<GroupScreen> {
                       fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
               Text(l2.groupsInviteGroupId(groupId),
-                  style: TextStyle(
-                      fontSize: 12, color: c.textSecondary)),
+                  style: TextStyle(fontSize: 12, color: c.textSecondary)),
               TextButton.icon(
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: groupId));
@@ -245,8 +238,8 @@ class _GroupScreenState extends State<GroupScreen> {
                     if (email.isEmpty) {
                       return;
                     }
-                    final ok = await state.groupService
-                        .inviteMember(groupId, email);
+                    final ok =
+                        await state.groupService.inviteMember(groupId, email);
                     if (!ctx.mounted) {
                       return;
                     }
@@ -291,8 +284,7 @@ class _GroupScreenState extends State<GroupScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(l.btnCancel)),
           ElevatedButton(
-            onPressed: () =>
-                Navigator.pop(context, ctrl.text.trim()),
+            onPressed: () => Navigator.pop(context, ctrl.text.trim()),
             child: Text(l.groupsCreateBtn),
           ),
         ],
@@ -301,8 +293,7 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 }
 
@@ -339,22 +330,17 @@ class _ActiveGroupBanner extends StatelessWidget {
     final c = AppColors.of(context);
     return Container(
       width: double.infinity,
-      padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       color: c.primary.withValues(alpha: 0.15),
       child: Row(
         children: [
-          Icon(Icons.wifi_tethering_rounded,
-              color: c.primary, size: 18),
+          Icon(Icons.wifi_tethering_rounded, color: c.primary, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              l.groupsActiveBanner(
-                  state.activeGroupId!.substring(0, 8)),
+              l.groupsActiveBanner(state.activeGroupId!.substring(0, 8)),
               style: TextStyle(
-                  fontSize: 13,
-                  color: c.primary,
-                  fontWeight: FontWeight.w600),
+                  fontSize: 13, color: c.primary, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -402,13 +388,11 @@ class _GroupCard extends StatelessWidget {
               children: [
                 Text(info.name,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15)),
+                        fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 2),
                 Text(
                   l.groupsMemberCount(info.memberEmails.length),
-                  style: TextStyle(
-                      fontSize: 12, color: c.textSecondary),
+                  style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
               ],
             ),
@@ -417,13 +401,13 @@ class _GroupCard extends StatelessWidget {
             OutlinedButton(
               onPressed: onJoin,
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 foregroundColor: c.primary,
                 side: BorderSide(color: c.primary),
               ),
-              child: Text(l.groupsBtnJoin,
-                  style: const TextStyle(fontSize: 12)),
+              child:
+                  Text(l.groupsBtnJoin, style: const TextStyle(fontSize: 12)),
             )
           else
             GTBadge(label: l.groupsActive, color: c.success, emoji: '●'),

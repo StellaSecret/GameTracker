@@ -9,8 +9,23 @@ import '../theme/app_theme.dart';
 import '../widgets/gt_card.dart';
 
 const _emojis = [
-  '🎲', '♟️', '🃏', '🎯', '🎮', '🧩', '🎰', '🎱',
-  '⚔️', '🏆', '👑', '🌍', '🚂', '🏙️', '🌺', '🐉', '🦁',
+  '🎲',
+  '♟️',
+  '🃏',
+  '🎯',
+  '🎮',
+  '🧩',
+  '🎰',
+  '🎱',
+  '⚔️',
+  '🏆',
+  '👑',
+  '🌍',
+  '🚂',
+  '🏙️',
+  '🌺',
+  '🐉',
+  '🦁',
 ];
 
 class AddGameScreen extends StatefulWidget {
@@ -34,8 +49,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
-    _descCtrl =
-        TextEditingController(text: widget.existing?.description ?? '');
+    _descCtrl = TextEditingController(text: widget.existing?.description ?? '');
     _mode = widget.existing?.mode ?? GameMode.points;
     _emoji = widget.existing?.coverEmoji;
     _lowestScoreWins = widget.existing?.lowestScoreWins ?? false;
@@ -97,8 +111,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                                 : c.surfaceElevated,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color:
-                                  _emoji == e ? c.primary : c.cardBorder,
+                              color: _emoji == e ? c.primary : c.cardBorder,
                               width: _emoji == e ? 2 : 1,
                             ),
                           ),
@@ -152,8 +165,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                       borderColor: _mode == m ? c.primary : null,
                       child: Row(
                         children: [
-                          Text(m.icon,
-                              style: const TextStyle(fontSize: 28)),
+                          Text(m.icon, style: const TextStyle(fontSize: 28)),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
@@ -166,8 +178,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                                 const SizedBox(height: 2),
                                 Text(m.description(l),
                                     style: TextStyle(
-                                        fontSize: 12,
-                                        color: c.textSecondary)),
+                                        fontSize: 12, color: c.textSecondary)),
                               ],
                             ),
                           ),
@@ -203,16 +214,15 @@ class _AddGameScreenState extends State<AddGameScreen> {
                           const SizedBox(height: 2),
                           Text(
                             l.lowestScoreWinsExample,
-                            style: TextStyle(
-                                fontSize: 12, color: c.textSecondary),
+                            style:
+                                TextStyle(fontSize: 12, color: c.textSecondary),
                           ),
                         ],
                       ),
                     ),
                     Switch(
                       value: _lowestScoreWins,
-                      onChanged: (v) =>
-                          setState(() => _lowestScoreWins = v),
+                      onChanged: (v) => setState(() => _lowestScoreWins = v),
                       activeThumbColor: c.primary,
                     ),
                   ],
@@ -251,9 +261,8 @@ class _AddGameScreenState extends State<AddGameScreen> {
     if (widget.existing != null) {
       final updated = widget.existing!.copyWith(
         name: _nameCtrl.text.trim(),
-        description: _descCtrl.text.trim().isEmpty
-            ? null
-            : _descCtrl.text.trim(),
+        description:
+            _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
         mode: _mode,
         coverEmoji: _emoji,
         lowestScoreWins: _lowestScoreWins,
@@ -290,8 +299,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
               child: Text(l.btnCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l.btnDelete,
-                style: TextStyle(color: c.error)),
+            child: Text(l.btnDelete, style: TextStyle(color: c.error)),
           ),
         ],
       ),

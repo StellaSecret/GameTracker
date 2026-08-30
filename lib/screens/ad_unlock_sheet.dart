@@ -143,9 +143,8 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
           const SizedBox(height: 24),
 
           // Icon
-          const Text('📊', style: TextStyle(fontSize: 56))
-              .animate()
-              .scale(duration: testAwareDuration(350.ms), curve: Curves.elasticOut),
+          const Text('📊', style: TextStyle(fontSize: 56)).animate().scale(
+              duration: testAwareDuration(350.ms), curve: Curves.elasticOut),
           const SizedBox(height: 12),
 
           // Title
@@ -170,8 +169,7 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
           // Countdown (shown while unlock is active)
           if (alreadyUnlocked && _remaining > Duration.zero) ...[
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: c.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -237,8 +235,7 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
             const SizedBox(height: 10),
           ] else ...[
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: c.textSecondary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
@@ -264,8 +261,8 @@ class _AdUnlockSheetState extends State<AdUnlockSheet> {
                 foregroundColor: c.accent,
                 side: BorderSide(color: c.accent),
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                textStyle: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w600),
+                textStyle:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
             ),
           ),

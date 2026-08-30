@@ -8,8 +8,8 @@
 //   l.gameModePointsDesc    // description
 
 enum GameMode {
-  points,  // Score ranking per session
-  duel,    // Win / Draw / Loss
+  points, // Score ranking per session
+  duel, // Win / Draw / Loss
   ranking, // Positional ranking (1st, 2nd…)
 }
 

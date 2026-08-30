@@ -33,11 +33,10 @@ class PurchaseService extends ChangeNotifier {
   );
 
   /// RevenueCat entitlement IDs — must match what you configure in the RC dashboard.
-  static const String kPremiumId   = 'premium';    // one-time / annual
+  static const String kPremiumId = 'premium'; // one-time / annual
   static const String kGroupSyncId = 'group_sync'; // monthly subscription
 
-  static const _premiumEmailsRaw =
-      String.fromEnvironment('PREMIUM_EMAILS');
+  static const _premiumEmailsRaw = String.fromEnvironment('PREMIUM_EMAILS');
 
   // Separate from _premiumEmailsRaw on purpose: Premium and Group Sync are
   // deliberately independent entitlements (see entitlement.dart) — a
@@ -55,8 +54,8 @@ class PurchaseService extends ChangeNotifier {
   bool get _rcUsable => !kIsWeb && _configured;
 
   Entitlement get entitlement => _entitlement;
-  bool get isLoading    => _isLoading;
-  bool get isPremium    => _entitlement.isPremium;
+  bool get isLoading => _isLoading;
+  bool get isPremium => _entitlement.isPremium;
   bool get hasGroupSync => _entitlement.hasGroupSync;
   String? get lastError => _lastError;
 
@@ -73,7 +72,9 @@ class PurchaseService extends ChangeNotifier {
       return;
     }
 
-    if (kIsWeb || _kApiKeyAndroid.isEmpty || _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') {
+    if (kIsWeb ||
+        _kApiKeyAndroid.isEmpty ||
+        _kApiKeyAndroid == 'YOUR_REVENUECAT_ANDROID_KEY') {
       // No RevenueCat lookup possible here (web, or RC not configured yet) —
       // still honor a group-sync-only comp if the connected email is
       // allowlisted, so it isn't silently ignored on this path.
@@ -109,15 +110,17 @@ class PurchaseService extends ChangeNotifier {
       return;
     }
     try {
-      final info   = await Purchases.getCustomerInfo();
+      final info = await Purchases.getCustomerInfo();
       final active = info.entitlements.active;
       _entitlement = Entitlement(
-        isPremium:    active.containsKey(kPremiumId)   || _isDeveloper(),
-        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper() || _isGroupSyncAllowlisted(),
+        isPremium: active.containsKey(kPremiumId) || _isDeveloper(),
+        hasGroupSync: active.containsKey(kGroupSyncId) ||
+            _isDeveloper() ||
+            _isGroupSyncAllowlisted(),
       );
     } catch (_) {
       _entitlement = Entitlement(
-        isPremium:    _isDeveloper(),
+        isPremium: _isDeveloper(),
         hasGroupSync: _isDeveloper() || _isGroupSyncAllowlisted(),
       );
     }
@@ -212,8 +215,10 @@ class PurchaseService extends ChangeNotifier {
       // v10: Access CustomerInfo via purchaseResult.customerInfo
       final active = result.customerInfo.entitlements.active;
       _entitlement = Entitlement(
-        isPremium:    active.containsKey(kPremiumId)   || _isDeveloper(),
-        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper() || _isGroupSyncAllowlisted(),
+        isPremium: active.containsKey(kPremiumId) || _isDeveloper(),
+        hasGroupSync: active.containsKey(kGroupSyncId) ||
+            _isDeveloper() ||
+            _isGroupSyncAllowlisted(),
       );
       notifyListeners();
       return _entitlement.isPremium || _entitlement.hasGroupSync;
@@ -234,11 +239,13 @@ class PurchaseService extends ChangeNotifier {
     }
     try {
       _lastError = null;
-      final info   = await Purchases.restorePurchases();
+      final info = await Purchases.restorePurchases();
       final active = info.entitlements.active;
       _entitlement = Entitlement(
-        isPremium:    active.containsKey(kPremiumId)   || _isDeveloper(),
-        hasGroupSync: active.containsKey(kGroupSyncId) || _isDeveloper() || _isGroupSyncAllowlisted(),
+        isPremium: active.containsKey(kPremiumId) || _isDeveloper(),
+        hasGroupSync: active.containsKey(kGroupSyncId) ||
+            _isDeveloper() ||
+            _isGroupSyncAllowlisted(),
       );
       notifyListeners();
       return _entitlement.isPremium || _entitlement.hasGroupSync;

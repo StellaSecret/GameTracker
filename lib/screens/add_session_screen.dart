@@ -57,8 +57,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         for (final round in s.rounds) {
           final ctrl = <String, TextEditingController>{};
           for (final pid in _selectedPlayerIds) {
-            ctrl[pid] = TextEditingController(
-                text: '${round.scores[pid] ?? 0}');
+            ctrl[pid] =
+                TextEditingController(text: '${round.scores[pid] ?? 0}');
           }
           _roundPointsCtrl.add(ctrl);
         }
@@ -66,8 +66,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         for (final round in s.rounds) {
           final results = <String, DuelResult>{};
           for (final pid in _selectedPlayerIds) {
-            results[pid] = DuelResult
-                .values[round.scores[pid] ?? DuelResult.draw.index];
+            results[pid] =
+                DuelResult.values[round.scores[pid] ?? DuelResult.draw.index];
           }
           _roundDuelResults.add(results);
         }
@@ -75,8 +75,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     } else {
       for (final entry in s.scores.entries) {
         if (_isPoints) {
-          _scoreCtrl[entry.key] =
-              TextEditingController(text: '${entry.value}');
+          _scoreCtrl[entry.key] = TextEditingController(text: '${entry.value}');
         } else if (_isDuel) {
           _duelResults[entry.key] = DuelResult.values[entry.value];
         } else {
@@ -144,8 +143,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
       final totals = <String, int>{};
       for (final round in _roundPointsCtrl) {
         for (final pid in _selectedPlayerIds) {
-          totals[pid] = (totals[pid] ?? 0) +
-              (int.tryParse(round[pid]?.text ?? '0') ?? 0);
+          totals[pid] =
+              (totals[pid] ?? 0) + (int.tryParse(round[pid]?.text ?? '0') ?? 0);
         }
       }
       return totals;
@@ -173,8 +172,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         if (_isPoints && _selectedPlayerIds.isNotEmpty) {
           final ctrl = <String, TextEditingController>{};
           for (final pid in _selectedPlayerIds) {
-            ctrl[pid] = TextEditingController(
-                text: _scoreCtrl[pid]?.text ?? '0');
+            ctrl[pid] =
+                TextEditingController(text: _scoreCtrl[pid]?.text ?? '0');
           }
           _roundPointsCtrl.add(ctrl);
           for (final c in _scoreCtrl.values) {
@@ -242,8 +241,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         } else {
           if (_isPoints) {
             for (final round in _roundPointsCtrl) {
-              round.putIfAbsent(
-                  p.id, () => TextEditingController(text: '0'));
+              round.putIfAbsent(p.id, () => TextEditingController(text: '0'));
             }
           } else if (_isDuel) {
             for (final round in _roundDuelResults) {
@@ -276,8 +274,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     final players = state.players;
 
     return Scaffold(
-      appBar: AppBar(
-          title: Text(l.addSessionTitle(widget.game.name))),
+      appBar: AppBar(title: Text(l.addSessionTitle(widget.game.name))),
       body: ListView(
         padding: EdgeInsets.only(
           left: 16,
@@ -291,15 +288,12 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             onTap: () => _pickDate(context),
             child: Row(
               children: [
-                Icon(Icons.calendar_today_rounded,
-                    color: c.primary, size: 20),
+                Icon(Icons.calendar_today_rounded, color: c.primary, size: 20),
                 const SizedBox(width: 12),
                 Text(_formatDate(context, _playedAt),
-                    style:
-                        const TextStyle(fontWeight: FontWeight.w600)),
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 const Spacer(),
-                Icon(Icons.chevron_right_rounded,
-                    color: c.textSecondary),
+                Icon(Icons.chevron_right_rounded, color: c.textSecondary),
               ],
             ),
           ),
@@ -313,12 +307,10 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
               child: Column(
                 children: [
                   Text(l.noPlayersWarning,
-                      style:
-                          const TextStyle(fontWeight: FontWeight.w600)),
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/players'),
+                    onPressed: () => Navigator.pushNamed(context, '/players'),
                     child: Text(l.btnCreatePlayers),
                   ),
                 ],
@@ -418,8 +410,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                     setState(() => _roundDuelResults[i][pid] = result)
                 : null,
             onPointsChanged: () => setState(() {}),
-            onRemove:
-                _roundCount > 1 ? () => _removeRound(i) : null,
+            onRemove: _roundCount > 1 ? () => _removeRound(i) : null,
           ),
         ),
         const SizedBox(height: 8),
@@ -458,15 +449,14 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
               width: 110,
               child: TextField(
                 controller: _scoreCtrl[id],
-                keyboardType: const TextInputType.numberWithOptions(
-                    signed: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(signed: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r'^-?\d*')),
+                  FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')),
                 ],
                 textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                    suffixText: l.pointsSuffix, isDense: true),
+                decoration:
+                    InputDecoration(suffixText: l.pointsSuffix, isDense: true),
               ),
             ),
           ],
@@ -484,14 +474,12 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         .map((player) => _DuelPlayerRow(
               player: player,
               result: _duelResults[player.id] ?? DuelResult.draw,
-              onChanged: (r) =>
-                  setState(() => _duelResults[player.id] = r),
+              onChanged: (r) => setState(() => _duelResults[player.id] = r),
             ))
         .toList();
   }
 
-  List<Widget> _buildRankingInputs(
-      BuildContext context, AppState state) {
+  List<Widget> _buildRankingInputs(BuildContext context, AppState state) {
     final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
     final players = _selectedPlayerIds
@@ -509,8 +497,7 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(player.name,
-                  style:
-                      const TextStyle(fontWeight: FontWeight.w500)),
+                  style: const TextStyle(fontWeight: FontWeight.w500)),
             ),
             DropdownButton<int>(
               value: rank,
@@ -524,12 +511,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                   child: Text(
                     r == 1 ? l.ordinal1st : l.ordinalNth(r),
                     style: TextStyle(
-                      color: r == 1
-                          ? const Color(0xFFFFD700)
-                          : c.textPrimary,
-                      fontWeight: r == 1
-                          ? FontWeight.w700
-                          : FontWeight.normal,
+                      color: r == 1 ? const Color(0xFFFFD700) : c.textPrimary,
+                      fontWeight: r == 1 ? FontWeight.w700 : FontWeight.normal,
                     ),
                   ),
                 );
@@ -568,15 +551,14 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     if (_useRounds && (_isPoints || _isDuel)) {
       if (_isPoints) {
         final rawRounds = _roundPointsCtrl
-            .map((ctrl) => Round(ctrl.map(
-                (pid, c) => MapEntry(pid, int.tryParse(c.text) ?? 0))))
+            .map((ctrl) => Round(
+                ctrl.map((pid, c) => MapEntry(pid, int.tryParse(c.text) ?? 0))))
             .toList();
         scores = GameSession.aggregatePointsRounds(rawRounds);
         rounds = rawRounds;
       } else {
         final rawRounds = _roundDuelResults
-            .map((r) =>
-                Round(r.map((pid, res) => MapEntry(pid, res.index))))
+            .map((r) => Round(r.map((pid, res) => MapEntry(pid, res.index))))
             .toList();
         scores = GameSession.aggregateDuelRounds(rawRounds);
         rounds = rawRounds;
@@ -586,13 +568,11 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
       switch (widget.game.mode) {
         case GameMode.points:
           for (final id in _selectedPlayerIds) {
-            scores[id] =
-                int.tryParse(_scoreCtrl[id]?.text ?? '0') ?? 0;
+            scores[id] = int.tryParse(_scoreCtrl[id]?.text ?? '0') ?? 0;
           }
         case GameMode.duel:
           for (final id in _selectedPlayerIds) {
-            scores[id] =
-                (_duelResults[id] ?? DuelResult.draw).index;
+            scores[id] = (_duelResults[id] ?? DuelResult.draw).index;
           }
         case GameMode.ranking:
           for (final id in _selectedPlayerIds) {
@@ -654,7 +634,9 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
     }
     setState(() {
       _playedAt = DateTime(
-        date.year, date.month, date.day,
+        date.year,
+        date.month,
+        date.day,
         time?.hour ?? _playedAt.hour,
         time?.minute ?? _playedAt.minute,
       );
@@ -665,9 +647,8 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
 
   String _formatDate(BuildContext context, DateTime d) {
     try {
-      final fmt = DateFormat.yMMMd(
-              Localizations.localeOf(context).toString())
-          .add_Hm();
+      final fmt =
+          DateFormat.yMMMd(Localizations.localeOf(context).toString()).add_Hm();
       return fmt.format(d);
     } catch (_) {
       return '${d.day}/${d.month}/${d.year} '
@@ -710,8 +691,7 @@ class _RoundsToggle extends StatelessWidget {
                         fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 2),
                 Text(l.roundsToggleSub,
-                    style: TextStyle(
-                        fontSize: 12, color: c.textSecondary)),
+                    style: TextStyle(fontSize: 12, color: c.textSecondary)),
               ],
             ),
           ),
@@ -751,22 +731,19 @@ class _TotalsHeader extends StatelessWidget {
     if (totals.isNotEmpty) {
       if (isDuel) {
         final max = totals.values.reduce((a, b) => a > b ? a : b);
-        final leaders =
-            totals.entries.where((e) => e.value == max).toList();
+        final leaders = totals.entries.where((e) => e.value == max).toList();
         if (leaders.length == 1) {
           leaderId = leaders.first.key;
         }
       } else if (lowestScoreWins) {
         final min = totals.values.reduce((a, b) => a < b ? a : b);
-        final leaders =
-            totals.entries.where((e) => e.value == min).toList();
+        final leaders = totals.entries.where((e) => e.value == min).toList();
         if (leaders.length == 1) {
           leaderId = leaders.first.key;
         }
       } else {
         final max = totals.values.reduce((a, b) => a > b ? a : b);
-        final leaders =
-            totals.entries.where((e) => e.value == max).toList();
+        final leaders = totals.entries.where((e) => e.value == max).toList();
         if (leaders.length == 1) {
           leaderId = leaders.first.key;
         }
@@ -793,9 +770,7 @@ class _TotalsHeader extends StatelessWidget {
                   child: Text(
                     name,
                     style: TextStyle(
-                      fontWeight: isLeader
-                          ? FontWeight.w700
-                          : FontWeight.w500,
+                      fontWeight: isLeader ? FontWeight.w700 : FontWeight.w500,
                       color: isLeader ? c.accent : c.textPrimary,
                     ),
                   ),
@@ -890,24 +865,22 @@ class _RoundCard extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w500)),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w500)),
                       ),
                       SizedBox(
                         width: 90,
                         child: TextField(
                           controller: ctrl,
-                          keyboardType:
-                              const TextInputType.numberWithOptions(
-                                  signed: true),
+                          keyboardType: const TextInputType.numberWithOptions(
+                              signed: true),
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(
                                 RegExp(r'^-?\d*')),
                           ],
                           textAlign: TextAlign.center,
                           decoration: InputDecoration(
-                              suffixText: l.pointsSuffix,
-                              isDense: true),
+                              suffixText: l.pointsSuffix, isDense: true),
                           onChanged: (_) {
                             if (onPointsChanged != null) {
                               onPointsChanged!();
@@ -969,8 +942,7 @@ class _DuelPlayerRow extends StatelessWidget {
             _PlayerAvatar(player: player),
             const SizedBox(width: 10),
             Text(player.name,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600)),
+                style: const TextStyle(fontWeight: FontWeight.w600)),
           ]),
           SizedBox(height: compact ? 6 : 10),
           Row(children: [
@@ -1024,8 +996,8 @@ class _PlayerAvatar extends StatelessWidget {
       backgroundColor: color.withValues(alpha: 0.2),
       child: Text(
         player.name.isNotEmpty ? player.name[0].toUpperCase() : '?',
-        style: TextStyle(
-            color: color, fontWeight: FontWeight.w700, fontSize: 14),
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 14),
       ),
     );
   }
@@ -1057,9 +1029,7 @@ class _DuelButton extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected
-                ? color.withValues(alpha: 0.2)
-                : c.surfaceElevated,
+            color: selected ? color.withValues(alpha: 0.2) : c.surfaceElevated,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: selected ? color : c.cardBorder,

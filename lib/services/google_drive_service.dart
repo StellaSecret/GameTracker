@@ -28,7 +28,8 @@ class GoogleDriveService {
       _currentUser = await _googleSignIn.authenticate();
       return _currentUser != null;
     } on PlatformException catch (e) {
-      debugPrint('=== GoogleDriveService.signIn: PlatformException: ${e.code} - ${e.message} ===');
+      debugPrint(
+          '=== GoogleDriveService.signIn: PlatformException: ${e.code} - ${e.message} ===');
       if (e.code == 'sign_in_canceled') {
         _lastError = 'Utilisateur a annulé';
       } else {
@@ -61,11 +62,12 @@ class GoogleDriveService {
       return null;
     }
     final scopes = [
-        'email',
-        'profile',
-        drive.DriveApi.driveAppdataScope,
+      'email',
+      'profile',
+      drive.DriveApi.driveAppdataScope,
     ];
-    final authStatus = await _currentUser!.authorizationClient.authorizeScopes(scopes);
+    final authStatus =
+        await _currentUser!.authorizationClient.authorizeScopes(scopes);
     final authClient = authStatus.authClient(scopes: scopes);
     return drive.DriveApi(authClient);
   }

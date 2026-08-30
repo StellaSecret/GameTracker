@@ -43,8 +43,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ps = context.read<AppState>().purchaseService;
-      final alreadyUnlocked =
-          _isGroupSync ? ps.hasGroupSync : ps.isPremium;
+      final alreadyUnlocked = _isGroupSync ? ps.hasGroupSync : ps.isPremium;
       if (alreadyUnlocked && mounted) {
         Navigator.pop(context, true);
         return;
@@ -76,9 +75,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isGroupSync
-            ? l.paywallGroupSyncTitle
-            : l.paywallPremiumTitle),
+        title: Text(
+            _isGroupSync ? l.paywallGroupSyncTitle : l.paywallPremiumTitle),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
@@ -97,19 +95,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       decoration: BoxDecoration(
                         color: c.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: c.warning.withValues(alpha: 0.4)),
+                        border:
+                            Border.all(color: c.warning.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         children: [
-                          const Text('⚠️',
-                              style: TextStyle(fontSize: 18)),
+                          const Text('⚠️', style: TextStyle(fontSize: 18)),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               widget.reason!,
-                              style: TextStyle(
-                                  color: c.warning, fontSize: 13),
+                              style: TextStyle(color: c.warning, fontSize: 13),
                             ),
                           ),
                         ],
@@ -117,15 +113,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
-
                   Text(
                     _isGroupSync ? '👥' : '🎲',
                     style: const TextStyle(fontSize: 72),
                     textAlign: TextAlign.center,
                   ).animate().scale(
-                      duration: testAwareDuration(400.ms), curve: Curves.elasticOut),
+                      duration: testAwareDuration(400.ms),
+                      curve: Curves.elasticOut),
                   const SizedBox(height: 16),
-
                   Text(
                     _isGroupSync
                         ? l.paywallGroupSyncHero
@@ -138,18 +133,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _isGroupSync
-                        ? l.paywallGroupSyncSub
-                        : l.paywallPremiumSub,
-                    style: TextStyle(
-                        fontSize: 15, color: c.textSecondary),
+                    _isGroupSync ? l.paywallGroupSyncSub : l.paywallPremiumSub,
+                    style: TextStyle(fontSize: 15, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-
                   _FeatureTable(isGroupSync: _isGroupSync),
                   const SizedBox(height: 32),
-
                   if (_offering == null)
                     Center(
                       child: Text(
@@ -159,31 +149,25 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                     )
                   else
-                    ..._offering!.availablePackages
-                        .map((pkg) => _PackageButton(
-                              package: pkg,
-                              purchasing: _purchasing,
-                              onTap: () => _purchase(pkg),
-                            )),
-
+                    ..._offering!.availablePackages.map((pkg) => _PackageButton(
+                          package: pkg,
+                          purchasing: _purchasing,
+                          onTap: () => _purchase(pkg),
+                        )),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style:
-                          TextStyle(color: c.error, fontSize: 13),
+                      style: TextStyle(color: c.error, fontSize: 13),
                     ),
                   ],
-
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: _purchasing ? null : _restore,
                     child: Text(l.paywallRestoreBtn,
-                        style:
-                            TextStyle(color: c.textSecondary)),
+                        style: TextStyle(color: c.textSecondary)),
                   ),
-
                   const SizedBox(height: 8),
                   _CrossSell(isGroupSync: _isGroupSync),
                 ],
@@ -225,8 +209,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (ok) {
       Navigator.pop(context, true);
     } else {
-      setState(() =>
-          _error = ps.lastError ?? l.paywallNoRestoreFound);
+      setState(() => _error = ps.lastError ?? l.paywallNoRestoreFound);
     }
   }
 }
@@ -254,8 +237,7 @@ class _FeatureTable extends StatelessWidget {
             _FeatureData('🔁', l.featureMultiDevice,
                 free: l.featureNotIncluded, value: l.featureIncluded),
             _FeatureData('📊', l.featureAdvancedStats,
-                free: l.featureNotIncluded,
-                value: l.featureSeparatePremium),
+                free: l.featureNotIncluded, value: l.featureSeparatePremium),
           ]
         : [
             _FeatureData('🎲', l.featureGamesAndSessions,
@@ -267,8 +249,7 @@ class _FeatureTable extends StatelessWidget {
             _FeatureData('📤', l.featureCsvExport,
                 free: l.featureNotIncluded, value: l.featureIncluded),
             _FeatureData('👥', l.featureGroupSync,
-                free: l.featureNotIncluded,
-                value: l.featureSeparateSub),
+                free: l.featureNotIncluded, value: l.featureSeparateSub),
           ];
 
     return Column(
@@ -302,7 +283,8 @@ class _FeatureTable extends StatelessWidget {
         ...features.asMap().entries.map(
               (entry) => _FeatureRow(data: entry.value)
                   .animate(
-                      delay: testAwareDuration(Duration(milliseconds: entry.key * 60)))
+                      delay: testAwareDuration(
+                          Duration(milliseconds: entry.key * 60)))
                   .fadeIn(duration: testAwareDuration(250.ms))
                   .slideX(begin: 0.05),
             ),
@@ -332,15 +314,14 @@ class _FeatureRow extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(data.title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           ),
           SizedBox(
             width: 80,
             child: Text(data.free,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 12, color: c.textSecondary)),
+                style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ),
           SizedBox(
             width: 90,
@@ -367,9 +348,8 @@ class _CrossSell extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final c = AppColors.of(context);
-    final label = isGroupSync
-        ? l.paywallCrossSellPremium
-        : l.paywallCrossSellGroupSync;
+    final label =
+        isGroupSync ? l.paywallCrossSellPremium : l.paywallCrossSellGroupSync;
     return GestureDetector(
       onTap: () => Navigator.pushReplacement(
         context,
@@ -446,13 +426,11 @@ class _PackageButton extends StatelessWidget {
                                   ? l.paywallMonthly
                                   : package.storeProduct.title,
                           style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16),
+                              fontWeight: FontWeight.w700, fontSize: 16),
                         ),
                         if (isAnnual)
                           Text(l.paywallAnnualBonus,
-                              style: TextStyle(
-                                  fontSize: 12, color: c.accent)),
+                              style: TextStyle(fontSize: 12, color: c.accent)),
                       ],
                     ),
                   ),
@@ -462,21 +440,18 @@ class _PackageButton extends StatelessWidget {
                   if (isAnnual) ...[
                     const SizedBox(width: 4),
                     Text(l.paywallPerYear,
-                        style: TextStyle(
-                            fontSize: 12, color: c.textSecondary)),
+                        style: TextStyle(fontSize: 12, color: c.textSecondary)),
                   ] else if (isMonthly) ...[
                     const SizedBox(width: 4),
                     Text(l.paywallPerMonth,
-                        style: TextStyle(
-                            fontSize: 12, color: c.textSecondary)),
+                        style: TextStyle(fontSize: 12, color: c.textSecondary)),
                   ],
                   const SizedBox(width: 12),
                   if (purchasing)
                     const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2))
+                        child: CircularProgressIndicator(strokeWidth: 2))
                   else
                     Icon(Icons.arrow_forward_ios_rounded,
                         size: 16, color: c.textSecondary),
@@ -489,8 +464,8 @@ class _PackageButton extends StatelessWidget {
               top: -10,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: c.accent,
                   borderRadius: BorderRadius.circular(20),

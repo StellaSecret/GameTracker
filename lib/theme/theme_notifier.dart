@@ -10,7 +10,8 @@ class ThemeNotifier extends ChangeNotifier {
   ThemeMode _mode = ThemeMode.system;
   ThemeMode get mode => _mode;
 
-  bool get isDark => _mode == ThemeMode.dark ||
+  bool get isDark =>
+      _mode == ThemeMode.dark ||
       (_mode == ThemeMode.system &&
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
               Brightness.dark);
@@ -34,11 +35,13 @@ class ThemeNotifier extends ChangeNotifier {
     _mode = mode;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, switch (mode) {
-      ThemeMode.light  => 'light',
-      ThemeMode.dark   => 'dark',
-      ThemeMode.system => 'system',
-    });
+    await prefs.setString(
+        _key,
+        switch (mode) {
+          ThemeMode.light => 'light',
+          ThemeMode.dark => 'dark',
+          ThemeMode.system => 'system',
+        });
   }
 
   void toggle() => setMode(isDark ? ThemeMode.light : ThemeMode.dark);

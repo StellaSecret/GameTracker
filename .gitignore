@@ -5,6 +5,8 @@
 .pub-cache/
 .pub/
 build/
+coverage/
+mutation-test-report/
 *.iml
 *.ipr
 *.iws
