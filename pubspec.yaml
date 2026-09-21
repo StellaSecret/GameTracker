@@ -59,7 +59,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   integration_test:
     sdk: flutter
-  mutation_test: ^1.8.0
+  mutation_test: ^1.8.1
 
 flutter:
   generate: true
