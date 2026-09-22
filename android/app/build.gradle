@@ -45,12 +45,16 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // Firebase Android SDKs pulled in by firebase_core/firebase_auth/
+        // cloud_firestore now require Java 11+ bytecode. CI's JDK is
+        // already 17 (see .github/workflows/build.yml), so target that
+        // directly rather than the old Java 8 baseline.
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 
     buildFeatures {
