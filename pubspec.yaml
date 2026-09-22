@@ -61,6 +61,17 @@ dev_dependencies:
     sdk: flutter
   mutation_test: ^1.8.1
 
+# firebase_auth 6.7.0 (resolved from the ^6.6.1 constraint below) calls a
+# `migrateCurrentUser` named parameter that only exists in
+# firebase_auth_platform_interface >=9.1.0. Its own pubspec constraint is
+# too loose and still allows the older 9.0.7 to resolve, which doesn't have
+# that parameter and breaks the Gradle/Dart build with:
+#   Error: No named parameter with the name 'migrateCurrentUser'.
+# Force the platform interface to a version that actually has it until
+# firebase_auth ships a corrected constraint upstream.
+dependency_overrides:
+  firebase_auth_platform_interface: ^9.1.0
+
 flutter:
   generate: true
   uses-material-design: true
