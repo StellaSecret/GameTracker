@@ -136,8 +136,23 @@ class AppTheme {
     final er = isDark ? _Dark.error : _Light.error;
 
     // TripMind Aesthetic: Lexend for body, Outfit for headers
-    final textTheme = GoogleFonts.lexendTextTheme(
-      (isDark ? ThemeData.dark() : ThemeData.light()).textTheme,
+    final base = (isDark ? ThemeData.dark() : ThemeData.light()).textTheme;
+    final textTheme = TextTheme(
+      displayLarge: GoogleFonts.lexend(textStyle: base.displayLarge),
+      displayMedium: GoogleFonts.lexend(textStyle: base.displayMedium),
+      displaySmall: GoogleFonts.lexend(textStyle: base.displaySmall),
+      headlineLarge: GoogleFonts.lexend(textStyle: base.headlineLarge),
+      headlineMedium: GoogleFonts.lexend(textStyle: base.headlineMedium),
+      headlineSmall: GoogleFonts.lexend(textStyle: base.headlineSmall),
+      titleLarge: GoogleFonts.lexend(textStyle: base.titleLarge),
+      titleMedium: GoogleFonts.lexend(textStyle: base.titleMedium),
+      titleSmall: GoogleFonts.lexend(textStyle: base.titleSmall),
+      bodyLarge: GoogleFonts.lexend(textStyle: base.bodyLarge),
+      bodyMedium: GoogleFonts.lexend(textStyle: base.bodyMedium),
+      bodySmall: GoogleFonts.lexend(textStyle: base.bodySmall),
+      labelLarge: GoogleFonts.lexend(textStyle: base.labelLarge),
+      labelMedium: GoogleFonts.lexend(textStyle: base.labelMedium),
+      labelSmall: GoogleFonts.lexend(textStyle: base.labelSmall),
     ).apply(
       bodyColor: tp,
       displayColor: tp,
