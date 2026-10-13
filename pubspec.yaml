@@ -22,7 +22,7 @@ dependencies:
   provider: ^6.1.2
 
   # Local storage
-  shared_preferences: ^2.2.3
+  shared_preferences: ^2.5.6
   path: ^1.9.0
 
   # Google Drive / Auth (backup gratuit)
