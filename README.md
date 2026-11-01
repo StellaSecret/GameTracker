@@ -108,19 +108,20 @@ keytool -genkey -v \
 
 ### Secrets GitHub Actions
 
-**Settings → Secrets and variables → Actions** :
+Les secrets sont stockés dans des **environnements** GitHub (Settings → Environments), pas au niveau du dépôt : les secrets de signature dans `build`, les valeurs publiques dans `github-pages`. Le job de build des PR utilise `build-review`, qui ne contient aucun secret.
 
-| Secret | Description | Commande pour obtenir la valeur |
-|---|---|---|
-| `KEYSTORE_BASE64` | Keystore de signature encodé | `base64 -w 0 release-key.jks` |
-| `KEYSTORE_PASSWORD` | Mot de passe keystore | — |
-| `KEY_ALIAS` | Alias de la clé | `game-tracker` |
-| `KEY_PASSWORD` | Mot de passe de la clé | — |
-| `GOOGLE_SERVICES_JSON` | Contenu de `google-services.json` (minifié) | `python3 -c "import json; print(json.dumps(json.load(open('android/app/google-services.json'))))"` |
-| `GOOGLE_WEB_CLIENT_ID` | Client ID OAuth Web (pour GitHub Pages) | Google Cloud Console → Credentials |
-| `PREMIUM_EMAILS` | Emails avec accès premium gratuit | `email1@x.com,email2@x.com` |
+| Secret | Environnement | Description | Commande pour obtenir la valeur |
+|---|---|---|---|
+| `KEYSTORE_BASE64` | `build` | Keystore de signature encodé | `base64 -w 0 release-key.jks` |
+| `KEYSTORE_PASSWORD` | `build` | Mot de passe keystore | — |
+| `KEY_ALIAS` | `build` | Alias de la clé | `game-tracker` |
+| `KEY_PASSWORD` | `build` | Mot de passe de la clé | — |
+| `GOOGLE_SERVICES_JSON` | `build` | Contenu de `google-services.json` (minifié) | `python3 -c "import json; print(json.dumps(json.load(open('android/app/google-services.json'))))"` |
+| `GOOGLE_WEB_CLIENT_ID` | `github-pages` | Client ID OAuth Web (pour GitHub Pages) | Google Cloud Console → Credentials |
+| `PREMIUM_EMAILS` | `build` + `github-pages` | Emails avec accès premium gratuit | `email1@x.com,email2@x.com` |
+| `GROUP_SYNC_EMAILS` | `build` + `github-pages` | Emails autorisés à synchroniser un groupe | `email1@x.com,email2@x.com` |
 
-> **Gestion de `PREMIUM_EMAILS`** : utilisez le script `./update_premium_emails.sh` pour éditer la liste et mettre à jour le secret automatiquement via `gh` CLI. Le fichier `.premium_emails.txt` (ignoré par git) sert de référence locale.
+> **Gestion de `PREMIUM_EMAILS`** : utilisez le script `./update_premium_emails.sh` pour éditer la liste et mettre à jour le secret automatiquement via `gh` CLI (dans les environnements `build` et `github-pages`). Le fichier `.premium_emails.txt` (ignoré par git) sert de référence locale. Idem pour `GROUP_SYNC_EMAILS` via `./update_group_sync_emails.sh`.
 
 ### Ce que produit le CI à chaque push sur `main`
 

@@ -51,11 +51,13 @@ if [[ "$confirm" != "o" && "$confirm" != "O" ]]; then
   exit 0
 fi
 
-# Met à jour le secret GitHub
-gh secret set "$SECRET_NAME" --body "$EMAILS" --repo "$REPO"
+# Met à jour le secret GitHub dans les environnements build et github-pages
+for ENV in build github-pages; do
+  gh secret set "$SECRET_NAME" --body "$EMAILS" --repo "$REPO" --env "$ENV"
+  echo "✓ Secret '$SECRET_NAME' mis à jour sur $REPO (environnement '$ENV')"
+done
 
 echo ""
-echo "✓ Secret '$SECRET_NAME' mis à jour sur $REPO"
 echo "✓ Liste locale sauvegardée dans $LIST_FILE"
 echo ""
 echo "⚠️  Pense à commiter .group_sync_emails.txt si tu veux garder l'historique"
